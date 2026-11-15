@@ -71,6 +71,11 @@ export const errorConfig: RequestConfig = {
           }
         }
       } else if (error.response) {
+        if (error.response.status === 401) {
+          const redirect = window.location.pathname + window.location.search;
+          window.location.href = `/user/login?redirect=${encodeURIComponent(redirect)}`;
+          return;
+        }
         // Axios 的错误
         // 请求成功发出且服务器也响应了状态码，但状态代码超出了 2xx 的范围
         message.error(`Response status:${error.response.status}`);

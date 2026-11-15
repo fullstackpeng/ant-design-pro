@@ -3,11 +3,11 @@ import {
   SettingOutlined,
   SkinOutlined,
 } from '@ant-design/icons';
-import { history, useModel } from '@umijs/max';
+import { history, useIntl, useModel } from '@umijs/max';
 import type { MenuProps } from 'antd';
-import { Spin } from 'antd';
+import { App, Spin } from 'antd';
 import React, { startTransition } from 'react';
-import { outLogin } from '@/services/ant-design-pro/api';
+import { outLogin } from '@/services/auth';
 import HeaderDropdown from '../HeaderDropdown';
 
 type GlobalHeaderRightProps = {
@@ -35,12 +35,7 @@ const menuItems: MenuProps['items'] = [
   },
 ];
 
-const loginOut = async () => {
-  try {
-    await outLogin();
-  } catch {
-    // Local logout has already cleared user state; redirect should still proceed.
-  }
+const loginOut = () => {
   const { search, pathname } = window.location;
   const urlParams = new URL(window.location.href).searchParams;
   const searchParams = new URLSearchParams({
@@ -59,10 +54,23 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({
   children,
 }) => {
   const { initialState, setInitialState } = useModel('@@initialState');
+  const { message } = App.useApp();
+  const intl = useIntl();
 
-  const onMenuClick: MenuProps['onClick'] = (event) => {
+  const onMenuClick: MenuProps['onClick'] = async (event) => {
     const { key } = event;
     if (key === 'logout') {
+      try {
+        await outLogin();
+      } catch {
+        message.error(
+          intl.formatMessage({
+            id: 'pages.login.logoutFailure',
+            defaultMessage: '退出失败，请重试。',
+          }),
+        );
+        return;
+      }
       startTransition(() => {
         setInitialState((s) => ({ ...s, currentUser: undefined }));
       });
