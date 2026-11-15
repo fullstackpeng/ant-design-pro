@@ -1,11 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
+import type { LoginDto } from './dto/login.dto.js';
 import { verifyPassword } from './password.js';
 import type { SessionContext } from './session-context.js';
 
@@ -17,36 +13,10 @@ function tokenHash(token: string): string {
 export class AuthService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
-  async login(body: unknown) {
-    if (!body || typeof body !== 'object') {
-      throw new BadRequestException({
-        success: false,
-        errorMessage: '请输入用户名和密码',
-      });
-    }
-    const { tenantCode, username, password, autoLogin, type } = body as Record<
-      string,
-      unknown
-    >;
-    if (
-      typeof tenantCode !== 'string' ||
-      !/^[a-z0-9][a-z0-9-]{0,63}$/.test(tenantCode) ||
-      typeof username !== 'string' ||
-      !username.trim() ||
-      username.length > 64 ||
-      typeof password !== 'string' ||
-      !password ||
-      password.length > 1024 ||
-      (autoLogin !== undefined && typeof autoLogin !== 'boolean') ||
-      (type !== undefined && type !== 'account')
-    ) {
-      throw new BadRequestException({
-        success: false,
-        errorMessage: '请输入有效的租户编码、账号和密码',
-      });
-    }
+  async login(body: LoginDto) {
+    const { tenantCode, username, password, autoLogin } = body;
     const user = await this.prisma.user.findUnique({
-      where: { username: username.trim() },
+      where: { username },
       select: { id: true, passwordHash: true, isPlatformAdmin: true },
     });
     // Derive a key even for unknown users to avoid skipping password verification.

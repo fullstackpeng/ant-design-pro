@@ -11,7 +11,7 @@ import {
 import { Button, Tag } from 'antd';
 import React, { useRef, useState } from 'react';
 import { useManagement } from '../useManagement';
-import { listPlans, type Plan, savePlan } from './service';
+import { createPlan, listPlans, type Plan, updatePlan } from './service';
 
 export default function Plans() {
   const { t, run, load } = useManagement();
@@ -72,7 +72,14 @@ export default function Plans() {
           initialValues={editing ?? { maxMembers: 10, isActive: true }}
           onFinish={(values) =>
             run(
-              () => savePlan(values, editing?.id),
+              () =>
+                editing
+                  ? updatePlan(editing.id, {
+                      name: values.name,
+                      maxMembers: values.maxMembers,
+                      isActive: values.isActive,
+                    })
+                  : createPlan(values),
               () => {
                 setEditing(undefined);
                 action.current?.reload();

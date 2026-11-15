@@ -34,6 +34,28 @@ npm run db:studio
 
 业务查询使用 Prisma，不再手写 SQL。模型通过 `@map` / `@@map` 对应原有表和字段；数据库中的 BIGINT ID 在接口输出时转为字符串。迁移 SQL 是版本化的数据库结构记录。
 
+DTO 与 OpenAPI：
+
+- 请求体、分页/筛选和路径参数使用 DTO 类；全局 `ValidationPipe` 执行运行时校验。只对分页字段显式转换数值，JSON 布尔值和数值不做隐式转换，额外字段会被过滤。
+- DTO 校验参数形状和范围；Service 保留套餐是否到期、成员额度、租户权限和最后管理员等业务规则。创建已有账号时不要求姓名或密码，新建账号时两者必填。
+- 请求校验失败返回 HTTP 400，格式为 `{ success: false, errorCode: 400, errorMessage, errors: string[] }`，嵌套字段包含路径，不返回提交的密码或原始请求值。
+- DTO 同时通过 `@ApiProperty` / `@ApiPropertyOptional` 描述契约；Controller 使用明确的响应 DTO 和稳定的 `operationId`。Controller 参数 DTO 必须保留运行时类引用，不能只导入类型。
+- 开发环境文档地址：`http://localhost:3000/api/docs`，原始 JSON：`http://localhost:3000/api/openapi.json`。生产环境默认不挂载文档路由。
+
+更新接口后，在**项目根目录**执行：
+
+```bash
+npm run openapi
+```
+
+该命令编译后端、从 Controller/DTO 元数据导出 `config/backend.openapi.json`，再复用前端现有 OpenAPI 插件的生成器，更新 `src/services/backend/`。无需启动后端或连接数据库；需要事先安装前后端依赖并配置好本地环境文件，以供 Prisma 构建读取配置。
+
+生成的声明使用独立 `BackendAPI` 命名空间，正确保留可空字段和字符串 ID；例如 `BackendAPI.LoginDto`、`BackendAPI.CreateTenantDto`、`BackendAPI.CurrentUserDto`。登录和管理页面的 service 现在只是生成客户端的薄封装，用于保留页面自己的错误处理选项，不再重复维护请求路径和数据类型。模板示例目录 `src/services/ant-design-pro/` 不受此命令影响。
+
+生成文件不要手动修改。修改 DTO 后，统一使用项目的 `npm run openapi`，其中包含生成器所需的 nullable 兼容处理；不要用裸 `max openapi` 替代。契约快照和生成客户端应随接口变更一起提交。
+
+只导出契约也可以在后端目录运行 `npm run openapi:export`。后端 `npm test` 会对比导出的契约与当前元数据，检查 17 个操作、路径/请求体/响应类型，并验证 Swagger 文档路由。
+
 模块结构：
 
 ```text

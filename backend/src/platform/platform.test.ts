@@ -109,6 +109,94 @@ test('platform, tenant members and manual subscriptions', async (t) => {
       },
     );
 
+    await t.test(
+      'DTO validation rejects wrong scalar types, invalid IDs and malformed nested accounts',
+      async () => {
+        for (const body of [
+          { code: 'typed', name: 'Typed', maxMembers: '10', isActive: true },
+          { code: 'typed', name: 'Typed', maxMembers: 1.5, isActive: true },
+          { code: 'typed', name: 'Typed', maxMembers: 10, isActive: 'false' },
+          { code: 'typed', name: 'Typed', maxMembers: 10, isActive: null },
+        ]) {
+          const response = await call(
+            '/api/platform/plans',
+            platform,
+            'POST',
+            body,
+          );
+          assert.equal(response.status, 400);
+          const error = (await response.json()) as {
+            success: boolean;
+            errorCode: number;
+            errors: string[];
+          };
+          assert.equal(error.success, false);
+          assert.equal(error.errorCode, 400);
+          assert(Array.isArray(error.errors));
+        }
+        for (const admin of [
+          [],
+          [{ mode: 'existing', username: 'admin' }],
+          null,
+        ]) {
+          const result = await call('/api/platform/tenants', platform, 'POST', {
+            code: 'bad-object',
+            name: 'Invalid',
+            admin,
+          });
+          assert.equal(result.status, 400);
+        }
+        const sentinel = 'private-password-sentinel';
+        const invalid = await call('/api/platform/tenants', platform, 'POST', {
+          code: 'bad-nested',
+          name: 'Nested',
+          admin: {
+            mode: 'new',
+            username: 'nested-owner',
+            name: '   ',
+            password: sentinel,
+          },
+        });
+        assert.equal(invalid.status, 400);
+        const invalidBody = await invalid.text();
+        assert(invalidBody.includes('admin.name'));
+        assert(!invalidBody.includes(sentinel));
+        for (const path of [
+          '/api/platform/tenants/0',
+          '/api/platform/tenants/9223372036854775808',
+        ]) {
+          assert.equal(
+            (
+              await call(path, platform, 'PATCH', {
+                name: 'Invalid',
+                isActive: true,
+              })
+            ).status,
+            400,
+          );
+        }
+        assert.equal(
+          (await call('/api/platform/tenants?pageSize=101', platform)).status,
+          400,
+        );
+        assert.equal(
+          (await call('/api/platform/plans?current=not-a-number', platform))
+            .status,
+          400,
+        );
+        const page = await call(
+          '/api/platform/tenants?current=2&pageSize=1',
+          platform,
+        );
+        assert.equal(page.status, 200);
+        assert.equal((await data(page)).length, 1);
+        assert.equal(
+          await prisma.tenant.findUnique({ where: { code: 'bad-nested' } }),
+          null,
+        );
+      },
+    );
+
     let tenantId = '';
     let planId = '';
     let owner = '';

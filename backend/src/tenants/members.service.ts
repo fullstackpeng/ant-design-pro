@@ -1,12 +1,10 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import type { SessionContext } from '../auth/session-context.js';
+import type { PaginationQueryDto } from '../common/dto/request.dto.js';
 import {
-  bodyObject,
-  flag,
   id,
   json,
   pagination,
-  role,
   success,
   tenantId,
 } from '../common/validation.js';
@@ -14,12 +12,16 @@ import { prepareAccount, resolveAccount } from '../database/accounts.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { transaction } from '../database/transaction.js';
 import { ensureMemberCapacity } from '../plans/entitlements.js';
+import type {
+  CreateMemberDto,
+  UpdateMemberDto,
+} from './dto/member-request.dto.js';
 
 @Injectable()
 export class MembersService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
-  async list(session: SessionContext, query: Record<string, unknown>) {
+  async list(session: SessionContext, query: PaginationQueryDto) {
     const where = { tenantId: tenantId(session) };
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.tenantMembership.findMany({
@@ -35,13 +37,12 @@ export class MembersService {
       }),
       this.prisma.tenantMembership.count({ where }),
     ]);
-    return { success: true, data: json(rows), total };
+    return { success: true as const, data: json(rows), total };
   }
 
-  async add(session: SessionContext, value: unknown) {
+  async add(session: SessionContext, body: CreateMemberDto) {
     const tenant = tenantId(session);
-    const body = bodyObject(value);
-    const memberRole = role(body.role);
+    const memberRole = body.role;
     const account = await prepareAccount(body);
     await transaction(this.prisma, async (tx) => {
       await ensureMemberCapacity(tx, tenant);
@@ -53,17 +54,23 @@ export class MembersService {
     return success(null);
   }
 
-  async update(
+  update(session: SessionContext, user: string, body: UpdateMemberDto) {
+    return this.change(session, user, body);
+  }
+
+  remove(session: SessionContext, user: string) {
+    return this.change(session, user, null);
+  }
+
+  private async change(
     session: SessionContext,
     user: string,
-    value: unknown,
-    remove = false,
+    body: UpdateMemberDto | null,
   ) {
     const tenant = tenantId(session);
     const userId = id(user);
-    const body = remove ? {} : bodyObject(value);
-    const nextRole = remove ? 'user' : role(body.role);
-    const isActive = remove ? false : flag(body.isActive);
+    const nextRole = body?.role ?? 'user';
+    const isActive = body?.isActive ?? false;
     await transaction(this.prisma, async (tx) => {
       const where = { tenantId_userId: { tenantId: tenant, userId } };
       const current = await tx.tenantMembership.findUniqueOrThrow({ where });
@@ -82,7 +89,7 @@ export class MembersService {
           });
       }
       if (!current.isActive && isActive) await ensureMemberCapacity(tx, tenant);
-      if (remove) await tx.tenantMembership.delete({ where });
+      if (!body) await tx.tenantMembership.delete({ where });
       else {
         await tx.tenantMembership.update({
           where,

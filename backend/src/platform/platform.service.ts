@@ -1,31 +1,36 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import type {
+  PaginationQueryDto,
+  TenantQueryDto,
+} from '../common/dto/request.dto.js';
 import {
-  bodyObject,
-  code,
   expiresAt,
-  flag,
   id,
   json,
-  maxMembers,
   pagination,
   success,
-  text,
 } from '../common/validation.js';
 import { prepareAccount, resolveAccount } from '../database/accounts.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { transaction } from '../database/transaction.js';
+import type {
+  AssignPlanDto,
+  CreatePlanDto,
+  CreateTenantDto,
+  UpdatePlanDto,
+  UpdateTenantDto,
+} from './dto/platform-request.dto.js';
 
 @Injectable()
 export class PlatformService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
-  async tenants(query: Record<string, unknown>) {
-    const where =
-      typeof query.name === 'string' && query.name.trim()
-        ? {
-            name: { contains: query.name.trim(), mode: 'insensitive' as const },
-          }
-        : {};
+  async tenants(query: TenantQueryDto) {
+    const where = query.name
+      ? {
+          name: { contains: query.name, mode: 'insensitive' as const },
+        }
+      : {};
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.tenant.findMany({
         where,
@@ -38,13 +43,12 @@ export class PlatformService {
       }),
       this.prisma.tenant.count({ where }),
     ]);
-    return { success: true, data: json(rows), total };
+    return { success: true as const, data: json(rows), total };
   }
 
-  async createTenant(value: unknown) {
-    const body = bodyObject(value);
-    const tenantCode = code(body.code);
-    const name = text(body.name, '租户名称');
+  async createTenant(body: CreateTenantDto) {
+    const tenantCode = body.code;
+    const name = body.name;
     const account = await prepareAccount(body.admin);
     return success(
       await transaction(this.prisma, async (tx) => {
@@ -60,20 +64,19 @@ export class PlatformService {
     );
   }
 
-  async updateTenant(tenant: string, value: unknown) {
-    const body = bodyObject(value);
+  async updateTenant(tenant: string, body: UpdateTenantDto) {
     return success(
       await this.prisma.tenant.update({
         where: { id: id(tenant) },
         data: {
-          name: text(body.name, '租户名称'),
-          isActive: flag(body.isActive),
+          name: body.name,
+          isActive: body.isActive,
         },
       }),
     );
   }
 
-  async plans(query: Record<string, unknown>) {
+  async plans(query: PaginationQueryDto) {
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.plan.findMany({
         ...pagination(query),
@@ -81,29 +84,27 @@ export class PlatformService {
       }),
       this.prisma.plan.count(),
     ]);
-    return { success: true, data: json(rows), total };
+    return { success: true as const, data: json(rows), total };
   }
 
-  async createPlan(value: unknown) {
-    const body = bodyObject(value);
+  async createPlan(body: CreatePlanDto) {
     return success(
       await this.prisma.plan.create({
         data: {
-          code: code(body.code),
-          name: text(body.name, '套餐名称'),
-          maxMembers: maxMembers(body.maxMembers),
-          isActive: flag(body.isActive),
+          code: body.code,
+          name: body.name,
+          maxMembers: body.maxMembers,
+          isActive: body.isActive,
         },
       }),
     );
   }
 
-  async updatePlan(plan: string, value: unknown) {
-    const body = bodyObject(value);
+  async updatePlan(plan: string, body: UpdatePlanDto) {
     const planId = id(plan);
-    const limit = maxMembers(body.maxMembers);
-    const name = text(body.name, '套餐名称');
-    const isActive = flag(body.isActive);
+    const limit = body.maxMembers;
+    const name = body.name;
+    const isActive = body.isActive;
     return success(
       await transaction(this.prisma, async (tx) => {
         const subscriptions = await tx.subscription.findMany({
@@ -128,12 +129,11 @@ export class PlatformService {
     );
   }
 
-  async assign(tenant: string, value: unknown) {
+  async assign(tenant: string, body: AssignPlanDto) {
     const tenantId = id(tenant);
-    const body = bodyObject(value);
     const planId = id(body.planId);
     const end = expiresAt(body.expiresAt);
-    const isActive = flag(body.isActive);
+    const isActive = body.isActive;
     return success(
       await transaction(this.prisma, async (tx) => {
         await tx.tenant.findUniqueOrThrow({ where: { id: tenantId } });

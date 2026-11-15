@@ -15,7 +15,13 @@ import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
 import { listPlans } from '../plans/service';
 import { useManagement } from '../useManagement';
-import { assignPlan, listTenants, saveTenant, type Tenant } from './service';
+import {
+  assignPlan,
+  createTenant,
+  listTenants,
+  type Tenant,
+  updateTenant,
+} from './service';
 
 interface TenantForm {
   code: string;
@@ -127,21 +133,21 @@ export default function Tenants() {
           onFinish={(values) =>
             run(
               () =>
-                saveTenant(
-                  editing
-                    ? { name: values.name, isActive: values.isActive }
-                    : {
-                        code: values.code,
-                        name: values.name,
-                        admin: {
-                          mode: values.mode,
-                          username: values.username,
-                          name: values.adminName,
-                          password: values.password,
-                        },
+                editing
+                  ? updateTenant(editing.id, {
+                      name: values.name,
+                      isActive: values.isActive,
+                    })
+                  : createTenant({
+                      code: values.code,
+                      name: values.name,
+                      admin: {
+                        mode: values.mode,
+                        username: values.username,
+                        name: values.adminName,
+                        password: values.password,
                       },
-                  editing?.id,
-                ),
+                    }),
               () => {
                 setEditing(undefined);
                 reload();

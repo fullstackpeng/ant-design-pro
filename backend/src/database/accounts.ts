@@ -1,22 +1,22 @@
 import { ConflictException } from '@nestjs/common';
 import { hashPassword } from '../auth/password.js';
-import { bodyObject, invalid, password, text } from '../common/validation.js';
+import type { AccountDto } from '../common/dto/account.dto.js';
+import { invalid } from '../common/validation.js';
 import type { Prisma } from '../generated/prisma/client.js';
 
-export async function prepareAccount(value: unknown) {
-  const body = bodyObject(value);
-  const username = text(body.username, '用户名', 64);
-  if (body.mode !== 'existing' && body.mode !== 'new')
-    invalid('请选择已有账号或新建账号');
+export async function prepareAccount(body: AccountDto) {
+  const { username } = body;
+  if (body.mode === 'new' && (!body.name || !body.password))
+    invalid('新建账号需要姓名和密码');
   return {
     mode: body.mode,
     username,
     create:
-      body.mode === 'new'
+      body.mode === 'new' && body.name && body.password
         ? {
             username,
-            name: text(body.name, '姓名'),
-            passwordHash: await hashPassword(password(body.password)),
+            name: body.name,
+            passwordHash: await hashPassword(body.password),
           }
         : null,
   };

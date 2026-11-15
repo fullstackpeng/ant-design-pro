@@ -1,11 +1,3 @@
-import { request } from '@umijs/max';
+import { hello } from '@/services/backend/health';
 
-export async function queryHello() {
-  return request<{ success: boolean; data: { message: string } }>(
-    '/api/hello',
-    {
-      method: 'GET',
-      skipErrorHandler: true,
-    },
-  );
-}
+export const queryHello = () => hello({ skipErrorHandler: true });

@@ -9,11 +9,44 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import {
+  ApiBody,
+  ApiCookieAuth,
+  ApiCreatedResponse,
+  ApiExtraModels,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { RequireScope } from '../auth/access-scope.decorator.js';
+import {
+  IdParamDto,
+  PaginationQueryDto,
+  TenantQueryDto,
+} from '../common/dto/request.dto.js';
+import { ApiErrors } from '../common/dto/response.dto.js';
+import {
+  AssignPlanDto,
+  CreatePlanDto,
+  CreateTenantDto,
+  UpdatePlanDto,
+  UpdateTenantDto,
+} from './dto/platform-request.dto.js';
+import {
+  PlanListResponseDto,
+  PlanResponseDto,
+  SubscriptionResponseDto,
+  TenantListResponseDto,
+  TenantResponseDto,
+} from './dto/platform-response.dto.js';
 import { PlatformService } from './platform.service.js';
 
 @Controller('api/platform')
 @RequireScope('platform')
+@ApiTags('platform')
+@ApiCookieAuth('session')
+@ApiErrors()
+@ApiExtraModels(IdParamDto, PaginationQueryDto, TenantQueryDto)
 export class PlatformController {
   constructor(
     @Inject(PlatformService) private readonly platform: PlatformService,
@@ -21,38 +54,72 @@ export class PlatformController {
 
   @Get('tenants')
   @Header('Cache-Control', 'no-store')
-  tenants(@Query() query: Record<string, unknown>) {
+  @ApiOperation({ operationId: 'listTenants', summary: '分页查询租户' })
+  @ApiOkResponse({ type: TenantListResponseDto })
+  tenants(@Query() query: TenantQueryDto): Promise<TenantListResponseDto> {
     return this.platform.tenants(query);
   }
 
   @Post('tenants')
-  createTenant(@Body() body: unknown) {
+  @ApiOperation({
+    operationId: 'createTenant',
+    summary: '创建租户及首位管理员',
+  })
+  @ApiBody({ type: CreateTenantDto })
+  @ApiCreatedResponse({ type: TenantResponseDto })
+  createTenant(@Body() body: CreateTenantDto): Promise<TenantResponseDto> {
     return this.platform.createTenant(body);
   }
 
   @Patch('tenants/:id')
-  updateTenant(@Param('id') id: string, @Body() body: unknown) {
-    return this.platform.updateTenant(id, body);
+  @ApiOperation({ operationId: 'updateTenant', summary: '修改租户名称与状态' })
+  @ApiBody({ type: UpdateTenantDto })
+  @ApiOkResponse({ type: TenantResponseDto })
+  updateTenant(
+    @Param() params: IdParamDto,
+    @Body() body: UpdateTenantDto,
+  ): Promise<TenantResponseDto> {
+    return this.platform.updateTenant(params.id, body);
   }
 
   @Get('plans')
   @Header('Cache-Control', 'no-store')
-  plans(@Query() query: Record<string, unknown>) {
+  @ApiOperation({ operationId: 'listPlans', summary: '分页查询套餐' })
+  @ApiOkResponse({ type: PlanListResponseDto })
+  plans(@Query() query: PaginationQueryDto): Promise<PlanListResponseDto> {
     return this.platform.plans(query);
   }
 
   @Post('plans')
-  createPlan(@Body() body: unknown) {
+  @ApiOperation({ operationId: 'createPlan', summary: '创建套餐' })
+  @ApiBody({ type: CreatePlanDto })
+  @ApiCreatedResponse({ type: PlanResponseDto })
+  createPlan(@Body() body: CreatePlanDto): Promise<PlanResponseDto> {
     return this.platform.createPlan(body);
   }
 
   @Patch('plans/:id')
-  updatePlan(@Param('id') id: string, @Body() body: unknown) {
-    return this.platform.updatePlan(id, body);
+  @ApiOperation({ operationId: 'updatePlan', summary: '修改套餐与成员上限' })
+  @ApiBody({ type: UpdatePlanDto })
+  @ApiOkResponse({ type: PlanResponseDto })
+  updatePlan(
+    @Param() params: IdParamDto,
+    @Body() body: UpdatePlanDto,
+  ): Promise<PlanResponseDto> {
+    return this.platform.updatePlan(params.id, body);
   }
 
   @Post('tenants/:id/subscription')
-  assign(@Param('id') id: string, @Body() body: unknown) {
-    return this.platform.assign(id, body);
+  @ApiOperation({
+    operationId: 'assignPlan',
+    summary: '人工分配或更新租户订阅',
+  })
+  @ApiBody({ type: AssignPlanDto })
+  @ApiCreatedResponse({ type: SubscriptionResponseDto })
+  assign(
+    @Param() params: IdParamDto,
+    @Body() body: AssignPlanDto,
+  ): Promise<SubscriptionResponseDto> {
+    return this.platform.assign(params.id, body);
   }
 }

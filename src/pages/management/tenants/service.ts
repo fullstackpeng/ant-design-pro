@@ -1,36 +1,12 @@
-import { request } from '@umijs/max';
-import type { Plan } from '../plans/service';
-import type { TableResult } from '../useManagement';
+import * as platform from '@/services/backend/platform';
 
-export interface Subscription {
-  planId: string;
-  startsAt: string;
-  expiresAt: string;
-  isActive: boolean;
-  plan: Plan;
-}
-export interface Tenant {
-  id: string;
-  code: string;
-  name: string;
-  isActive: boolean;
-  subscription: Subscription | null;
-  _count: { memberships: number };
-}
-export const listTenants = (params: Record<string, unknown>) =>
-  request<TableResult<Tenant>>('/api/platform/tenants', {
-    params,
-    skipErrorHandler: true,
-  });
-export const saveTenant = (data: unknown, id?: string) =>
-  request(`/api/platform/tenants${id ? `/${id}` : ''}`, {
-    method: id ? 'PATCH' : 'POST',
-    data,
-    skipErrorHandler: true,
-  });
-export const assignPlan = (id: string, data: unknown) =>
-  request(`/api/platform/tenants/${id}/subscription`, {
-    method: 'POST',
-    data,
-    skipErrorHandler: true,
-  });
+export type Subscription = BackendAPI.SubscriptionWithPlanDto;
+export type Tenant = BackendAPI.TenantListItemDto;
+export const listTenants = (params: BackendAPI.listTenantsParams) =>
+  platform.listTenants(params, { skipErrorHandler: true });
+export const createTenant = (body: BackendAPI.CreateTenantDto) =>
+  platform.createTenant(body, { skipErrorHandler: true });
+export const updateTenant = (id: string, body: BackendAPI.UpdateTenantDto) =>
+  platform.updateTenant({ id }, body, { skipErrorHandler: true });
+export const assignPlan = (id: string, body: BackendAPI.AssignPlanDto) =>
+  platform.assignPlan({ id }, body, { skipErrorHandler: true });
