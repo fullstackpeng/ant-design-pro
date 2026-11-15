@@ -6,6 +6,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { ACCESS_SCOPE, type AccessScope } from './access-scope.decorator.js';
 import { AuthService } from './auth.service.js';
 import { IS_PUBLIC } from './public.decorator.js';
 import { type SessionRequest, sessionToken } from './session-context.js';
@@ -30,11 +31,26 @@ export class SessionGuard implements CanActivate {
     const requestedTenant = request.headers['x-tenant-id'];
     if (
       requestedTenant !== undefined &&
-      requestedTenant !== session.tenant.id
+      requestedTenant !== session.tenant?.id
     ) {
       throw new ForbiddenException({
         success: false,
         errorMessage: '不能访问其他租户',
+      });
+    }
+    const scope =
+      this.reflector.getAllAndOverride<AccessScope>(ACCESS_SCOPE, [
+        context.getHandler(),
+        context.getClass(),
+      ]) ?? 'tenant';
+    if (
+      (scope === 'platform' && !session.isPlatformAdmin) ||
+      ((scope === 'tenant' || scope === 'tenant-admin') && !session.tenant) ||
+      (scope === 'tenant-admin' && session.access !== 'admin')
+    ) {
+      throw new ForbiddenException({
+        success: false,
+        errorMessage: '无权执行此操作',
       });
     }
     request.sessionContext = session;

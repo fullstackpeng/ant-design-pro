@@ -47,7 +47,7 @@ export class AuthService {
     }
     const user = await this.prisma.user.findUnique({
       where: { username: username.trim() },
-      select: { id: true, passwordHash: true },
+      select: { id: true, passwordHash: true, isPlatformAdmin: true },
     });
     // Derive a key even for unknown users to avoid skipping password verification.
     const valid = await verifyPassword(
@@ -65,7 +65,9 @@ export class AuthService {
             select: { tenantId: true },
           })
         : null;
-    if (!user || !valid || !membership) {
+    const platformLogin =
+      tenantCode === 'platform' && user?.isPlatformAdmin === true;
+    if (!user || !valid || (!membership && !platformLogin)) {
       throw new UnauthorizedException({
         success: false,
         errorCode: 401,
@@ -78,7 +80,7 @@ export class AuthService {
       data: {
         tokenHash: tokenHash(token),
         userId: user.id,
-        tenantId: membership.tenantId,
+        tenantId: platformLogin ? null : membership?.tenantId,
         expiresAt: new Date(Date.now() + maxAge),
       },
     });
@@ -91,25 +93,44 @@ export class AuthService {
         where: {
           tokenHash: tokenHash(token),
           expiresAt: { gt: new Date() },
-          membership: { isActive: true, tenant: { isActive: true } },
         },
         select: {
+          tenantId: true,
+          user: { select: { id: true, name: true, isPlatformAdmin: true } },
           membership: {
             select: {
               role: true,
+              isActive: true,
               user: { select: { id: true, name: true } },
-              tenant: { select: { id: true, code: true, name: true } },
+              tenant: {
+                select: { id: true, code: true, name: true, isActive: true },
+              },
             },
           },
         },
       });
       if (session) {
-        const { user, tenant, role } = session.membership;
-        if (role === 'admin' || role === 'user') {
+        if (session.tenantId === null && session.user.isPlatformAdmin) {
+          return {
+            userid: session.user.id.toString(),
+            name: session.user.name,
+            access: 'user',
+            isPlatformAdmin: true,
+            tenant: null,
+          };
+        }
+        const membership = session.membership;
+        if (
+          membership?.isActive &&
+          membership.tenant.isActive &&
+          (membership.role === 'admin' || membership.role === 'user')
+        ) {
+          const { user, tenant, role } = membership;
           return {
             userid: user.id.toString(),
             name: user.name,
             access: role,
+            isPlatformAdmin: false,
             tenant: {
               id: tenant.id.toString(),
               code: tenant.code,

@@ -1,4 +1,9 @@
 export default {
+  'menu.platform': 'Platform',
+  'menu.platform.tenants': 'Tenants',
+  'menu.platform.plans': 'Plans',
+  'menu.tenant-members': 'Tenant members',
+
   'menu.welcome': 'Welcome',
   'menu.more-blocks': 'More Blocks',
   'menu.home': 'Home',

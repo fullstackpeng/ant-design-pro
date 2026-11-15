@@ -4,7 +4,8 @@ export interface SessionContext {
   userid: string;
   name: string;
   access: 'admin' | 'user';
-  tenant: { id: string; code: string; name: string };
+  isPlatformAdmin: boolean;
+  tenant: { id: string; code: string; name: string } | null;
 }
 
 export interface SessionRequest extends Request {

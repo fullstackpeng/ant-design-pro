@@ -1,4 +1,9 @@
 export default {
+  'menu.platform': '平台管理',
+  'menu.platform.tenants': '租户管理',
+  'menu.platform.plans': '套餐管理',
+  'menu.tenant-members': '租户成员',
+
   'menu.welcome': '歡迎',
   'menu.more-blocks': '更多區塊',
   'menu.home': '首頁',

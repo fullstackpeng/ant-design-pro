@@ -8,6 +8,7 @@ async function main() {
       prisma,
       process.env.ADMIN_PASSWORD ?? '',
       process.env.DEMO_PASSWORD ?? process.env.ADMIN_PASSWORD ?? '',
+      process.env.PLATFORM_ADMIN_PASSWORD ?? process.env.ADMIN_PASSWORD ?? '',
     );
     console.log(
       'Demo tenants and memberships seeded. Existing credentials and memberships are preserved.',

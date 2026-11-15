@@ -10,6 +10,7 @@ import {
   Res,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { RequireScope } from './access-scope.decorator.js';
 import { AuthService } from './auth.service.js';
 import { CurrentSession } from './current-session.decorator.js';
 import { Public } from './public.decorator.js';
@@ -49,6 +50,7 @@ export class AuthController {
   }
 
   @Get('currentUser')
+  @RequireScope('authenticated')
   @Header('Cache-Control', 'no-store')
   currentUser(@CurrentSession() session: SessionContext) {
     return {

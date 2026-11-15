@@ -1,3 +1,4 @@
+import management from './en-US/management';
 import component from './zh-TW/component';
 import globalHeader from './zh-TW/globalHeader';
 import menu from './zh-TW/menu';
@@ -7,6 +8,7 @@ import settingDrawer from './zh-TW/settingDrawer';
 import settings from './zh-TW/settings';
 
 export default {
+  ...management,
   'navBar.lang': '語言',
   'layout.user.link.help': '幫助',
   'layout.user.link.privacy': '隱私',

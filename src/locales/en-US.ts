@@ -1,5 +1,6 @@
 import component from './en-US/component';
 import globalHeader from './en-US/globalHeader';
+import management from './en-US/management';
 import menu from './en-US/menu';
 import network from './en-US/network';
 import pages from './en-US/pages';
@@ -7,6 +8,7 @@ import settingDrawer from './en-US/settingDrawer';
 import settings from './en-US/settings';
 
 export default {
+  ...management,
   'navBar.lang': 'Languages',
   'layout.user.link.help': 'Help',
   'layout.user.link.privacy': 'Privacy',

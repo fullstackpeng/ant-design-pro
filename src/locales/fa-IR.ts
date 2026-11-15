@@ -1,3 +1,4 @@
+import management from './en-US/management';
 import component from './fa-IR/component';
 import globalHeader from './fa-IR/globalHeader';
 import menu from './fa-IR/menu';
@@ -7,6 +8,7 @@ import settingDrawer from './fa-IR/settingDrawer';
 import settings from './fa-IR/settings';
 
 export default {
+  ...management,
   'navBar.lang': 'زبان ها  ',
   'layout.user.link.help': 'کمک',
   'layout.user.link.privacy': 'حریم خصوصی',

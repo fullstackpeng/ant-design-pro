@@ -1,4 +1,9 @@
 export default {
+  'menu.platform': 'Platform',
+  'menu.platform.tenants': 'Tenants',
+  'menu.platform.plans': 'Plans',
+  'menu.tenant-members': 'Tenant members',
+
   'menu.welcome': 'স্বাগতম',
   'menu.more-blocks': 'আরও ব্লক',
   'menu.home': 'নীড়',

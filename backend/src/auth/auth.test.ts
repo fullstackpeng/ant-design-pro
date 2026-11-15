@@ -370,6 +370,7 @@ test('real PostgreSQL authentication lifecycle', async (t) => {
         assert.equal(typeof body.data.userid, 'string');
         assert.deepEqual(Object.keys(body.data).sort(), [
           'access',
+          'isPlatformAdmin',
           'name',
           'tenant',
           'userid',

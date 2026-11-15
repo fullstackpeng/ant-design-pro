@@ -42,7 +42,9 @@ export async function getInitialState(): Promise<{
   const fetchUserInfo = async () => {
     try {
       const msg = await queryCurrentUser();
-      window.sessionStorage.setItem('tenantId', msg.data.tenant.id);
+      if (msg.data.tenant)
+        window.sessionStorage.setItem('tenantId', msg.data.tenant.id);
+      else window.sessionStorage.removeItem('tenantId');
       return msg.data;
     } catch (error) {
       const status = (error as { response?: { status?: number } }).response
@@ -110,7 +112,7 @@ export const layout: RunTimeLayoutConfig = ({
     avatarProps: {
       src: initialState?.currentUser?.avatar,
       title: initialState?.currentUser
-        ? `${initialState.currentUser.name} · ${initialState.currentUser.tenant.name}`
+        ? `${initialState.currentUser.name} · ${initialState.currentUser.tenant?.name ?? '平台管理'}`
         : '',
       render: (_, avatarChildren) => (
         <AvatarDropdown>{avatarChildren}</AvatarDropdown>

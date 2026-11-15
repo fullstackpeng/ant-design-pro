@@ -5,14 +5,35 @@ export async function seedDemoData(
   prisma: PrismaClient,
   adminPassword: string,
   demoPassword = adminPassword,
+  platformPassword = adminPassword,
 ) {
-  if (!adminPassword || !demoPassword)
+  if (!adminPassword || !demoPassword || !platformPassword)
     throw new Error('Seed passwords are required.');
-  const [adminHash, demoHash] = await Promise.all([
+  const [adminHash, demoHash, platformHash] = await Promise.all([
     hashPassword(adminPassword),
     hashPassword(demoPassword),
+    hashPassword(platformPassword),
   ]);
   await prisma.$transaction(async (tx) => {
+    const platform = await tx.user.upsert({
+      where: { username: 'platform-admin' },
+      update: {},
+      create: {
+        username: 'platform-admin',
+        name: '平台管理员',
+        passwordHash: platformHash,
+        isPlatformAdmin: true,
+      },
+    });
+    if (!platform.isPlatformAdmin)
+      throw new Error(
+        'platform-admin is already used by a non-platform account.',
+      );
+    const plan = await tx.plan.upsert({
+      where: { code: 'basic' },
+      update: {},
+      create: { code: 'basic', name: '基础套餐', maxMembers: 10 },
+    });
     const tenantA = await tx.tenant.upsert({
       where: { code: 'tenant-a' },
       update: {},
@@ -61,6 +82,17 @@ export async function seedDemoData(
         },
         update: {},
         create: membership,
+      });
+    }
+    for (const tenant of [tenantA, tenantB]) {
+      await tx.subscription.upsert({
+        where: { tenantId: tenant.id },
+        update: {},
+        create: {
+          tenantId: tenant.id,
+          planId: plan.id,
+          expiresAt: new Date(Date.now() + 365 * 86400000),
+        },
       });
     }
   });

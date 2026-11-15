@@ -1,5 +1,6 @@
 import component from './zh-CN/component';
 import globalHeader from './zh-CN/globalHeader';
+import management from './zh-CN/management';
 import menu from './zh-CN/menu';
 import network from './zh-CN/network';
 import pages from './zh-CN/pages';
@@ -7,6 +8,7 @@ import settingDrawer from './zh-CN/settingDrawer';
 import settings from './zh-CN/settings';
 
 export default {
+  ...management,
   'navBar.lang': '语言',
   'layout.user.link.help': '帮助',
   'layout.user.link.privacy': '隐私',

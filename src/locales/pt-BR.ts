@@ -1,3 +1,4 @@
+import management from './en-US/management';
 import component from './pt-BR/component';
 import globalHeader from './pt-BR/globalHeader';
 import menu from './pt-BR/menu';
@@ -7,6 +8,7 @@ import settingDrawer from './pt-BR/settingDrawer';
 import settings from './pt-BR/settings';
 
 export default {
+  ...management,
   'navBar.lang': 'Idiomas',
   'layout.user.link.help': 'ajuda',
   'layout.user.link.privacy': 'política de privacidade',

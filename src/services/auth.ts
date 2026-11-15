@@ -13,7 +13,8 @@ export interface CurrentUser {
   name: string;
   avatar?: string;
   access: 'admin' | 'user';
-  tenant: { id: string; code: string; name: string };
+  isPlatformAdmin: boolean;
+  tenant: { id: string; code: string; name: string } | null;
 }
 
 export async function login(body: LoginParams) {

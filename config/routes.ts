@@ -67,6 +67,34 @@ export default [
     ],
   },
   {
+    path: '/platform',
+    name: 'platform',
+    icon: 'setting',
+    access: 'canPlatform',
+    routes: [
+      { path: '/platform', redirect: '/platform/tenants' },
+      {
+        path: '/platform/tenants',
+        name: 'tenants',
+        access: 'canPlatform',
+        component: './management/tenants',
+      },
+      {
+        path: '/platform/plans',
+        name: 'plans',
+        access: 'canPlatform',
+        component: './management/plans',
+      },
+    ],
+  },
+  {
+    path: '/tenant/members',
+    name: 'tenant-members',
+    icon: 'team',
+    access: 'canManageMembers',
+    component: './management/members',
+  },
+  {
     path: '/dashboard',
     name: 'dashboard',
     icon: 'dashboard',

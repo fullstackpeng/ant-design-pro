@@ -1,3 +1,4 @@
+import management from './en-US/management';
 import component from './ja-JP/component';
 import globalHeader from './ja-JP/globalHeader';
 import menu from './ja-JP/menu';
@@ -7,6 +8,7 @@ import settingDrawer from './ja-JP/settingDrawer';
 import settings from './ja-JP/settings';
 
 export default {
+  ...management,
   'navBar.lang': '言語',
   'layout.user.link.help': 'ヘルプ',
   'layout.user.link.privacy': 'プライバシー',
