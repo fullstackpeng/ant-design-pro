@@ -98,6 +98,13 @@ export const errorConfig: RequestConfig = {
   // 请求拦截器
   requestInterceptors: [
     (config: RequestOptions) => {
+      const tenantId =
+        typeof window !== 'undefined'
+          ? window.sessionStorage.getItem('tenantId')
+          : null;
+      if (tenantId) {
+        config.headers = { ...config.headers, 'X-Tenant-ID': tenantId };
+      }
       // 拦截请求配置，进行个性化处理。
       // 示例：为请求附加 token（按需启用）
       // const token = localStorage.getItem('token');

@@ -1,14 +1,19 @@
-import { createPool, initializeDatabase } from './database.js';
+import { createPrismaClient } from './database/prisma.factory.js';
+import { seedDemoData } from './database/seed.js';
 
 async function main() {
-  const pool = createPool();
+  const prisma = createPrismaClient();
   try {
-    await initializeDatabase(pool, process.env.ADMIN_PASSWORD ?? '');
+    await seedDemoData(
+      prisma,
+      process.env.ADMIN_PASSWORD ?? '',
+      process.env.DEMO_PASSWORD ?? process.env.ADMIN_PASSWORD ?? '',
+    );
     console.log(
-      'Database initialized. Existing admin credentials are preserved.',
+      'Demo tenants and memberships seeded. Existing credentials and memberships are preserved.',
     );
   } finally {
-    await pool.end();
+    await prisma.$disconnect();
   }
 }
 

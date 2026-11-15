@@ -19,7 +19,10 @@ import {
   OfflineBanner,
   VersionDropdown,
 } from '@/components';
-import { currentUser as queryCurrentUser } from '@/services/auth';
+import {
+  type CurrentUser,
+  currentUser as queryCurrentUser,
+} from '@/services/auth';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
 
@@ -31,21 +34,23 @@ const loginPath = '/user/login';
  * */
 export async function getInitialState(): Promise<{
   settings?: Partial<LayoutSettings>;
-  currentUser?: API.CurrentUser;
+  currentUser?: CurrentUser;
   loading?: boolean;
-  fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
+  fetchUserInfo?: () => Promise<CurrentUser | undefined>;
   settingDrawerOpen?: boolean;
 }> {
   const fetchUserInfo = async () => {
     try {
       const msg = await queryCurrentUser();
+      window.sessionStorage.setItem('tenantId', msg.data.tenant.id);
       return msg.data;
     } catch (error) {
-      if (
-        (error as { response?: { status?: number } }).response?.status !== 401
-      ) {
+      const status = (error as { response?: { status?: number } }).response
+        ?.status;
+      if (status !== 401 && status !== 403) {
         throw error;
       }
+      window.sessionStorage.removeItem('tenantId');
       const { pathname, search, hash } = history.location;
       history.replace(
         `${loginPath}?redirect=${encodeURIComponent(pathname + search + hash)}`,
@@ -104,7 +109,9 @@ export const layout: RunTimeLayoutConfig = ({
     },
     avatarProps: {
       src: initialState?.currentUser?.avatar,
-      title: 'ProUser',
+      title: initialState?.currentUser
+        ? `${initialState.currentUser.name} · ${initialState.currentUser.tenant.name}`
+        : '',
       render: (_, avatarChildren) => (
         <AvatarDropdown>{avatarChildren}</AvatarDropdown>
       ),

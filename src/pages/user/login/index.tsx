@@ -1,4 +1,8 @@
-import { LockOutlined, UserOutlined } from '@ant-design/icons';
+import {
+  ApartmentOutlined,
+  LockOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import {
   LoginForm,
   ProFormCheckbox,
@@ -15,7 +19,7 @@ import { Alert, App, Button, Tabs } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { startTransition, useState } from 'react';
 import { Footer } from '@/components';
-import { login } from '@/services/auth';
+import { type LoginParams, login } from '@/services/auth';
 import Settings from '../../../../config/defaultSettings';
 import { queryHello } from './service';
 
@@ -129,11 +133,12 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (values: API.LoginParams) => {
+  const handleSubmit = async (values: LoginParams) => {
     setLoginError('');
     try {
       const msg = await login({ ...values, type: 'account' });
       if (msg.success) {
+        window.sessionStorage.removeItem('tenantId');
         await fetchUserInfo();
         const defaultLoginSuccessMessage = intl.formatMessage({
           id: 'pages.login.success',
@@ -151,8 +156,8 @@ const Login: React.FC = () => {
       if (status === 401) {
         setLoginError(
           intl.formatMessage({
-            id: 'pages.login.invalidCredentials',
-            defaultMessage: '用户名或密码错误',
+            id: 'pages.login.invalidTenantCredentials',
+            defaultMessage: '租户或账号信息不正确，或无权访问该租户',
           }),
         );
         return;
@@ -197,7 +202,7 @@ const Login: React.FC = () => {
             autoLogin: true,
           }}
           onFinish={async (values) => {
-            await handleSubmit(values as API.LoginParams);
+            await handleSubmit(values as LoginParams);
           }}
         >
           <Tabs
@@ -215,6 +220,34 @@ const Login: React.FC = () => {
           />
 
           {loginError && <LoginMessage content={loginError} />}
+          <ProFormText
+            name="tenantCode"
+            fieldProps={{
+              size: 'large',
+              prefix: <ApartmentOutlined />,
+              maxLength: 64,
+            }}
+            placeholder={intl.formatMessage({
+              id: 'pages.login.tenantCode.placeholder',
+              defaultMessage: '请输入租户编码',
+            })}
+            rules={[
+              {
+                required: true,
+                message: intl.formatMessage({
+                  id: 'pages.login.tenantCode.required',
+                  defaultMessage: '请输入租户编码',
+                }),
+              },
+              {
+                pattern: /^[a-z0-9][a-z0-9-]{0,63}$/,
+                message: intl.formatMessage({
+                  id: 'pages.login.tenantCode.invalid',
+                  defaultMessage: '租户编码仅支持小写字母、数字和连字符',
+                }),
+              },
+            ]}
+          />
           <ProFormText
             name="username"
             fieldProps={{

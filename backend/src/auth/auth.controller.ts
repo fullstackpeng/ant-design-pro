@@ -10,12 +10,14 @@ import {
   Res,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { AuthService, SESSION_COOKIE } from './auth.service.js';
-
-function sessionToken(request: Request): string | undefined {
-  const value: unknown = request.cookies?.[SESSION_COOKIE];
-  return typeof value === 'string' ? value : undefined;
-}
+import { AuthService } from './auth.service.js';
+import { CurrentSession } from './current-session.decorator.js';
+import { Public } from './public.decorator.js';
+import {
+  SESSION_COOKIE,
+  type SessionContext,
+  sessionToken,
+} from './session-context.js';
 
 const cookieOptions = {
   httpOnly: true,
@@ -29,6 +31,7 @@ export class AuthController {
   constructor(@Inject(AuthService) private readonly auth: AuthService) {}
 
   @Post('login/account')
+  @Public()
   @HttpCode(200)
   @Header('Cache-Control', 'no-store')
   async login(
@@ -47,14 +50,15 @@ export class AuthController {
 
   @Get('currentUser')
   @Header('Cache-Control', 'no-store')
-  async currentUser(@Req() request: Request) {
+  currentUser(@CurrentSession() session: SessionContext) {
     return {
       success: true,
-      data: await this.auth.currentUser(sessionToken(request)),
+      data: session,
     };
   }
 
   @Post('login/outLogin')
+  @Public()
   @HttpCode(200)
   @Header('Cache-Control', 'no-store')
   async logout(

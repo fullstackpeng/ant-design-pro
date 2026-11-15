@@ -1,6 +1,22 @@
 import { request } from '@umijs/max';
 
-export async function login(body: API.LoginParams) {
+export interface LoginParams {
+  tenantCode: string;
+  username: string;
+  password: string;
+  autoLogin?: boolean;
+  type?: 'account';
+}
+
+export interface CurrentUser {
+  userid: string;
+  name: string;
+  avatar?: string;
+  access: 'admin' | 'user';
+  tenant: { id: string; code: string; name: string };
+}
+
+export async function login(body: LoginParams) {
   return request<{ success: boolean; data: null }>('/api/login/account', {
     method: 'POST',
     data: body,
@@ -9,7 +25,7 @@ export async function login(body: API.LoginParams) {
 }
 
 export async function currentUser() {
-  return request<{ success: boolean; data: API.CurrentUser }>('/api/currentUser', {
+  return request<{ success: boolean; data: CurrentUser }>('/api/currentUser', {
     method: 'GET',
     skipErrorHandler: true,
   });

@@ -1,0 +1,136 @@
+import { createHash, randomBytes } from 'node:crypto';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { PrismaService } from '../database/prisma.service.js';
+import { verifyPassword } from './password.js';
+import type { SessionContext } from './session-context.js';
+
+function tokenHash(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}
+
+@Injectable()
+export class AuthService {
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+
+  async login(body: unknown) {
+    if (!body || typeof body !== 'object') {
+      throw new BadRequestException({
+        success: false,
+        errorMessage: '请输入用户名和密码',
+      });
+    }
+    const { tenantCode, username, password, autoLogin, type } = body as Record<
+      string,
+      unknown
+    >;
+    if (
+      typeof tenantCode !== 'string' ||
+      !/^[a-z0-9][a-z0-9-]{0,63}$/.test(tenantCode) ||
+      typeof username !== 'string' ||
+      !username.trim() ||
+      username.length > 64 ||
+      typeof password !== 'string' ||
+      !password ||
+      password.length > 1024 ||
+      (autoLogin !== undefined && typeof autoLogin !== 'boolean') ||
+      (type !== undefined && type !== 'account')
+    ) {
+      throw new BadRequestException({
+        success: false,
+        errorMessage: '请输入有效的租户编码、账号和密码',
+      });
+    }
+    const user = await this.prisma.user.findUnique({
+      where: { username: username.trim() },
+      select: { id: true, passwordHash: true },
+    });
+    // Derive a key even for unknown users to avoid skipping password verification.
+    const valid = await verifyPassword(
+      password,
+      user?.passwordHash ?? `${'0'.repeat(32)}:${'0'.repeat(128)}`,
+    );
+    const membership =
+      user && valid
+        ? await this.prisma.tenantMembership.findFirst({
+            where: {
+              userId: user.id,
+              isActive: true,
+              tenant: { code: tenantCode, isActive: true },
+            },
+            select: { tenantId: true },
+          })
+        : null;
+    if (!user || !valid || !membership) {
+      throw new UnauthorizedException({
+        success: false,
+        errorCode: 401,
+        errorMessage: '租户或账号信息不正确，或无权访问该租户',
+      });
+    }
+    const token = randomBytes(32).toString('hex');
+    const maxAge = (autoLogin === true ? 7 * 24 : 12) * 60 * 60 * 1000;
+    await this.prisma.session.create({
+      data: {
+        tokenHash: tokenHash(token),
+        userId: user.id,
+        tenantId: membership.tenantId,
+        expiresAt: new Date(Date.now() + maxAge),
+      },
+    });
+    return { token, maxAge, remember: autoLogin === true };
+  }
+
+  async currentUser(token: string | undefined): Promise<SessionContext> {
+    if (token) {
+      const session = await this.prisma.session.findFirst({
+        where: {
+          tokenHash: tokenHash(token),
+          expiresAt: { gt: new Date() },
+          membership: { isActive: true, tenant: { isActive: true } },
+        },
+        select: {
+          membership: {
+            select: {
+              role: true,
+              user: { select: { id: true, name: true } },
+              tenant: { select: { id: true, code: true, name: true } },
+            },
+          },
+        },
+      });
+      if (session) {
+        const { user, tenant, role } = session.membership;
+        if (role === 'admin' || role === 'user') {
+          return {
+            userid: user.id.toString(),
+            name: user.name,
+            access: role,
+            tenant: {
+              id: tenant.id.toString(),
+              code: tenant.code,
+              name: tenant.name,
+            },
+          };
+        }
+      }
+    }
+    throw new UnauthorizedException({
+      success: false,
+      errorCode: 401,
+      errorMessage: '请先登录',
+    });
+  }
+
+  async logout(token: string | undefined) {
+    if (token) {
+      await this.prisma.session.deleteMany({
+        where: { tokenHash: tokenHash(token) },
+      });
+    }
+  }
+}

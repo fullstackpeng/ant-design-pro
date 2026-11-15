@@ -1,17 +1,19 @@
 import { Controller, Get, Module } from '@nestjs/common';
-import { AuthController } from './auth.controller.js';
-import { AuthService } from './auth.service.js';
+import { AuthModule } from './auth/auth.module.js';
+import { Public } from './auth/public.decorator.js';
+import { TenantsModule } from './tenants/tenants.module.js';
 
 @Controller('api')
 class AppController {
   @Get('hello')
+  @Public()
   getHello() {
     return { success: true, data: { message: 'Hello World!' } };
   }
 }
 
 @Module({
-  controllers: [AppController, AuthController],
-  providers: [AuthService],
+  imports: [AuthModule, TenantsModule],
+  controllers: [AppController],
 })
 export class AppModule {}
