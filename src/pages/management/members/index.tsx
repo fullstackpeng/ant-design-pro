@@ -17,6 +17,7 @@ import { useManagement } from '../useManagement';
 import {
   addMember,
   listMembers,
+  listRoles,
   type Member,
   removeMember,
   subscriptionInfo,
@@ -29,11 +30,22 @@ interface MemberForm {
   name?: string;
   password?: string;
   role: 'admin' | 'user';
+  roleIds?: string[];
   isActive: boolean;
 }
 export default function Members() {
   const { t, run, load, report, pending } = useManagement();
   const { initialState } = useModel('@@initialState');
+  const permissions = initialState?.navigation?.permissions ?? [];
+  const can = (code: string) => permissions.includes(code);
+  const isAdmin = initialState?.currentUser?.access === 'admin';
+  const [customRoles, setCustomRoles] = useState<BackendAPI.RoleDto[]>([]);
+  useEffect(() => {
+    if (isAdmin)
+      listRoles()
+        .then((result) => setCustomRoles(result.data))
+        .catch(report);
+  }, [isAdmin]);
   const action = useRef<ActionType | null>(null);
   const [editing, setEditing] = useState<Member | null>();
   const [usage, setUsage] = useState<{
@@ -70,7 +82,9 @@ export default function Members() {
       render: (_, row) =>
         row.role === 'admin'
           ? t('administrator', '管理员')
-          : t('member', '普通成员'),
+          : row.roles.length
+            ? row.roles.map((role) => role.name).join('、')
+            : t('member', '普通成员'),
     },
     {
       title: t('status', '状态'),
@@ -85,27 +99,31 @@ export default function Members() {
       title: t('actions', '操作'),
       valueType: 'option',
       render: (_, row) => [
-        <Button key="edit" type="link" onClick={() => setEditing(row)}>
-          {t('edit', '编辑')}
-        </Button>,
-        <Popconfirm
-          key="remove"
-          title={t(
-            'removeConfirm',
-            '移除该成员？账号及其他企业的成员关系将保留。',
-          )}
-          onConfirm={() =>
-            run(
-              () => removeMember(row.userId),
-              () => refreshMember(row.userId),
-            )
-          }
-          okButtonProps={{ loading: pending }}
-        >
-          <Button type="link" danger>
-            {t('remove', '移除')}
+        can('members:update') && (isAdmin || row.role !== 'admin') && (
+          <Button key="edit" type="link" onClick={() => setEditing(row)}>
+            {t('edit', '编辑')}
           </Button>
-        </Popconfirm>,
+        ),
+        can('members:delete') && (isAdmin || row.role !== 'admin') && (
+          <Popconfirm
+            key="remove"
+            title={t(
+              'removeConfirm',
+              '移除该成员？账号及其他企业的成员关系将保留。',
+            )}
+            onConfirm={() =>
+              run(
+                () => removeMember(row.userId),
+                () => refreshMember(row.userId),
+              )
+            }
+            okButtonProps={{ loading: pending }}
+          >
+            <Button type="link" danger>
+              {t('remove', '移除')}
+            </Button>
+          </Popconfirm>
+        ),
       ],
     },
   ];
@@ -139,9 +157,11 @@ export default function Members() {
         search={false}
         request={(params) => load(() => listMembers(params))}
         toolBarRender={() => [
-          <Button key="new" type="primary" onClick={() => setEditing(null)}>
-            {t('addMember', '添加成员')}
-          </Button>,
+          can('members:create') && (
+            <Button key="new" type="primary" onClick={() => setEditing(null)}>
+              {t('addMember', '添加成员')}
+            </Button>
+          ),
         ]}
       />
       {editing !== undefined && (
@@ -154,17 +174,24 @@ export default function Members() {
             if (!open) setEditing(undefined);
           }}
           initialValues={
-            editing ?? { mode: 'new', role: 'user', isActive: true }
+            editing
+              ? { ...editing, roleIds: editing.roles.map((role) => role.id) }
+              : { mode: 'new', role: 'user', isActive: true, roleIds: [] }
           }
           onFinish={(values) =>
             run(
               () =>
                 editing
                   ? updateMember(editing.userId, {
-                      role: values.role,
+                      ...(isAdmin ? { roleIds: values.roleIds } : {}),
+                      role: isAdmin ? values.role : 'user',
                       isActive: values.isActive,
                     })
-                  : addMember(values),
+                  : addMember({
+                      ...values,
+                      role: isAdmin ? values.role : 'user',
+                      roleIds: isAdmin ? values.roleIds : undefined,
+                    }),
               () => {
                 const userId = editing?.userId;
                 setEditing(undefined);
@@ -213,12 +240,29 @@ export default function Members() {
               </ProFormDependency>
             </>
           )}
-          <ProFormSelect
-            name="role"
-            label={t('role', '角色')}
-            options={roles}
-            rules={[{ required: true }]}
-          />
+          {isAdmin && (
+            <ProFormSelect
+              name="role"
+              label={t('role', '角色')}
+              options={roles}
+              rules={[{ required: true }]}
+            />
+          )}
+          {isAdmin && (
+            <ProFormSelect
+              name="roleIds"
+              label={t('customRoles', '自定义角色')}
+              mode="multiple"
+              options={customRoles.map((role) => ({
+                label: role.name,
+                value: role.id,
+              }))}
+              extra={t(
+                'customRolesHelp',
+                '管理员身份拥有全部已开通权限；普通成员分配多个角色时取权限并集，留空使用基础页面权限。',
+              )}
+            />
+          )}
           {editing && (
             <ProFormSwitch name="isActive" label={t('enabled', '启用')} />
           )}

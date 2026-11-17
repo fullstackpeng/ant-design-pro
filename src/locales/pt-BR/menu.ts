@@ -1,4 +1,11 @@
 export default {
+  'menu.platform.settings': 'Configurações do sistema',
+  'menu.platform.navigation': 'Gerenciar menus',
+
+  'menu.platform.users': 'Usuários',
+  'menu.tenant-roles': 'Funções',
+  'menu.account.theme': 'Configurações de tema',
+
   'menu.platform': 'Platform',
   'menu.platform.tenants': 'Tenants',
   'menu.platform.plans': 'Plans',

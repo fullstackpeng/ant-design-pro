@@ -2,6 +2,34 @@ import { describe, expect, it } from 'vitest';
 import access from './access';
 
 describe('access', () => {
+  it('allows member management from effective permissions instead of the legacy role', () => {
+    expect(
+      access({
+        currentUser: { access: 'user', isPlatformAdmin: false },
+        navigation: {
+          menus: [],
+          allowedPaths: ['/tenant/members'],
+          permissions: ['members:read'],
+        },
+      }).canManageMembers,
+    ).toBe(true);
+    expect(
+      access({
+        currentUser: { access: 'admin' },
+        navigation: { menus: [], allowedPaths: [], permissions: [] },
+      }).canManageMembers,
+    ).toBe(false);
+    expect(
+      access({
+        currentUser: { isPlatformAdmin: true },
+        navigation: {
+          menus: [],
+          allowedPaths: [],
+          permissions: ['members:read'],
+        },
+      }).canManageMembers,
+    ).toBe(false);
+  });
   it('should return canAdmin true when user has admin access', () => {
     const initialState = {
       currentUser: {

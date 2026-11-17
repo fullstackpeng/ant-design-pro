@@ -1,4 +1,11 @@
 export default {
+  'menu.platform.settings': 'সিস্টেম সেটিংস',
+  'menu.platform.navigation': 'মেনু ব্যবস্থাপনা',
+
+  'menu.platform.users': 'ব্যবহারকারী',
+  'menu.tenant-roles': 'ভূমিকা',
+  'menu.account.theme': 'থিম সেটিংস',
+
   'menu.platform': 'Platform',
   'menu.platform.tenants': 'Tenants',
   'menu.platform.plans': 'Plans',

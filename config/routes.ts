@@ -78,7 +78,6 @@ export default [
     path: '/admin',
     name: 'admin',
     icon: 'crown',
-    access: 'canAdmin',
     routes: [
       {
         path: '/admin',
@@ -97,6 +96,18 @@ export default [
     icon: 'setting',
     access: 'canPlatform',
     routes: [
+      {
+        path: '/platform/users',
+        name: 'users',
+        access: 'canPlatform',
+        component: './management/users',
+      },
+      {
+        path: '/platform/settings',
+        name: 'settings',
+        access: 'canPlatform',
+        component: './management/settings',
+      },
       { path: '/platform', redirect: '/platform/tenants' },
       {
         path: '/platform/tenants',
@@ -117,6 +128,12 @@ export default [
         component: './management/navigation',
       },
     ],
+  },
+  {
+    path: '/tenant/roles',
+    name: 'tenant-roles',
+    icon: 'team',
+    component: './management/roles',
   },
   {
     path: '/tenant/members',

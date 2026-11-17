@@ -6,11 +6,12 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { NavigationService } from '../navigation/navigation.service.js';
-import { REQUIRED_FEATURE } from '../navigation/require-feature.decorator.js';
 import { ACCESS_SCOPE, type AccessScope } from './access-scope.decorator.js';
 import { AuthService } from './auth.service.js';
+import { AuthorizationService } from './authorization.service.js';
 import { IS_PUBLIC } from './public.decorator.js';
+import { REQUIRED_FEATURE } from './require-feature.decorator.js';
+import { REQUIRED_PERMISSION } from './require-permission.decorator.js';
 import { type SessionRequest, sessionToken } from './session-context.js';
 
 @Injectable()
@@ -18,7 +19,8 @@ export class SessionGuard implements CanActivate {
   constructor(
     @Inject(Reflector) private readonly reflector: Reflector,
     @Inject(AuthService) private readonly auth: AuthService,
-    @Inject(NavigationService) private readonly navigation: NavigationService,
+    @Inject(AuthorizationService)
+    private readonly authorization: AuthorizationService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -60,7 +62,13 @@ export class SessionGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    if (feature) await this.navigation.requireFeature(session, feature);
+    if (feature) await this.authorization.requireFeature(session, feature);
+    const permission = this.reflector.getAllAndOverride<string>(
+      REQUIRED_PERMISSION,
+      [context.getHandler(), context.getClass()],
+    );
+    if (permission)
+      await this.authorization.requirePermission(session, permission);
     request.sessionContext = session;
     return true;
   }

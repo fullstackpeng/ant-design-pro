@@ -1,4 +1,11 @@
 export default {
+  'menu.platform.settings': 'Pengaturan sistem',
+  'menu.platform.navigation': 'Pengelolaan menu',
+
+  'menu.platform.users': 'Pengguna',
+  'menu.tenant-roles': 'Peran',
+  'menu.account.theme': 'Pengaturan tema',
+
   'menu.platform': 'Platform',
   'menu.platform.tenants': 'Tenants',
   'menu.platform.plans': 'Plans',

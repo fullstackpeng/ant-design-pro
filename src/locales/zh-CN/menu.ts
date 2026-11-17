@@ -1,4 +1,9 @@
 export default {
+  'menu.platform.settings': '系统配置',
+  'menu.platform.users': '用户管理',
+  'menu.tenant-roles': '角色管理',
+  'menu.account.theme': '主题设置',
+
   'menu.platform': '平台管理',
   'menu.platform.tenants': '租户管理',
   'menu.platform.plans': '套餐管理',

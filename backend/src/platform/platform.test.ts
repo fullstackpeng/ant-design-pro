@@ -91,6 +91,570 @@ test('platform, tenant members and manual subscriptions', async (t) => {
     const member = await login('tenant-a', 'tenant-a-user');
 
     await t.test(
+      'site settings are public by whitelist, platform-only to edit, versioned and audited',
+      async () => {
+        const initial = await data(
+          await call('/api/platform/settings', platform),
+        );
+        const exposed = await data(await call('/api/site-settings'));
+        assert.deepEqual(
+          Object.keys(exposed).sort(),
+          [
+            'title',
+            'logo',
+            'loginBackground',
+            'footerText',
+            'colorPrimary',
+            'defaultLocale',
+          ].sort(),
+        );
+        assert.equal(exposed.title, initial.title);
+        assert.equal((await call('/api/platform/settings')).status, 401);
+        for (const cookie of [tenantA, member]) {
+          assert.equal(
+            (await call('/api/platform/settings', cookie)).status,
+            403,
+          );
+          assert.equal(
+            (await call('/api/platform/settings', cookie, 'PATCH', initial))
+              .status,
+            403,
+          );
+          assert.equal(
+            (await call('/api/platform/settings/history', cookie)).status,
+            403,
+          );
+        }
+        const invalid = [
+          { title: ' ' },
+          { title: 123 },
+          { colorPrimary: 'red' },
+          { defaultLocale: 'xx-XX' },
+          { revision: '0' },
+          { logo: 'javascript:alert(1)' },
+          { logo: 'data:image/svg+xml,test' },
+          { logo: '//example.com/logo.png' },
+          { logo: 'https://user:password@example.com/logo.png' },
+          { logo: '/foo\nbar' },
+          { loginBackground: 'ftp://example.com/background.png' },
+          { loginBackground: null },
+        ];
+        for (const fields of invalid)
+          assert.equal(
+            (
+              await call('/api/platform/settings', platform, 'PATCH', {
+                ...initial,
+                ...fields,
+              })
+            ).status,
+            400,
+            JSON.stringify(fields),
+          );
+        assert.equal(
+          (await data(await call('/api/platform/settings', platform))).revision,
+          initial.revision,
+        );
+        assert.equal(
+          (await data(await call('/api/platform/settings/history', platform)))
+            .length,
+          0,
+        );
+        const changed = {
+          ...initial,
+          title: 'Customer portal',
+          logo: '/logo.svg',
+          loginBackground: '',
+          footerText: 'Example company',
+          colorPrimary: '#123456',
+          defaultLocale: 'en-US',
+        };
+        const result = await call('/api/platform/settings', platform, 'PATCH', {
+          ...changed,
+          DATABASE_URL: 'must-not-be-stored',
+          isPlatformAdmin: true,
+        });
+        assert.equal(result.status, 200);
+        const saved = await data(result);
+        assert.equal(saved.revision, initial.revision + 1);
+        assert.equal(
+          (await data(await call('/api/site-settings'))).title,
+          changed.title,
+        );
+        const log = await data(
+          await call('/api/platform/settings/history', platform),
+        );
+        assert.equal(log.length, 1);
+        assert.deepEqual(log[0].before, initial);
+        assert.deepEqual(log[0].after, saved);
+        const actor = await data(await call('/api/currentUser', platform));
+        assert.equal(log[0].actorId, actor.userid);
+        assert.equal(log[0].actorName, actor.name);
+        assert(!JSON.stringify(log).includes('must-not-be-stored'));
+        assert.equal(
+          (await call('/api/platform/settings', platform, 'PATCH', changed))
+            .status,
+          409,
+        );
+        const concurrent = await Promise.all([
+          call('/api/platform/settings', platform, 'PATCH', {
+            ...saved,
+            title: 'First editor',
+          }),
+          call('/api/platform/settings', platform, 'PATCH', {
+            ...saved,
+            title: 'Second editor',
+          }),
+        ]);
+        assert.deepEqual(
+          concurrent.map((response) => response.status).sort(),
+          [200, 409],
+        );
+        const current = await data(
+          await call('/api/platform/settings', platform),
+        );
+        assert.equal(current.revision, saved.revision + 1);
+        assert.equal(
+          (await data(await call('/api/platform/settings/history', platform)))
+            .length,
+          2,
+        );
+        assert.equal(
+          (
+            await call('/api/platform/settings', platform, 'PATCH', {
+              ...initial,
+              revision: current.revision,
+            })
+          ).status,
+          200,
+        );
+      },
+    );
+
+    await t.test(
+      'role permissions are tenant scoped, granular and live',
+      async () => {
+        const a = await prisma.tenant.findUniqueOrThrow({
+          where: { code: 'tenant-a' },
+        });
+        const b = await prisma.tenant.findUniqueOrThrow({
+          where: { code: 'tenant-b' },
+        });
+        const person = await prisma.user.findUniqueOrThrow({
+          where: { username: 'tenant-a-user' },
+        });
+        const owner = await prisma.user.findUniqueOrThrow({
+          where: { username: 'admin' },
+        });
+        const nav = await data(await call('/api/current/navigation', tenantA));
+        assert(
+          !nav.menus.some(
+            (m: any) => m.code === 'account' || m.path?.startsWith('/account/'),
+          ),
+        );
+        assert(nav.allowedPaths.includes('/account/center'));
+        assert(nav.allowedPaths.includes('/account/settings'));
+        assert(
+          nav.menus.find((m: any) => m.code === 'dashboard-analysis')
+            .i18nKey === 'menu.dashboard.analysis',
+        );
+        assert.equal((await call('/api/tenant/roles', member)).status, 403);
+        assert.equal((await call('/api/tenant/roles', platform)).status, 403);
+        for (const permissions of [
+          ['unknown:permission'],
+          ['members:create'],
+          ['members:read', 'members:read'],
+          null,
+        ])
+          assert.equal(
+            (
+              await call('/api/tenant/roles', tenantA, 'POST', {
+                name: 'Invalid',
+                permissions,
+              })
+            ).status,
+            400,
+          );
+        assert.equal(
+          (
+            await call('/api/tenant/roles', tenantA, 'POST', {
+              name: 'Read members',
+              permissions: ['members:read'],
+            })
+          ).status,
+          201,
+        );
+        assert.equal(
+          (
+            await call('/api/tenant/roles', tenantB, 'POST', {
+              name: 'Other tenant',
+              permissions: ['members:read'],
+            })
+          ).status,
+          201,
+        );
+        const role = (
+          await data(await call('/api/tenant/roles', tenantA))
+        ).find((r: any) => r.name === 'Read members');
+        const other = (
+          await data(await call('/api/tenant/roles', tenantB))
+        ).find((r: any) => r.name === 'Other tenant');
+        assert.equal(
+          (
+            await call(`/api/tenant/roles/${role.id}`, tenantB, 'PATCH', {
+              name: 'Stolen',
+              permissions: [],
+            })
+          ).status,
+          404,
+        );
+        assert.equal(
+          (
+            await call(`/api/tenant/members/${person.id}`, tenantA, 'PATCH', {
+              role: 'user',
+              isActive: true,
+              roleIds: [other.id],
+            })
+          ).status,
+          403,
+        );
+        assert.equal(
+          await prisma.memberRole.count({
+            where: { tenantId: a.id, userId: person.id },
+          }),
+          0,
+        );
+        assert.equal(
+          (
+            await call(`/api/tenant/members/${person.id}`, tenantA, 'PATCH', {
+              role: 'user',
+              isActive: true,
+              roleIds: [role.id],
+            })
+          ).status,
+          200,
+        );
+        assert.equal((await call('/api/tenant/members', member)).status, 200);
+        assert.equal(
+          (
+            await call('/api/tenant/members', member, 'POST', {
+              mode: 'existing',
+              username: 'admin',
+              role: 'user',
+            })
+          ).status,
+          403,
+        );
+        assert.equal(
+          (
+            await call(`/api/tenant/members/${person.id}`, member, 'PATCH', {
+              role: 'user',
+              isActive: true,
+            })
+          ).status,
+          403,
+        );
+        assert.equal(
+          (await call(`/api/tenant/members/${person.id}`, member, 'DELETE'))
+            .status,
+          403,
+        );
+        const readNav = await data(
+          await call('/api/current/navigation', member),
+        );
+        assert(readNav.allowedPaths.includes('/tenant/members'));
+        assert(!readNav.allowedPaths.includes('/dashboard/analysis'));
+        assert.deepEqual(readNav.permissions, ['members:read']);
+        assert.equal(
+          (await call(`/api/tenant/roles/${role.id}`, tenantA, 'DELETE'))
+            .status,
+          409,
+        );
+        assert.equal(
+          (
+            await call('/api/tenant/roles', tenantA, 'POST', {
+              name: 'Create members',
+              permissions: [
+                'members:read',
+                'members:create',
+                'members:update',
+                'members:delete',
+              ],
+            })
+          ).status,
+          201,
+        );
+        const writer = (
+          await data(await call('/api/tenant/roles', tenantA))
+        ).find((r: any) => r.name === 'Create members');
+        await call(`/api/tenant/members/${person.id}`, tenantA, 'PATCH', {
+          role: 'user',
+          isActive: true,
+          roleIds: [role.id, writer.id],
+        });
+        assert.equal(
+          (
+            await call('/api/tenant/members', member, 'POST', {
+              mode: 'new',
+              username: 'delegated-create',
+              name: 'Delegated',
+              password,
+              role: 'user',
+            })
+          ).status,
+          201,
+        );
+        const created = await prisma.user.findUniqueOrThrow({
+          where: { username: 'delegated-create' },
+        });
+        assert.equal(
+          (
+            await call(`/api/tenant/members/${created.id}`, member, 'PATCH', {
+              role: 'admin',
+              isActive: true,
+            })
+          ).status,
+          403,
+        );
+        assert.equal(
+          (
+            await call(`/api/tenant/members/${created.id}`, member, 'PATCH', {
+              role: 'user',
+              isActive: true,
+              roleIds: [role.id],
+            })
+          ).status,
+          403,
+        );
+        assert.equal(
+          (await call(`/api/tenant/members/${owner.id}`, member, 'DELETE'))
+            .status,
+          403,
+        );
+        assert.equal(
+          (await call(`/api/tenant/members/${created.id}`, member, 'DELETE'))
+            .status,
+          200,
+        );
+        assert.equal(
+          (
+            await call(`/api/tenant/roles/${writer.id}`, tenantA, 'PATCH', {
+              name: 'Create members',
+              permissions: [],
+            })
+          ).status,
+          200,
+        );
+        assert.equal(
+          (
+            await call('/api/tenant/members', member, 'POST', {
+              mode: 'existing',
+              username: 'delegated-create',
+              role: 'user',
+            })
+          ).status,
+          403,
+        );
+        const featureCodes = (await data(
+          await call(`/api/platform/tenants/${a.id}/features`, platform),
+        )) as string[];
+        await call(
+          `/api/platform/tenants/${a.id}/features`,
+          platform,
+          'PATCH',
+          { featureCodes: featureCodes.filter((code) => code !== 'members') },
+        );
+        assert.equal((await call('/api/tenant/members', member)).status, 403);
+        assert(
+          !(
+            await data(await call('/api/current/navigation', member))
+          ).permissions.includes('members:read'),
+        );
+        assert.equal(
+          (
+            await call('/api/tenant/roles', tenantA, 'POST', {
+              name: 'Unavailable',
+              permissions: ['members:read'],
+            })
+          ).status,
+          400,
+        );
+        await call(
+          `/api/platform/tenants/${a.id}/features`,
+          platform,
+          'PATCH',
+          { featureCodes },
+        );
+        await call(`/api/tenant/members/${person.id}`, tenantA, 'PATCH', {
+          role: 'user',
+          isActive: true,
+          roleIds: [],
+        });
+        assert.equal(
+          (await call(`/api/tenant/roles/${role.id}`, tenantA, 'DELETE'))
+            .status,
+          200,
+        );
+        assert.equal(
+          (await call(`/api/tenant/roles/${writer.id}`, tenantA, 'DELETE'))
+            .status,
+          200,
+        );
+        assert.equal(
+          (await call(`/api/tenant/roles/${other.id}`, tenantB, 'DELETE'))
+            .status,
+          200,
+        );
+        assert(
+          (
+            await data(await call('/api/current/navigation', member))
+          ).allowedPaths.includes('/dashboard/analysis'),
+        );
+        assert.equal(
+          await prisma.memberRole.count({
+            where: { tenantId: b.id, userId: person.id },
+          }),
+          0,
+        );
+      },
+    );
+
+    await t.test(
+      'platform user management protects identities and revokes sessions',
+      async () => {
+        assert.equal((await call('/api/platform/users', tenantA)).status, 403);
+        assert.equal((await call('/api/platform/users', member)).status, 403);
+        assert.equal((await call('/api/platform/users')).status, 401);
+        assert.equal(
+          (
+            await call('/api/platform/users', platform, 'POST', {
+              username: 'managed-user',
+              name: 'Managed',
+              password,
+              isPlatformAdmin: true,
+            })
+          ).status,
+          201,
+        );
+        const person = await prisma.user.findUniqueOrThrow({
+          where: { username: 'managed-user' },
+        });
+        assert.equal(person.isPlatformAdmin, false);
+        assert.equal(
+          (
+            await call('/api/platform/users', platform, 'POST', {
+              username: 'managed-user',
+              name: 'Duplicate',
+              password,
+            })
+          ).status,
+          409,
+        );
+        const listed = await data(
+          await call('/api/platform/users?keyword=managed-user', platform),
+        );
+        assert.equal(listed.length, 1);
+        assert(!('passwordHash' in listed[0]));
+        assert.equal(
+          (
+            await call(`/api/platform/users/${person.id}`, platform, 'PATCH', {
+              name: 'Managed',
+              isActive: 'false',
+            })
+          ).status,
+          400,
+        );
+        await call('/api/tenant/members', tenantA, 'POST', {
+          mode: 'existing',
+          username: 'managed-user',
+          role: 'user',
+        });
+        const session = await login('tenant-a', 'managed-user');
+        assert.equal(
+          (
+            await call(`/api/platform/users/${person.id}`, platform, 'PATCH', {
+              name: 'Managed',
+              isActive: false,
+            })
+          ).status,
+          200,
+        );
+        assert.equal((await call('/api/currentUser', session)).status, 401);
+        const loginBody = {
+          tenantCode: 'tenant-a',
+          username: 'managed-user',
+          password,
+        };
+        assert.equal(
+          (await call('/api/login/account', '', 'POST', loginBody)).status,
+          401,
+        );
+        await call(`/api/platform/users/${person.id}`, platform, 'PATCH', {
+          name: 'Managed',
+          isActive: true,
+        });
+        assert.equal((await call('/api/currentUser', session)).status, 401);
+        const activeSession = await login('tenant-a', 'managed-user');
+        assert.equal(
+          (
+            await call(
+              `/api/platform/users/${person.id}/password`,
+              platform,
+              'POST',
+              { password: 'changed-password' },
+            )
+          ).status,
+          201,
+        );
+        assert.equal(
+          (await call('/api/currentUser', activeSession)).status,
+          401,
+        );
+        assert.equal(
+          (await call('/api/login/account', '', 'POST', loginBody)).status,
+          401,
+        );
+        assert.equal(
+          (
+            await call('/api/login/account', '', 'POST', {
+              ...loginBody,
+              password: 'changed-password',
+            })
+          ).status,
+          200,
+        );
+        const platformUser = await prisma.user.findUniqueOrThrow({
+          where: { username: 'platform-admin' },
+        });
+        assert.equal(
+          (
+            await call(
+              `/api/platform/users/${platformUser.id}`,
+              platform,
+              'PATCH',
+              { name: 'Platform', isActive: false },
+            )
+          ).status,
+          409,
+        );
+        const adminUser = await prisma.user.findUniqueOrThrow({
+          where: { username: 'admin' },
+        });
+        assert.equal(
+          (
+            await call(
+              `/api/platform/users/${adminUser.id}`,
+              platform,
+              'PATCH',
+              { name: 'Admin', isActive: false },
+            )
+          ).status,
+          409,
+        );
+        await call(`/api/tenant/members/${person.id}`, tenantA, 'DELETE');
+      },
+    );
+
+    await t.test(
       'platform identity is separate, live and independent of tenant availability',
       async () => {
         const profile = await data(await call('/api/currentUser', platform));
@@ -255,7 +819,12 @@ test('platform, tenant members and manual subscriptions', async (t) => {
           await call('/api/current/navigation', member),
         );
         assert(!memberNav.allowedPaths.includes('/tenant/members'));
-        assert.deepEqual(memberNav.permissions, []);
+        assert(memberNav.permissions.includes('dashboard-analysis:view'));
+        assert(
+          !memberNav.permissions.some((code: string) =>
+            code.startsWith('members:'),
+          ),
+        );
         assert.equal(
           (await call(featurePath, tenantA, 'PATCH', { featureCodes: [] }))
             .status,
@@ -532,7 +1101,7 @@ test('platform, tenant members and manual subscriptions', async (t) => {
           ).status,
           409,
         );
-        for (const code of ['welcome', 'platform-navigation', 'account'])
+        for (const code of ['welcome', 'platform-navigation', 'platform-users'])
           assert.equal(
             (await call(`/api/platform/menus/${code}`, platform, 'DELETE'))
               .status,

@@ -17,7 +17,12 @@ export class AuthService {
     const { tenantCode, username, password, autoLogin } = body;
     const user = await this.prisma.user.findUnique({
       where: { username },
-      select: { id: true, passwordHash: true, isPlatformAdmin: true },
+      select: {
+        id: true,
+        passwordHash: true,
+        isPlatformAdmin: true,
+        isActive: true,
+      },
     });
     // Derive a key even for unknown users to avoid skipping password verification.
     const valid = await verifyPassword(
@@ -37,7 +42,7 @@ export class AuthService {
         : null;
     const platformLogin =
       tenantCode === 'platform' && user?.isPlatformAdmin === true;
-    if (!user || !valid || (!membership && !platformLogin)) {
+    if (!user?.isActive || !valid || (!membership && !platformLogin)) {
       throw new UnauthorizedException({
         success: false,
         errorCode: 401,
@@ -66,7 +71,14 @@ export class AuthService {
         },
         select: {
           tenantId: true,
-          user: { select: { id: true, name: true, isPlatformAdmin: true } },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              isPlatformAdmin: true,
+              isActive: true,
+            },
+          },
           membership: {
             select: {
               role: true,
@@ -79,7 +91,7 @@ export class AuthService {
           },
         },
       });
-      if (session) {
+      if (session?.user.isActive) {
         if (session.tenantId === null && session.user.isPlatformAdmin) {
           return {
             userid: session.user.id.toString(),

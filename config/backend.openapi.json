@@ -254,6 +254,2359 @@
         ]
       }
     },
+    "/api/tenant/current": {
+      "get": {
+        "operationId": "currentTenant",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentTenantResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "获取当前租户身份",
+        "tags": [
+          "members"
+        ]
+      }
+    },
+    "/api/tenant/members": {
+      "get": {
+        "operationId": "listMembers",
+        "parameters": [
+          {
+            "name": "current",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberListResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "分页查询当前租户成员",
+        "tags": [
+          "members"
+        ]
+      },
+      "post": {
+        "operationId": "addMember",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMemberDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "添加已有账号或创建新成员",
+        "tags": [
+          "members"
+        ]
+      }
+    },
+    "/api/tenant/members/{id}": {
+      "patch": {
+        "operationId": "updateMember",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "64 位正整数 ID，以字符串传输",
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "example": "1",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMemberDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "调整成员角色与状态",
+        "tags": [
+          "members"
+        ]
+      },
+      "delete": {
+        "operationId": "removeMember",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "64 位正整数 ID，以字符串传输",
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "example": "1",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "移除成员，保留全局账号",
+        "tags": [
+          "members"
+        ]
+      }
+    },
+    "/api/tenant/subscription": {
+      "get": {
+        "operationId": "subscriptionInfo",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionUsageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "查询当前租户订阅与成员用量",
+        "tags": [
+          "members"
+        ]
+      }
+    },
+    "/api/tenant/roles": {
+      "get": {
+        "operationId": "listRoles",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleListResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "查询当前租户角色",
+        "tags": [
+          "roles"
+        ]
+      },
+      "post": {
+        "operationId": "createRole",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRoleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "创建租户角色",
+        "tags": [
+          "roles"
+        ]
+      }
+    },
+    "/api/tenant/permissions": {
+      "get": {
+        "operationId": "listPermissions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionListResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "查询当前租户可分配权限",
+        "tags": [
+          "roles"
+        ]
+      }
+    },
+    "/api/tenant/roles/{id}": {
+      "patch": {
+        "operationId": "updateRole",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "64 位正整数 ID，以字符串传输",
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "example": "1",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "修改租户角色与权限",
+        "tags": [
+          "roles"
+        ]
+      },
+      "delete": {
+        "operationId": "deleteRole",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "64 位正整数 ID，以字符串传输",
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "example": "1",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "删除未分配的租户角色",
+        "tags": [
+          "roles"
+        ]
+      }
+    },
+    "/api/platform/tenants": {
+      "get": {
+        "operationId": "listTenants",
+        "parameters": [
+          {
+            "name": "current",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "name",
+            "required": false,
+            "in": "query",
+            "description": "企业名称，支持包含匹配",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantListResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "分页查询租户",
+        "tags": [
+          "platform"
+        ]
+      },
+      "post": {
+        "operationId": "createTenant",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTenantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "创建租户及首位管理员",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/platform/tenants/{id}": {
+      "patch": {
+        "operationId": "updateTenant",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "64 位正整数 ID，以字符串传输",
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "example": "1",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTenantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "修改租户名称与状态",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/platform/plans": {
+      "get": {
+        "operationId": "listPlans",
+        "parameters": [
+          {
+            "name": "current",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanListResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "分页查询套餐",
+        "tags": [
+          "platform"
+        ]
+      },
+      "post": {
+        "operationId": "createPlan",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePlanDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "创建套餐",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/platform/plans/{id}": {
+      "patch": {
+        "operationId": "updatePlan",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "64 位正整数 ID，以字符串传输",
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "example": "1",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePlanDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "修改套餐与成员上限",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/platform/tenants/{id}/subscription": {
+      "post": {
+        "operationId": "assignPlan",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "64 位正整数 ID，以字符串传输",
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "example": "1",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignPlanDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "人工分配或更新租户订阅",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/platform/users": {
+      "get": {
+        "operationId": "listUsers",
+        "parameters": [
+          {
+            "name": "current",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "keyword",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserListResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "分页查询全局账号及租户成员关系",
+        "tags": [
+          "users"
+        ]
+      },
+      "post": {
+        "operationId": "createUser",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "创建普通全局账号",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/platform/users/{id}": {
+      "patch": {
+        "operationId": "updateUser",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "64 位正整数 ID，以字符串传输",
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "example": "1",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "修改账号姓名及全局状态",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/platform/users/{id}/password": {
+      "post": {
+        "operationId": "resetUserPassword",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "64 位正整数 ID，以字符串传输",
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "example": "1",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "重置密码并撤销全部会话",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/site-settings": {
+      "get": {
+        "operationId": "publicSiteSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicSiteSettingsResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "查询公开的站点展示配置",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/api/platform/settings": {
+      "get": {
+        "operationId": "getSiteSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteSettingsResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "查询站点配置及版本",
+        "tags": [
+          "settings"
+        ]
+      },
+      "patch": {
+        "operationId": "updateSiteSettings",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSiteSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteSettingsResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "更新站点配置并记录变更",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/api/platform/settings/history": {
+      "get": {
+        "operationId": "listSiteSettingsHistory",
+        "parameters": [
+          {
+            "name": "current",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteSettingsAuditListResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "分页查询配置变更记录",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
     "/api/current/navigation": {
       "get": {
         "operationId": "currentNavigation",
@@ -1012,1208 +3365,6 @@
           "navigation"
         ]
       }
-    },
-    "/api/tenant/current": {
-      "get": {
-        "operationId": "currentTenant",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CurrentTenantResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "参数格式或取值错误",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "凭据无效或会话失效",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "权限不足、租户不匹配或套餐不可用",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "记录不存在",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "记录冲突、额度不足或业务规则冲突",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "session": []
-          }
-        ],
-        "summary": "获取当前租户身份",
-        "tags": [
-          "members"
-        ]
-      }
-    },
-    "/api/tenant/members": {
-      "get": {
-        "operationId": "listMembers",
-        "parameters": [
-          {
-            "name": "current",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "maximum": 100000,
-              "default": 1,
-              "type": "integer"
-            }
-          },
-          {
-            "name": "pageSize",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MemberListResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "参数格式或取值错误",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "凭据无效或会话失效",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "权限不足、租户不匹配或套餐不可用",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "记录不存在",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "记录冲突、额度不足或业务规则冲突",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "session": []
-          }
-        ],
-        "summary": "分页查询当前租户成员",
-        "tags": [
-          "members"
-        ]
-      },
-      "post": {
-        "operationId": "addMember",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateMemberDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmptyResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "参数格式或取值错误",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "凭据无效或会话失效",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "权限不足、租户不匹配或套餐不可用",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "记录不存在",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "记录冲突、额度不足或业务规则冲突",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "session": []
-          }
-        ],
-        "summary": "添加已有账号或创建新成员",
-        "tags": [
-          "members"
-        ]
-      }
-    },
-    "/api/tenant/members/{id}": {
-      "patch": {
-        "operationId": "updateMember",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "64 位正整数 ID，以字符串传输",
-            "schema": {
-              "pattern": "^[1-9][0-9]{0,18}$",
-              "example": "1",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateMemberDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmptyResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "参数格式或取值错误",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "凭据无效或会话失效",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "权限不足、租户不匹配或套餐不可用",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "记录不存在",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "记录冲突、额度不足或业务规则冲突",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "session": []
-          }
-        ],
-        "summary": "调整成员角色与状态",
-        "tags": [
-          "members"
-        ]
-      },
-      "delete": {
-        "operationId": "removeMember",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "64 位正整数 ID，以字符串传输",
-            "schema": {
-              "pattern": "^[1-9][0-9]{0,18}$",
-              "example": "1",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmptyResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "参数格式或取值错误",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "凭据无效或会话失效",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "权限不足、租户不匹配或套餐不可用",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "记录不存在",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "记录冲突、额度不足或业务规则冲突",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "session": []
-          }
-        ],
-        "summary": "移除成员，保留全局账号",
-        "tags": [
-          "members"
-        ]
-      }
-    },
-    "/api/tenant/subscription": {
-      "get": {
-        "operationId": "subscriptionInfo",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SubscriptionUsageResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "参数格式或取值错误",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "凭据无效或会话失效",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "权限不足、租户不匹配或套餐不可用",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "记录不存在",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "记录冲突、额度不足或业务规则冲突",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "session": []
-          }
-        ],
-        "summary": "查询当前租户订阅与成员用量",
-        "tags": [
-          "members"
-        ]
-      }
-    },
-    "/api/platform/tenants": {
-      "get": {
-        "operationId": "listTenants",
-        "parameters": [
-          {
-            "name": "current",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "maximum": 100000,
-              "default": 1,
-              "type": "integer"
-            }
-          },
-          {
-            "name": "pageSize",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20,
-              "type": "integer"
-            }
-          },
-          {
-            "name": "name",
-            "required": false,
-            "in": "query",
-            "description": "企业名称，支持包含匹配",
-            "schema": {
-              "maxLength": 100,
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TenantListResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "参数格式或取值错误",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "凭据无效或会话失效",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "权限不足、租户不匹配或套餐不可用",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "记录不存在",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "记录冲突、额度不足或业务规则冲突",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "session": []
-          }
-        ],
-        "summary": "分页查询租户",
-        "tags": [
-          "platform"
-        ]
-      },
-      "post": {
-        "operationId": "createTenant",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateTenantDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TenantResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "参数格式或取值错误",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "凭据无效或会话失效",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "权限不足、租户不匹配或套餐不可用",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "记录不存在",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "记录冲突、额度不足或业务规则冲突",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "session": []
-          }
-        ],
-        "summary": "创建租户及首位管理员",
-        "tags": [
-          "platform"
-        ]
-      }
-    },
-    "/api/platform/tenants/{id}": {
-      "patch": {
-        "operationId": "updateTenant",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "64 位正整数 ID，以字符串传输",
-            "schema": {
-              "pattern": "^[1-9][0-9]{0,18}$",
-              "example": "1",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateTenantDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TenantResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "参数格式或取值错误",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "凭据无效或会话失效",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "权限不足、租户不匹配或套餐不可用",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "记录不存在",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "记录冲突、额度不足或业务规则冲突",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "session": []
-          }
-        ],
-        "summary": "修改租户名称与状态",
-        "tags": [
-          "platform"
-        ]
-      }
-    },
-    "/api/platform/plans": {
-      "get": {
-        "operationId": "listPlans",
-        "parameters": [
-          {
-            "name": "current",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "maximum": 100000,
-              "default": 1,
-              "type": "integer"
-            }
-          },
-          {
-            "name": "pageSize",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PlanListResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "参数格式或取值错误",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "凭据无效或会话失效",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "权限不足、租户不匹配或套餐不可用",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "记录不存在",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "记录冲突、额度不足或业务规则冲突",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "session": []
-          }
-        ],
-        "summary": "分页查询套餐",
-        "tags": [
-          "platform"
-        ]
-      },
-      "post": {
-        "operationId": "createPlan",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreatePlanDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PlanResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "参数格式或取值错误",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "凭据无效或会话失效",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "权限不足、租户不匹配或套餐不可用",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "记录不存在",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "记录冲突、额度不足或业务规则冲突",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "session": []
-          }
-        ],
-        "summary": "创建套餐",
-        "tags": [
-          "platform"
-        ]
-      }
-    },
-    "/api/platform/plans/{id}": {
-      "patch": {
-        "operationId": "updatePlan",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "64 位正整数 ID，以字符串传输",
-            "schema": {
-              "pattern": "^[1-9][0-9]{0,18}$",
-              "example": "1",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdatePlanDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PlanResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "参数格式或取值错误",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "凭据无效或会话失效",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "权限不足、租户不匹配或套餐不可用",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "记录不存在",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "记录冲突、额度不足或业务规则冲突",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "session": []
-          }
-        ],
-        "summary": "修改套餐与成员上限",
-        "tags": [
-          "platform"
-        ]
-      }
-    },
-    "/api/platform/tenants/{id}/subscription": {
-      "post": {
-        "operationId": "assignPlan",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "64 位正整数 ID，以字符串传输",
-            "schema": {
-              "pattern": "^[1-9][0-9]{0,18}$",
-              "example": "1",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AssignPlanDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SubscriptionResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "参数格式或取值错误",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "凭据无效或会话失效",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "权限不足、租户不匹配或套餐不可用",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "记录不存在",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "记录冲突、额度不足或业务规则冲突",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "session": []
-          }
-        ],
-        "summary": "人工分配或更新租户订阅",
-        "tags": [
-          "platform"
-        ]
-      }
     }
   },
   "info": {
@@ -2432,392 +3583,6 @@
           "data"
         ]
       },
-      "IdParamDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "1",
-            "pattern": "^[1-9][0-9]{0,18}$",
-            "description": "64 位正整数 ID，以字符串传输"
-          }
-        },
-        "required": [
-          "id"
-        ]
-      },
-      "MenuCodeParamDto": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "code"
-        ]
-      },
-      "MenuDto": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string"
-          },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "directory",
-              "page"
-            ]
-          },
-          "isSystem": {
-            "type": "boolean"
-          },
-          "parentCode": {
-            "type": "string",
-            "nullable": true
-          },
-          "path": {
-            "type": "string",
-            "nullable": true
-          },
-          "name": {
-            "type": "string"
-          },
-          "icon": {
-            "type": "string"
-          },
-          "sortOrder": {
-            "type": "integer"
-          },
-          "scope": {
-            "type": "string",
-            "enum": [
-              "authenticated",
-              "platform",
-              "tenant"
-            ]
-          },
-          "minRole": {
-            "type": "string",
-            "enum": [
-              "admin",
-              "user"
-            ]
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "featureCode": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "code",
-          "kind",
-          "isSystem",
-          "parentCode",
-          "path",
-          "name",
-          "icon",
-          "sortOrder",
-          "scope",
-          "minRole",
-          "isActive",
-          "featureCode"
-        ]
-      },
-      "NavigationDto": {
-        "type": "object",
-        "properties": {
-          "menus": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MenuDto"
-            }
-          },
-          "allowedPaths": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "permissions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "menus",
-          "allowedPaths",
-          "permissions"
-        ]
-      },
-      "NavigationResponseDto": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "enum": [
-              true
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/NavigationDto"
-          }
-        },
-        "required": [
-          "success",
-          "data"
-        ]
-      },
-      "FeatureDto": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "code",
-          "name"
-        ]
-      },
-      "FeatureListResponseDto": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "enum": [
-              true
-            ]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FeatureDto"
-            }
-          }
-        },
-        "required": [
-          "success",
-          "data"
-        ]
-      },
-      "MenuListResponseDto": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "enum": [
-              true
-            ]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MenuDto"
-            }
-          }
-        },
-        "required": [
-          "success",
-          "data"
-        ]
-      },
-      "RegisteredPageDto": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "path": {
-            "type": "string"
-          },
-          "scope": {
-            "type": "string",
-            "enum": [
-              "authenticated",
-              "platform",
-              "tenant"
-            ]
-          },
-          "featureCode": {
-            "type": "string",
-            "nullable": true
-          },
-          "minRole": {
-            "type": "string",
-            "enum": [
-              "admin",
-              "user"
-            ]
-          }
-        },
-        "required": [
-          "code",
-          "name",
-          "path",
-          "scope",
-          "featureCode",
-          "minRole"
-        ]
-      },
-      "RegisteredPageListResponseDto": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "enum": [
-              true
-            ]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RegisteredPageDto"
-            }
-          }
-        },
-        "required": [
-          "success",
-          "data"
-        ]
-      },
-      "CreateMenuDto": {
-        "type": "object",
-        "properties": {
-          "parentCode": {
-            "type": "string",
-            "nullable": true,
-            "description": "父目录编码；null 表示根目录，省略表示保持原层级"
-          },
-          "name": {
-            "type": "string",
-            "maxLength": 100
-          },
-          "icon": {
-            "type": "string",
-            "maxLength": 64,
-            "description": "前端图标白名单编码；留空不显示图标"
-          },
-          "sortOrder": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 10000
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "关闭后隐藏菜单入口；页面和接口仍按模块与角色授权"
-          },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "directory",
-              "page"
-            ]
-          },
-          "scope": {
-            "type": "string",
-            "enum": [
-              "tenant",
-              "platform"
-            ],
-            "description": "新增目录时必填，页面所属端从注册表确定"
-          },
-          "pageCode": {
-            "type": "string",
-            "description": "新增页面菜单时必填，只能选择已注册页面"
-          }
-        },
-        "required": [
-          "name",
-          "icon",
-          "sortOrder",
-          "isActive",
-          "kind"
-        ]
-      },
-      "UpdateMenuDto": {
-        "type": "object",
-        "properties": {
-          "parentCode": {
-            "type": "string",
-            "nullable": true,
-            "description": "父目录编码；null 表示根目录，省略表示保持原层级"
-          },
-          "name": {
-            "type": "string",
-            "maxLength": 100
-          },
-          "icon": {
-            "type": "string",
-            "maxLength": 64,
-            "description": "前端图标白名单编码；留空不显示图标"
-          },
-          "sortOrder": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 10000
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "关闭后隐藏菜单入口；页面和接口仍按模块与角色授权"
-          }
-        },
-        "required": [
-          "name",
-          "icon",
-          "sortOrder",
-          "isActive"
-        ]
-      },
-      "TenantFeaturesResponseDto": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "enum": [
-              true
-            ]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "success",
-          "data"
-        ]
-      },
-      "AssignFeaturesDto": {
-        "type": "object",
-        "properties": {
-          "featureCodes": {
-            "maxItems": 100,
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "featureCodes"
-        ]
-      },
       "CurrentTenantDto": {
         "type": "object",
         "properties": {
@@ -2863,6 +3628,20 @@
           "data"
         ]
       },
+      "IdParamDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "description": "64 位正整数 ID，以字符串传输"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
       "PaginationQueryDto": {
         "type": "object",
         "properties": {
@@ -2879,6 +3658,29 @@
             "maximum": 100
           }
         }
+      },
+      "RoleDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "permissions",
+          "id"
+        ]
       },
       "MemberUserDto": {
         "type": "object",
@@ -2898,6 +3700,12 @@
       "MemberDto": {
         "type": "object",
         "properties": {
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleDto"
+            }
+          },
           "userId": {
             "type": "string"
           },
@@ -2916,6 +3724,7 @@
           }
         },
         "required": [
+          "roles",
           "userId",
           "role",
           "isActive",
@@ -2976,6 +3785,14 @@
             "format": "password",
             "writeOnly": true
           },
+          "roleIds": {
+            "maxItems": 50,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "role": {
             "type": "string",
             "enum": [
@@ -2993,6 +3810,14 @@
       "UpdateMemberDto": {
         "type": "object",
         "properties": {
+          "roleIds": {
+            "maxItems": 50,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "role": {
             "type": "string",
             "enum": [
@@ -3106,6 +3931,109 @@
         "required": [
           "success",
           "data"
+        ]
+      },
+      "RoleListResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleDto"
+            }
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "PermissionDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "featureCode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "featureCode"
+        ]
+      },
+      "PermissionListResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PermissionDto"
+            }
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "CreateRoleDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "permissions": {
+            "maxItems": 100,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "permissions"
+        ]
+      },
+      "UpdateRoleDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "permissions": {
+            "maxItems": 100,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "permissions"
         ]
       },
       "TenantQueryDto": {
@@ -3491,6 +4419,783 @@
         "required": [
           "success",
           "data"
+        ]
+      },
+      "UserQueryDto": {
+        "type": "object",
+        "properties": {
+          "current": {
+            "type": "integer",
+            "default": 1,
+            "minimum": 1,
+            "maximum": 100000
+          },
+          "pageSize": {
+            "type": "integer",
+            "default": 20,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "keyword": {
+            "type": "string",
+            "maxLength": 100
+          }
+        }
+      },
+      "UserMembershipDto": {
+        "type": "object",
+        "properties": {
+          "tenantId": {
+            "type": "string"
+          },
+          "tenantName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "tenantId",
+          "tenantName",
+          "role",
+          "isActive"
+        ]
+      },
+      "PlatformUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isPlatformAdmin": {
+            "type": "boolean"
+          },
+          "memberships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserMembershipDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "name",
+          "isActive",
+          "isPlatformAdmin",
+          "memberships"
+        ]
+      },
+      "UserListResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlatformUserDto"
+            }
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "total"
+        ]
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 1024,
+            "writeOnly": true,
+            "format": "password"
+          }
+        },
+        "required": [
+          "username",
+          "name",
+          "password"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "isActive"
+        ]
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 1024,
+            "writeOnly": true,
+            "format": "password"
+          }
+        },
+        "required": [
+          "password"
+        ]
+      },
+      "PublicSiteSettingsDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "logo": {
+            "type": "string"
+          },
+          "loginBackground": {
+            "type": "string"
+          },
+          "footerText": {
+            "type": "string"
+          },
+          "colorPrimary": {
+            "type": "string"
+          },
+          "defaultLocale": {
+            "type": "string",
+            "enum": [
+              "zh-CN",
+              "zh-TW",
+              "en-US",
+              "pt-BR",
+              "fa-IR",
+              "id-ID",
+              "ja-JP",
+              "bn-BD"
+            ]
+          }
+        },
+        "required": [
+          "title",
+          "logo",
+          "loginBackground",
+          "footerText",
+          "colorPrimary",
+          "defaultLocale"
+        ]
+      },
+      "PublicSiteSettingsResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/PublicSiteSettingsDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "SiteSettingsDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "logo": {
+            "type": "string"
+          },
+          "loginBackground": {
+            "type": "string"
+          },
+          "footerText": {
+            "type": "string"
+          },
+          "colorPrimary": {
+            "type": "string"
+          },
+          "defaultLocale": {
+            "type": "string",
+            "enum": [
+              "zh-CN",
+              "zh-TW",
+              "en-US",
+              "pt-BR",
+              "fa-IR",
+              "id-ID",
+              "ja-JP",
+              "bn-BD"
+            ]
+          },
+          "revision": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "title",
+          "logo",
+          "loginBackground",
+          "footerText",
+          "colorPrimary",
+          "defaultLocale",
+          "revision"
+        ]
+      },
+      "SiteSettingsResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/SiteSettingsDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "UpdateSiteSettingsDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "logo": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "loginBackground": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "footerText": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "colorPrimary": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$"
+          },
+          "defaultLocale": {
+            "type": "string",
+            "enum": [
+              "zh-CN",
+              "zh-TW",
+              "en-US",
+              "pt-BR",
+              "fa-IR",
+              "id-ID",
+              "ja-JP",
+              "bn-BD"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "读取时的版本，避免覆盖其他管理员的修改"
+          }
+        },
+        "required": [
+          "title",
+          "logo",
+          "loginBackground",
+          "footerText",
+          "colorPrimary",
+          "defaultLocale",
+          "revision"
+        ]
+      },
+      "SiteSettingsAuditDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "actorId": {
+            "type": "string"
+          },
+          "actorName": {
+            "type": "string"
+          },
+          "before": {
+            "$ref": "#/components/schemas/SiteSettingsDto"
+          },
+          "after": {
+            "$ref": "#/components/schemas/SiteSettingsDto"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "actorId",
+          "actorName",
+          "before",
+          "after",
+          "createdAt"
+        ]
+      },
+      "SiteSettingsAuditListResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SiteSettingsAuditDto"
+            }
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "total"
+        ]
+      },
+      "MenuCodeParamDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "MenuDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "directory",
+              "page"
+            ]
+          },
+          "isSystem": {
+            "type": "boolean"
+          },
+          "parentCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "path": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "i18nKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "icon": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "authenticated",
+              "platform",
+              "tenant"
+            ]
+          },
+          "minRole": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "user"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "featureCode": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "code",
+          "kind",
+          "isSystem",
+          "parentCode",
+          "path",
+          "name",
+          "i18nKey",
+          "icon",
+          "sortOrder",
+          "scope",
+          "minRole",
+          "isActive",
+          "featureCode"
+        ]
+      },
+      "NavigationDto": {
+        "type": "object",
+        "properties": {
+          "menus": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MenuDto"
+            }
+          },
+          "allowedPaths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "menus",
+          "allowedPaths",
+          "permissions"
+        ]
+      },
+      "NavigationResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/NavigationDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "FeatureDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name"
+        ]
+      },
+      "FeatureListResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeatureDto"
+            }
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "MenuListResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MenuDto"
+            }
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "RegisteredPageDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "authenticated",
+              "platform",
+              "tenant"
+            ]
+          },
+          "featureCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "minRole": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "user"
+            ]
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "path",
+          "scope",
+          "featureCode",
+          "minRole"
+        ]
+      },
+      "RegisteredPageListResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RegisteredPageDto"
+            }
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "CreateMenuDto": {
+        "type": "object",
+        "properties": {
+          "i18nKey": {
+            "type": "string",
+            "maxLength": 150,
+            "description": "语言包翻译键；留空显示菜单名称"
+          },
+          "parentCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "父目录编码；null 表示根目录，省略表示保持原层级"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "icon": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "前端图标白名单编码；留空不显示图标"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "关闭后隐藏菜单入口；页面和接口仍按模块与角色授权"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "directory",
+              "page"
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "tenant",
+              "platform"
+            ],
+            "description": "新增目录时必填，页面所属端从注册表确定"
+          },
+          "pageCode": {
+            "type": "string",
+            "description": "新增页面菜单时必填，只能选择已注册页面"
+          }
+        },
+        "required": [
+          "name",
+          "icon",
+          "sortOrder",
+          "isActive",
+          "kind"
+        ]
+      },
+      "UpdateMenuDto": {
+        "type": "object",
+        "properties": {
+          "i18nKey": {
+            "type": "string",
+            "maxLength": 150,
+            "description": "语言包翻译键；留空显示菜单名称"
+          },
+          "parentCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "父目录编码；null 表示根目录，省略表示保持原层级"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "icon": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "前端图标白名单编码；留空不显示图标"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "关闭后隐藏菜单入口；页面和接口仍按模块与角色授权"
+          }
+        },
+        "required": [
+          "name",
+          "icon",
+          "sortOrder",
+          "isActive"
+        ]
+      },
+      "TenantFeaturesResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "AssignFeaturesDto": {
+        "type": "object",
+        "properties": {
+          "featureCodes": {
+            "maxItems": 100,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "featureCodes"
         ]
       }
     }

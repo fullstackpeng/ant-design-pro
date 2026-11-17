@@ -16,11 +16,30 @@ const mockCurrentNavigation = vi.fn();
 
 vi.mock('@umijs/max', () => ({
   history: mockHistory,
+  getLocale: () => 'en-US',
+  getIntl: () => ({
+    formatMessage: ({ defaultMessage }: { defaultMessage: string }) =>
+      defaultMessage,
+  }),
   Link: ({ children }: any) => children,
 }));
 
 vi.mock('@/services/auth', () => ({
   currentUser: mockQueryCurrentUser,
+}));
+
+vi.mock('./services/siteSettings', () => ({
+  loadSiteSettings: async () => ({
+    title: 'Configured site',
+    logo: '',
+    colorPrimary: '#1677ff',
+    loginBackground: '',
+    footerText: 'Company',
+    defaultLocale: 'zh-CN',
+  }),
+  applySiteLocale: vi.fn(),
+  getSiteLocale: () => 'zh-CN',
+  siteLayoutSettings: () => ({}),
 }));
 
 vi.mock('./services/navigation', () => ({

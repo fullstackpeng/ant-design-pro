@@ -1,0 +1,188 @@
+export interface RegisteredPage {
+  code: string;
+  path: string;
+  name: string;
+  scope: 'authenticated' | 'platform' | 'tenant';
+  featureCode: string | null;
+  minRole: 'admin' | 'user';
+  permissionCode: string | null;
+  defaultMemberAccess: boolean;
+  showInMenu: boolean;
+}
+
+type PageOptions = Partial<
+  Pick<
+    RegisteredPage,
+    | 'featureCode'
+    | 'minRole'
+    | 'permissionCode'
+    | 'defaultMemberAccess'
+    | 'showInMenu'
+  >
+>;
+
+function page(
+  code: string,
+  path: string,
+  name: string,
+  scope: RegisteredPage['scope'],
+  options: PageOptions = {},
+): RegisteredPage {
+  return {
+    code,
+    path,
+    name,
+    scope,
+    featureCode: null,
+    minRole: 'user',
+    permissionCode: null,
+    defaultMemberAccess: false,
+    showInMenu: true,
+    ...options,
+  };
+}
+
+// Authorization is code-owned; editable menus only organize navigation.
+export const registeredPages: RegisteredPage[] = [
+  page('welcome', '/welcome', '首页', 'authenticated'),
+  page('account-center', '/account/center', '个人中心', 'authenticated', {
+    showInMenu: false,
+  }),
+  page('account-settings', '/account/settings', '个人设置', 'authenticated', {
+    showInMenu: false,
+  }),
+  page('platform-tenants', '/platform/tenants', '租户管理', 'platform'),
+  page('platform-plans', '/platform/plans', '套餐管理', 'platform'),
+  page('platform-users', '/platform/users', '用户管理', 'platform'),
+  page('tenant-roles', '/tenant/roles', '角色管理', 'tenant', {
+    featureCode: 'members',
+    minRole: 'admin',
+  }),
+  page('platform-settings', '/platform/settings', '系统配置', 'platform'),
+  page('platform-navigation', '/platform/navigation', '菜单管理', 'platform'),
+  page('admin-sub-page', '/admin/sub-page', '管理示例', 'tenant', {
+    featureCode: 'admin-demo',
+    minRole: 'admin',
+    permissionCode: 'admin-sub-page:view',
+  }),
+  page('tenant-members', '/tenant/members', '成员管理', 'tenant', {
+    featureCode: 'members',
+    minRole: 'admin',
+    permissionCode: 'members:read',
+  }),
+  page('dashboard-analysis', '/dashboard/analysis', '分析页', 'tenant', {
+    featureCode: 'dashboard',
+    permissionCode: 'dashboard-analysis:view',
+    defaultMemberAccess: true,
+  }),
+  page('dashboard-monitor', '/dashboard/monitor', '监控页', 'tenant', {
+    featureCode: 'dashboard',
+    permissionCode: 'dashboard-monitor:view',
+    defaultMemberAccess: true,
+  }),
+  page('dashboard-workplace', '/dashboard/workplace', '工作台', 'tenant', {
+    featureCode: 'dashboard',
+    permissionCode: 'dashboard-workplace:view',
+    defaultMemberAccess: true,
+  }),
+  page('form-basic-form', '/form/basic-form', '基础表单', 'tenant', {
+    featureCode: 'form',
+    permissionCode: 'form-basic-form:view',
+    defaultMemberAccess: true,
+  }),
+  page('form-step-form', '/form/step-form', '分步表单', 'tenant', {
+    featureCode: 'form',
+    permissionCode: 'form-step-form:view',
+    defaultMemberAccess: true,
+  }),
+  page('form-advanced-form', '/form/advanced-form', '高级表单', 'tenant', {
+    featureCode: 'form',
+    permissionCode: 'form-advanced-form:view',
+    defaultMemberAccess: true,
+  }),
+  page('list-table-list', '/list/table-list', '查询表格', 'tenant', {
+    featureCode: 'list',
+    permissionCode: 'list-table-list:view',
+    defaultMemberAccess: true,
+  }),
+  page('list-basic-list', '/list/basic-list', '标准列表', 'tenant', {
+    featureCode: 'list',
+    permissionCode: 'list-basic-list:view',
+    defaultMemberAccess: true,
+  }),
+  page('list-card-list', '/list/card-list', '卡片列表', 'tenant', {
+    featureCode: 'list',
+    permissionCode: 'list-card-list:view',
+    defaultMemberAccess: true,
+  }),
+  page(
+    'list-search-list-articles',
+    '/list/search/articles',
+    '搜索文章',
+    'tenant',
+    {
+      featureCode: 'list',
+      permissionCode: 'list-search-list-articles:view',
+      defaultMemberAccess: true,
+    },
+  ),
+  page(
+    'list-search-list-projects',
+    '/list/search/projects',
+    '搜索项目',
+    'tenant',
+    {
+      featureCode: 'list',
+      permissionCode: 'list-search-list-projects:view',
+      defaultMemberAccess: true,
+    },
+  ),
+  page(
+    'list-search-list-applications',
+    '/list/search/applications',
+    '搜索应用',
+    'tenant',
+    {
+      featureCode: 'list',
+      permissionCode: 'list-search-list-applications:view',
+      defaultMemberAccess: true,
+    },
+  ),
+  page('profile-basic', '/profile/basic', '基础详情', 'tenant', {
+    featureCode: 'profile',
+    permissionCode: 'profile-basic:view',
+    defaultMemberAccess: true,
+  }),
+  page('profile-advanced', '/profile/advanced', '高级详情', 'tenant', {
+    featureCode: 'profile',
+    permissionCode: 'profile-advanced:view',
+    defaultMemberAccess: true,
+  }),
+  page('result-success', '/result/success', '成功页', 'tenant', {
+    featureCode: 'result',
+    permissionCode: 'result-success:view',
+    defaultMemberAccess: true,
+  }),
+  page('result-fail', '/result/fail', '失败页', 'tenant', {
+    featureCode: 'result',
+    permissionCode: 'result-fail:view',
+    defaultMemberAccess: true,
+  }),
+  page('chatbot', '/chatbot', 'AI 助手', 'tenant', {
+    featureCode: 'chatbot',
+    permissionCode: 'chatbot:view',
+    defaultMemberAccess: true,
+  }),
+];
+
+export const directoryPaths = [
+  '/admin',
+  '/platform',
+  '/dashboard',
+  '/form',
+  '/list',
+  '/list/search',
+  '/profile',
+  '/result',
+  '/account',
+];

@@ -19,6 +19,7 @@ interface MenuForm {
   scope: 'tenant' | 'platform';
   parentCode: string;
   name: string;
+  i18nKey?: string;
   icon: string;
   sortOrder: number;
   isActive: boolean;
@@ -92,6 +93,7 @@ export default function MenuEditor({
         run(async () => {
           const body = {
             name: values.name,
+            i18nKey: values.i18nKey ?? '',
             icon: values.icon ?? '',
             sortOrder: values.sortOrder,
             isActive: values.isActive,
@@ -228,6 +230,15 @@ export default function MenuEditor({
         name="name"
         label={t('menuName', '菜单名称')}
         rules={[{ required: true, whitespace: true }, { max: 100 }]}
+      />
+      <ProFormText
+        name="i18nKey"
+        label={t('menuI18nKey', '国际化键')}
+        extra={t(
+          'menuI18nKeyHelp',
+          '填写语言包中的键，例如 menu.dashboard；留空显示菜单名称。',
+        )}
+        rules={[{ max: 150 }, { pattern: /^[a-zA-Z0-9_.-]*$/ }]}
       />
       <ProFormText
         name="icon"

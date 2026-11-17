@@ -15,12 +15,12 @@ import {
   useIntl,
   useModel,
 } from '@umijs/max';
-import { Alert, App, Button, Tabs } from 'antd';
+import { Alert, App, Button, ConfigProvider, Tabs } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { startTransition, useState } from 'react';
 import { Footer } from '@/components';
 import { type LoginParams, login } from '@/services/auth';
-import Settings from '../../../../config/defaultSettings';
+import { defaultSiteSettings } from '@/services/siteSettings';
 import { queryHello } from './service';
 
 /**
@@ -60,8 +60,6 @@ const useStyles = createStyles(({ token }) => {
       flexDirection: 'column',
       height: '100vh',
       overflow: 'auto',
-      backgroundImage:
-        "url('https://mdn.alipayobjects.com/yuyan_qk0oxh/afts/img/V-_oS6r-i7wAAAAAAAAAAAAAFl94AQBr')",
       backgroundSize: '100% 100%',
     },
   };
@@ -98,6 +96,7 @@ const Login: React.FC = () => {
   const [helloResult, setHelloResult] = useState('');
   const { initialState, setInitialState } = useModel('@@initialState');
   const { styles } = useStyles();
+  const siteSettings = initialState?.siteSettings ?? defaultSiteSettings;
   const { message } = App.useApp();
   const intl = useIntl();
 
@@ -171,157 +170,172 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className={styles.container}>
-      <Helmet>
-        <title>
-          {intl.formatMessage({
-            id: 'menu.login',
-            defaultMessage: '登录页',
-          })}
-          {Settings.title && ` - ${Settings.title}`}
-        </title>
-      </Helmet>
-      <Lang />
+    <ConfigProvider
+      theme={{ token: { colorPrimary: siteSettings.colorPrimary } }}
+    >
       <div
+        className={styles.container}
         style={{
-          flex: '1',
-          padding: '32px 0',
+          backgroundImage: siteSettings.loginBackground
+            ? `url(${JSON.stringify(siteSettings.loginBackground)})`
+            : 'none',
         }}
       >
-        <LoginForm
-          contentStyle={{
-            minWidth: 280,
-            maxWidth: '75vw',
-          }}
-          logo={<img alt="logo" src="/logo.svg" />}
-          title="Ant Design"
-          subTitle={intl.formatMessage({
-            id: 'pages.layouts.userLayout.title',
-          })}
-          initialValues={{
-            autoLogin: true,
-          }}
-          onFinish={async (values) => {
-            await handleSubmit(values as LoginParams);
+        <Helmet>
+          <title>
+            {intl.formatMessage({
+              id: 'menu.login',
+              defaultMessage: '登录页',
+            })}
+            {siteSettings.title && ` - ${siteSettings.title}`}
+          </title>
+        </Helmet>
+        <Lang />
+        <div
+          style={{
+            flex: '1',
+            padding: '32px 0',
           }}
         >
-          <Tabs
-            activeKey="account"
-            centered
-            items={[
-              {
-                key: 'account',
-                label: intl.formatMessage({
-                  id: 'pages.login.accountLogin.tab',
-                  defaultMessage: '账户密码登录',
-                }),
-              },
-            ]}
-          />
-
-          {loginError && <LoginMessage content={loginError} />}
-          <ProFormText
-            name="tenantCode"
-            fieldProps={{
-              size: 'large',
-              prefix: <ApartmentOutlined />,
-              maxLength: 64,
+          <LoginForm
+            contentStyle={{
+              minWidth: 280,
+              maxWidth: '75vw',
             }}
-            placeholder={intl.formatMessage({
-              id: 'pages.login.tenantCode.placeholder',
-              defaultMessage: '请输入租户编码',
+            logo={
+              siteSettings.logo ? (
+                <img alt="logo" src={siteSettings.logo} />
+              ) : undefined
+            }
+            title={siteSettings.title}
+            subTitle={intl.formatMessage({
+              id: 'pages.layouts.userLayout.title',
             })}
-            rules={[
-              {
-                required: true,
-                message: intl.formatMessage({
-                  id: 'pages.login.tenantCode.required',
-                  defaultMessage: '请输入租户编码',
-                }),
-              },
-              {
-                pattern: /^[a-z0-9][a-z0-9-]{0,63}$/,
-                message: intl.formatMessage({
-                  id: 'pages.login.tenantCode.invalid',
-                  defaultMessage: '租户编码仅支持小写字母、数字和连字符',
-                }),
-              },
-            ]}
-          />
-          <ProFormText
-            name="username"
-            fieldProps={{
-              size: 'large',
-              prefix: <UserOutlined />,
+            initialValues={{
+              autoLogin: true,
             }}
-            placeholder={intl.formatMessage({
-              id: 'pages.login.accountUsername.placeholder',
-              defaultMessage: '请输入用户名',
-            })}
-            rules={[
-              {
-                required: true,
-                message: (
-                  <FormattedMessage
-                    id="pages.login.username.required"
-                    defaultMessage="请输入用户名!"
-                  />
-                ),
-              },
-            ]}
-          />
-          <ProFormText.Password
-            name="password"
-            fieldProps={{
-              size: 'large',
-              prefix: <LockOutlined />,
-            }}
-            placeholder={intl.formatMessage({
-              id: 'pages.login.accountPassword.placeholder',
-              defaultMessage: '请输入密码',
-            })}
-            rules={[
-              {
-                required: true,
-                message: (
-                  <FormattedMessage
-                    id="pages.login.password.required"
-                    defaultMessage="请输入密码！"
-                  />
-                ),
-              },
-            ]}
-          />
-
-          <div
-            style={{
-              marginBottom: 24,
+            onFinish={async (values) => {
+              await handleSubmit(values as LoginParams);
             }}
           >
-            <ProFormCheckbox noStyle name="autoLogin">
-              <FormattedMessage
-                id="pages.login.rememberMe"
-                defaultMessage="自动登录"
-              />
-            </ProFormCheckbox>
-          </div>
-        </LoginForm>
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-4 text-center">
-            <Button loading={helloLoading} onClick={handleHello}>
-              <FormattedMessage
-                id="pages.login.hello.check"
-                defaultMessage="测试后端连接"
-              />
-            </Button>
-            <p role="status" aria-live="polite">
-              {helloResult}
-            </p>
-          </div>
-        )}
+            <Tabs
+              activeKey="account"
+              centered
+              items={[
+                {
+                  key: 'account',
+                  label: intl.formatMessage({
+                    id: 'pages.login.accountLogin.tab',
+                    defaultMessage: '账户密码登录',
+                  }),
+                },
+              ]}
+            />
+
+            {loginError && <LoginMessage content={loginError} />}
+            <ProFormText
+              name="tenantCode"
+              fieldProps={{
+                size: 'large',
+                prefix: <ApartmentOutlined />,
+                maxLength: 64,
+              }}
+              placeholder={intl.formatMessage({
+                id: 'pages.login.tenantCode.placeholder',
+                defaultMessage: '请输入租户编码',
+              })}
+              rules={[
+                {
+                  required: true,
+                  message: intl.formatMessage({
+                    id: 'pages.login.tenantCode.required',
+                    defaultMessage: '请输入租户编码',
+                  }),
+                },
+                {
+                  pattern: /^[a-z0-9][a-z0-9-]{0,63}$/,
+                  message: intl.formatMessage({
+                    id: 'pages.login.tenantCode.invalid',
+                    defaultMessage: '租户编码仅支持小写字母、数字和连字符',
+                  }),
+                },
+              ]}
+            />
+            <ProFormText
+              name="username"
+              fieldProps={{
+                size: 'large',
+                prefix: <UserOutlined />,
+              }}
+              placeholder={intl.formatMessage({
+                id: 'pages.login.accountUsername.placeholder',
+                defaultMessage: '请输入用户名',
+              })}
+              rules={[
+                {
+                  required: true,
+                  message: (
+                    <FormattedMessage
+                      id="pages.login.username.required"
+                      defaultMessage="请输入用户名!"
+                    />
+                  ),
+                },
+              ]}
+            />
+            <ProFormText.Password
+              name="password"
+              fieldProps={{
+                size: 'large',
+                prefix: <LockOutlined />,
+              }}
+              placeholder={intl.formatMessage({
+                id: 'pages.login.accountPassword.placeholder',
+                defaultMessage: '请输入密码',
+              })}
+              rules={[
+                {
+                  required: true,
+                  message: (
+                    <FormattedMessage
+                      id="pages.login.password.required"
+                      defaultMessage="请输入密码！"
+                    />
+                  ),
+                },
+              ]}
+            />
+
+            <div
+              style={{
+                marginBottom: 24,
+              }}
+            >
+              <ProFormCheckbox noStyle name="autoLogin">
+                <FormattedMessage
+                  id="pages.login.rememberMe"
+                  defaultMessage="自动登录"
+                />
+              </ProFormCheckbox>
+            </div>
+          </LoginForm>
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mt-4 text-center">
+              <Button loading={helloLoading} onClick={handleHello}>
+                <FormattedMessage
+                  id="pages.login.hello.check"
+                  defaultMessage="测试后端连接"
+                />
+              </Button>
+              <p role="status" aria-live="polite">
+                {helloResult}
+              </p>
+            </div>
+          )}
+        </div>
+        <Footer />
       </div>
-      <Footer />
-    </div>
+    </ConfigProvider>
   );
 };
 

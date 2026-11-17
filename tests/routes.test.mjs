@@ -2,11 +2,11 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { test } from 'node:test';
 import { getConfigRoutes } from '@umijs/core/dist/route/routesConfig.js';
-import routes from '../config/routes.ts';
 import {
   directoryPaths,
   registeredPages,
-} from '../backend/src/navigation/page-registry.ts';
+} from '../backend/src/auth/page-registry.ts';
+import routes from '../config/routes.ts';
 
 const rendererRequire = createRequire(
   import.meta.resolve('@umijs/renderer-react'),
@@ -24,6 +24,27 @@ function routeTree(parentId) {
     });
 }
 const tree = routeTree(undefined);
+
+test('tenant pages declare authorization and default access explicitly', () => {
+  const permissions = registeredPages
+    .map((page) => page.permissionCode)
+    .filter(Boolean);
+  assert.equal(new Set(permissions).size, permissions.length);
+  for (const page of registeredPages) {
+    if (page.scope === 'tenant') {
+      assert(page.featureCode, `${page.path} must declare its feature`);
+      assert(
+        page.permissionCode || page.minRole === 'admin',
+        `${page.path} must declare a permission or require an administrator`,
+      );
+    }
+    if (page.defaultMemberAccess) {
+      assert.equal(page.scope, 'tenant');
+      assert(page.permissionCode);
+      assert.equal(page.minRole, 'user');
+    }
+  }
+});
 
 test('the server page registry exactly covers protected front-end pages', () => {
   const paths = [];

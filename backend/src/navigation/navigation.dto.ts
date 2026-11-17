@@ -15,7 +15,7 @@ import {
   Min,
   ValidateIf,
 } from 'class-validator';
-import { Trim } from '../common/dto/request.dto.js';
+import { Optional, Trim } from '../common/dto/request.dto.js';
 import { SuccessDto } from '../common/dto/response.dto.js';
 
 export class FeatureDto {
@@ -30,6 +30,7 @@ export class MenuDto {
   @ApiProperty({ type: String, nullable: true }) parentCode!: string | null;
   @ApiProperty({ type: String, nullable: true }) path!: string | null;
   @ApiProperty() name!: string;
+  @ApiProperty({ type: String, nullable: true }) i18nKey!: string | null;
   @ApiProperty() icon!: string;
   @ApiProperty({ type: 'integer' }) sortOrder!: number;
   @ApiProperty({ enum: ['authenticated', 'platform', 'tenant'] })
@@ -67,6 +68,16 @@ export class AssignFeaturesDto {
   featureCodes!: string[];
 }
 export class UpdateMenuDto {
+  @ApiPropertyOptional({
+    maxLength: 150,
+    description: '语言包翻译键；留空显示菜单名称',
+  })
+  @Optional()
+  @IsString()
+  @MaxLength(150)
+  @Matches(/^[a-zA-Z0-9_.-]*$/)
+  i18nKey?: string;
+
   @ApiPropertyOptional({
     type: String,
     nullable: true,

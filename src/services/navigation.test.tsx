@@ -4,10 +4,33 @@ import { menuTarget, menuTree } from './navigation';
 vi.mock('./backend/navigation', () => ({ currentNavigation: vi.fn() }));
 
 function menu(code: string, parentCode: string | null, sortOrder: number, kind: BackendAPI.MenuDto['kind'] = 'page'): BackendAPI.MenuDto {
-  return { code, parentCode, name: code, path: `/${code}`, icon: '', sortOrder, scope: 'tenant', minRole: 'user', isActive: true, featureCode: 'list', kind, isSystem: false };
+  return { code, parentCode, name: code, i18nKey: null, path: `/${code}`, icon: '', sortOrder, scope: 'tenant', minRole: 'user', isActive: true, featureCode: 'list', kind, isSystem: false };
 }
 
 describe('remote menu rendering', () => {
+  it('translates stable menu keys in every level while preserving custom fallback names', () => {
+    const menus = [
+      { ...menu('dashboard', null, 0, 'directory'), i18nKey: 'menu.dashboard', name: 'Dashboard fallback' },
+      { ...menu('analysis', 'dashboard', 0), i18nKey: 'menu.dashboard.analysis' },
+      { ...menu('custom', null, 1), name: 'Custom directory' },
+    ];
+    const translated = menuTree(menus, null, (key, fallback) => ({
+      'menu.dashboard': 'Dashboard', 'menu.dashboard.analysis': 'Analysis',
+    })[key] ?? fallback);
+    expect(translated[0].name).toBe('Dashboard');
+    expect(translated[0].children?.[0].name).toBe('Analysis');
+    expect(translated[1].name).toBe('Custom directory');
+    expect(menuTree(menus, null, (_key, fallback) => fallback)[0].name).toBe('Dashboard fallback');
+  });
+
+  it('keeps personal routes out of the sidebar even in an older server response', () => {
+    expect(menuTree([
+      menu('account', null, 0, 'directory'),
+      { ...menu('settings', 'account', 0), path: '/account/settings' },
+      { ...menu('center', null, 0), path: '/account/center' },
+      menu('welcome', null, 0),
+    ]).map(item => item.key)).toEqual(['welcome']);
+  });
   it('opens the first available descendant of a directory using persisted ordering', () => {
     expect(menuTarget([
       menu('dashboard', null, 0, 'directory'), menu('monitor', 'dashboard', 20),

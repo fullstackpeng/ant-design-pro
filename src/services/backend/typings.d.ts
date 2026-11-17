@@ -40,10 +40,13 @@ declare namespace BackendAPI {
     name?: string;
     /** mode=new 时必填；仅用于初始化新账号 */
     password?: string;
+    roleIds?: string[];
     role: "admin" | "user";
   };
 
   type CreateMenuDto = {
+    /** 语言包翻译键；留空显示菜单名称 */
+    i18nKey?: string;
     /** 父目录编码；null 表示根目录，省略表示保持原层级 */
     parentCode?: string | null;
     name: string;
@@ -67,12 +70,23 @@ declare namespace BackendAPI {
     code: string;
   };
 
+  type CreateRoleDto = {
+    name: string;
+    permissions: string[];
+  };
+
   type CreateTenantDto = {
     name: string;
     /** 创建后不可修改；不能使用保留编码 platform */
     code: string;
     /** 首位租户管理员 */
     admin: AccountDto;
+  };
+
+  type CreateUserDto = {
+    username: string;
+    name: string;
+    password: string;
   };
 
   type CurrentTenantDto = {
@@ -104,6 +118,11 @@ declare namespace BackendAPI {
 
   type deleteMenuParams = {
     code: string;
+  };
+
+  type deleteRoleParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
   };
 
   type EmptyResponseDto = {
@@ -153,11 +172,22 @@ declare namespace BackendAPI {
     pageSize?: number;
   };
 
+  type listSiteSettingsHistoryParams = {
+    current?: number;
+    pageSize?: number;
+  };
+
   type listTenantsParams = {
     current?: number;
     pageSize?: number;
     /** 企业名称，支持包含匹配 */
     name?: string;
+  };
+
+  type listUsersParams = {
+    current?: number;
+    pageSize?: number;
+    keyword?: string;
   };
 
   type LoginDto = {
@@ -171,6 +201,7 @@ declare namespace BackendAPI {
   };
 
   type MemberDto = {
+    roles: RoleDto[];
     userId: string;
     role: "admin" | "user";
     isActive: boolean;
@@ -203,6 +234,7 @@ declare namespace BackendAPI {
     parentCode: string | null;
     path: string | null;
     name: string;
+    i18nKey: string | null;
     icon: string;
     sortOrder: number;
     scope: "authenticated" | "platform" | "tenant";
@@ -232,6 +264,17 @@ declare namespace BackendAPI {
     pageSize?: number;
   };
 
+  type PermissionDto = {
+    code: string;
+    name: string;
+    featureCode: string;
+  };
+
+  type PermissionListResponseDto = {
+    success: true;
+    data: PermissionDto[];
+  };
+
   type PlanDto = {
     id: string;
     code: string;
@@ -251,6 +294,37 @@ declare namespace BackendAPI {
     data: PlanDto;
   };
 
+  type PlatformUserDto = {
+    id: string;
+    username: string;
+    name: string;
+    isActive: boolean;
+    isPlatformAdmin: boolean;
+    memberships: UserMembershipDto[];
+  };
+
+  type PublicSiteSettingsDto = {
+    title: string;
+    logo: string;
+    loginBackground: string;
+    footerText: string;
+    colorPrimary: string;
+    defaultLocale:
+      | "zh-CN"
+      | "zh-TW"
+      | "en-US"
+      | "pt-BR"
+      | "fa-IR"
+      | "id-ID"
+      | "ja-JP"
+      | "bn-BD";
+  };
+
+  type PublicSiteSettingsResponseDto = {
+    success: true;
+    data: PublicSiteSettingsDto;
+  };
+
   type RegisteredPageDto = {
     code: string;
     name: string;
@@ -268,6 +342,64 @@ declare namespace BackendAPI {
   type removeMemberParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
+  };
+
+  type ResetPasswordDto = {
+    password: string;
+  };
+
+  type resetUserPasswordParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type RoleDto = {
+    name: string;
+    permissions: string[];
+    id: string;
+  };
+
+  type RoleListResponseDto = {
+    success: true;
+    data: RoleDto[];
+  };
+
+  type SiteSettingsAuditDto = {
+    id: string;
+    actorId: string;
+    actorName: string;
+    before: SiteSettingsDto;
+    after: SiteSettingsDto;
+    createdAt: string;
+  };
+
+  type SiteSettingsAuditListResponseDto = {
+    success: true;
+    data: SiteSettingsAuditDto[];
+    total: number;
+  };
+
+  type SiteSettingsDto = {
+    title: string;
+    logo: string;
+    loginBackground: string;
+    footerText: string;
+    colorPrimary: string;
+    defaultLocale:
+      | "zh-CN"
+      | "zh-TW"
+      | "en-US"
+      | "pt-BR"
+      | "fa-IR"
+      | "id-ID"
+      | "ja-JP"
+      | "bn-BD";
+    revision: number;
+  };
+
+  type SiteSettingsResponseDto = {
+    success: true;
+    data: SiteSettingsDto;
   };
 
   type SubscriptionDto = {
@@ -353,6 +485,7 @@ declare namespace BackendAPI {
   };
 
   type UpdateMemberDto = {
+    roleIds?: string[];
     role: "admin" | "user";
     isActive: boolean;
   };
@@ -363,6 +496,8 @@ declare namespace BackendAPI {
   };
 
   type UpdateMenuDto = {
+    /** 语言包翻译键；留空显示菜单名称 */
+    i18nKey?: string;
     /** 父目录编码；null 表示根目录，省略表示保持原层级 */
     parentCode?: string | null;
     name: string;
@@ -389,6 +524,35 @@ declare namespace BackendAPI {
     id: string;
   };
 
+  type UpdateRoleDto = {
+    name: string;
+    permissions: string[];
+  };
+
+  type updateRoleParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type UpdateSiteSettingsDto = {
+    title: string;
+    logo: string;
+    loginBackground: string;
+    footerText: string;
+    colorPrimary: string;
+    defaultLocale:
+      | "zh-CN"
+      | "zh-TW"
+      | "en-US"
+      | "pt-BR"
+      | "fa-IR"
+      | "id-ID"
+      | "ja-JP"
+      | "bn-BD";
+    /** 读取时的版本，避免覆盖其他管理员的修改 */
+    revision: number;
+  };
+
   type UpdateTenantDto = {
     name: string;
     isActive: boolean;
@@ -397,5 +561,34 @@ declare namespace BackendAPI {
   type updateTenantParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
+  };
+
+  type UpdateUserDto = {
+    name: string;
+    isActive: boolean;
+  };
+
+  type updateUserParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type UserListResponseDto = {
+    success: true;
+    data: PlatformUserDto[];
+    total: number;
+  };
+
+  type UserMembershipDto = {
+    tenantId: string;
+    tenantName: string;
+    role: string;
+    isActive: boolean;
+  };
+
+  type UserQueryDto = {
+    current?: number;
+    pageSize?: number;
+    keyword?: string;
   };
 }

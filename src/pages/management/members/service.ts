@@ -1,4 +1,5 @@
 import * as members from '@/services/backend/members';
+import * as roles from '@/services/backend/roles';
 
 export type Member = BackendAPI.MemberDto;
 export const listMembers = (params: BackendAPI.listMembersParams) =>
@@ -11,3 +12,5 @@ export const removeMember = (id: string) =>
   members.removeMember({ id }, { skipErrorHandler: true });
 export const subscriptionInfo = () =>
   members.subscriptionInfo({ skipErrorHandler: true });
+
+export const listRoles = () => roles.listRoles({ skipErrorHandler: true });

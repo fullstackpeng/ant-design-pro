@@ -46,13 +46,13 @@ export function menuTarget(menus: BackendAPI.MenuDto[], pathname: string): strin
   return firstPage(menu) ?? pathname;
 }
 
-export function menuTree(menus: BackendAPI.MenuDto[], parentCode: string | null = null): NavigationMenu[] {
-  return menus.filter(menu => menu.parentCode === parentCode)
+export function menuTree(menus: BackendAPI.MenuDto[], parentCode: string | null = null, translate?: (key: string, fallback: string) => string): NavigationMenu[] {
+  return menus.filter(menu => menu.parentCode === parentCode && menu.code !== 'account' && !menu.path?.startsWith('/account/'))
     .sort((a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code))
     .map(menu => {
-      const children = menuTree(menus, menu.code);
+      const children = menuTree(menus, menu.code, translate);
       return {
-        key: menu.code, name: menu.name, path: menu.path ?? undefined, icon: icons[menu.icon],
+        key: menu.code, name: menu.i18nKey && translate ? translate(menu.i18nKey, menu.name) : menu.name, path: menu.path ?? undefined, icon: icons[menu.icon],
         ...(children.length ? { children } : {}),
       };
     });

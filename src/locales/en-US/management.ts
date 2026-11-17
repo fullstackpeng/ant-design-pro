@@ -1,4 +1,45 @@
 export default {
+  'management.settingsLoadFailed':
+    'Unable to load settings. Refresh the page to try again.',
+  'management.systemSettings': 'System settings',
+  'management.siteTitle': 'Site name',
+  'management.siteLogo': 'Logo URL',
+  'management.loginBackground': 'Login background URL',
+  'management.footerText': 'Footer text',
+  'management.primaryColor': 'Default primary color',
+  'management.defaultLocale': 'Default language',
+  'management.changedAt': 'Changed at',
+  'management.changedBy': 'Changed by',
+  'management.changes': 'Changes',
+  'management.settingsHistory': 'Configuration history',
+  'management.siteSettingsHelp':
+    'Changes apply here after saving and in other sessions after refreshing. The default language applies to users without a language preference. Leave image URLs blank to hide them.',
+
+  'management.roleName': 'Role name',
+  'management.permissions': 'Permissions',
+  'management.roleManagement': 'Role management',
+  'management.roleHelp':
+    'Administrators have all enabled permissions. Members without custom roles keep basic pages; assigned roles determine their permissions. Roles cannot enable unavailable modules.',
+  'management.createRole': 'Create role',
+  'management.editRole': 'Edit role',
+  'management.deleteRoleConfirm':
+    'Delete this role? Remove member assignments first.',
+  'management.customRoles': 'Custom roles',
+  'management.customRolesHelp':
+    'Administrators have all enabled permissions. Members receive the union of assigned roles; leave empty for basic page access.',
+  'management.userManagement': 'User management',
+  'management.searchUsers': 'Username or name',
+  'management.tenantMemberships': 'Tenant memberships',
+  'management.resetPassword': 'Reset password',
+  'management.newPassword': 'New password',
+  'management.createUser': 'Create user',
+  'management.editUser': 'Edit user',
+  'management.usersHelp':
+    'Manage global accounts. Disabling blocks access to every tenant; resetting a password revokes all sessions. Add new accounts to a tenant through member management.',
+  'management.menuI18nKey': 'Translation key',
+  'management.menuI18nKeyHelp':
+    'Use a locale dictionary key such as menu.dashboard; leave empty to display the menu name.',
+
   'management.createMenu': 'Add menu',
   'management.menuKind': 'Menu type',
   'management.directory': 'Directory',

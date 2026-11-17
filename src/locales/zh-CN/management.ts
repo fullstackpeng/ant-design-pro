@@ -1,4 +1,43 @@
 export default {
+  'management.settingsLoadFailed': '配置读取失败，请刷新页面重试。',
+  'management.systemSettings': '系统配置',
+  'management.siteTitle': '系统名称',
+  'management.siteLogo': 'Logo 地址',
+  'management.loginBackground': '登录背景地址',
+  'management.footerText': '页脚文字',
+  'management.primaryColor': '默认主题色',
+  'management.defaultLocale': '默认语言',
+  'management.changedAt': '修改时间',
+  'management.changedBy': '修改人',
+  'management.changes': '变更内容',
+  'management.settingsHistory': '配置变更记录',
+  'management.siteSettingsHelp':
+    '保存后当前页面立即应用，其他会话刷新后生效。默认语言仅影响未自行选择语言的用户。图片留空可隐藏。',
+
+  'management.roleName': '角色名称',
+  'management.permissions': '权限',
+  'management.roleManagement': '角色管理',
+  'management.roleHelp':
+    '管理员拥有已开通模块的全部权限。普通成员未分配自定义角色时保留基础页面权限，分配后按所选角色的权限并集授权。角色不会开通租户未购买的模块。',
+  'management.createRole': '新增角色',
+  'management.editRole': '编辑角色',
+  'management.deleteRoleConfirm': '删除角色？请先解除成员关联。',
+  'management.customRoles': '自定义角色',
+  'management.customRolesHelp':
+    '管理员身份拥有全部已开通权限；普通成员分配多个角色时取权限并集，留空使用基础页面权限。',
+  'management.userManagement': '用户管理',
+  'management.searchUsers': '账号或姓名',
+  'management.tenantMemberships': '所属租户',
+  'management.resetPassword': '重置密码',
+  'management.newPassword': '新密码',
+  'management.createUser': '新增用户',
+  'management.editUser': '编辑用户',
+  'management.usersHelp':
+    '管理全局账号。停用账号会阻止其登录所有租户；重置密码会撤销全部会话。新建账号后，请在租户成员管理中添加该账号。',
+  'management.menuI18nKey': '国际化键',
+  'management.menuI18nKeyHelp':
+    '填写语言包中的键，例如 menu.dashboard；留空显示菜单名称。',
+
   'management.createMenu': '新增菜单',
   'management.menuKind': '菜单类型',
   'management.directory': '目录',

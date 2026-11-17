@@ -1,4 +1,9 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import type { SessionContext } from '../auth/session-context.js';
 import type { PaginationQueryDto } from '../common/dto/request.dto.js';
 import {
@@ -11,6 +16,7 @@ import {
 import { prepareAccount, resolveAccount } from '../database/accounts.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { transaction } from '../database/transaction.js';
+import type { Prisma } from '../generated/prisma/client.js';
 import { ensureMemberCapacity } from '../plans/entitlements.js';
 import type {
   CreateMemberDto,
@@ -29,6 +35,11 @@ export class MembersService {
         ...pagination(query),
         orderBy: { userId: 'asc' },
         select: {
+          roles: {
+            select: {
+              role: { select: { id: true, name: true, permissions: true } },
+            },
+          },
           userId: true,
           role: true,
           isActive: true,
@@ -37,12 +48,26 @@ export class MembersService {
       }),
       this.prisma.tenantMembership.count({ where }),
     ]);
-    return { success: true as const, data: json(rows), total };
+    return {
+      success: true as const,
+      data: json(
+        rows.map((row) => ({ ...row, roles: row.roles.map((r) => r.role) })),
+      ),
+      total,
+    };
   }
 
   async add(session: SessionContext, body: CreateMemberDto) {
     const tenant = tenantId(session);
     const memberRole = body.role;
+    if (
+      session.access !== 'admin' &&
+      (memberRole === 'admin' || body.roleIds !== undefined)
+    )
+      throw new ForbiddenException({
+        success: false,
+        errorMessage: '仅租户管理员可以分配角色',
+      });
     const account = await prepareAccount(body);
     await transaction(this.prisma, async (tx) => {
       await ensureMemberCapacity(tx, tenant);
@@ -50,6 +75,7 @@ export class MembersService {
       await tx.tenantMembership.create({
         data: { tenantId: tenant, userId: user.id, role: memberRole },
       });
+      await this.assignRoles(tx, tenant, user.id, body.roleIds);
     });
     return success(null);
   }
@@ -75,12 +101,27 @@ export class MembersService {
       const where = { tenantId_userId: { tenantId: tenant, userId } };
       const current = await tx.tenantMembership.findUniqueOrThrow({ where });
       if (
+        session.access !== 'admin' &&
+        (current.role === 'admin' ||
+          nextRole === 'admin' ||
+          body?.roleIds !== undefined)
+      )
+        throw new ForbiddenException({
+          success: false,
+          errorMessage: '仅租户管理员可以管理管理员或分配角色',
+        });
+      if (
         current.role === 'admin' &&
         current.isActive &&
         (!isActive || nextRole !== 'admin')
       ) {
         const admins = await tx.tenantMembership.count({
-          where: { tenantId: tenant, role: 'admin', isActive: true },
+          where: {
+            tenantId: tenant,
+            role: 'admin',
+            isActive: true,
+            user: { isActive: true },
+          },
         });
         if (admins <= 1)
           throw new ConflictException({
@@ -95,11 +136,35 @@ export class MembersService {
           where,
           data: { role: nextRole, isActive },
         });
+        await this.assignRoles(tx, tenant, userId, body.roleIds);
         if (!isActive)
           await tx.session.deleteMany({ where: { tenantId: tenant, userId } });
       }
     });
     return success(null);
+  }
+
+  private async assignRoles(
+    tx: Prisma.TransactionClient,
+    tenant: bigint,
+    userId: bigint,
+    roleIds?: string[],
+  ) {
+    if (roleIds === undefined) return;
+    const ids = roleIds.map(id);
+    if (
+      (await tx.tenantRole.count({
+        where: { tenantId: tenant, id: { in: ids } },
+      })) !== ids.length
+    )
+      throw new ForbiddenException({
+        success: false,
+        errorMessage: '角色不存在或不属于当前租户',
+      });
+    await tx.memberRole.deleteMany({ where: { tenantId: tenant, userId } });
+    await tx.memberRole.createMany({
+      data: ids.map((roleId) => ({ tenantId: tenant, userId, roleId })),
+    });
   }
 
   async subscription(session: SessionContext) {

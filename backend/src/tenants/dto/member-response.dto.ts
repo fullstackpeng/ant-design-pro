@@ -2,12 +2,14 @@ import { ApiProperty } from '@nestjs/swagger';
 import { TenantIdentityDto } from '../../auth/dto/auth-response.dto.js';
 import { SuccessDto } from '../../common/dto/response.dto.js';
 import { SubscriptionWithPlanDto } from '../../platform/dto/platform-response.dto.js';
+import { RoleDto } from './role-response.dto.js';
 
 export class MemberUserDto {
   @ApiProperty() username!: string;
   @ApiProperty() name!: string;
 }
 export class MemberDto {
+  @ApiProperty({ type: [RoleDto] }) roles!: RoleDto[];
   @ApiProperty({ type: String }) userId!: string;
   @ApiProperty({ enum: ['admin', 'user'] }) role!: string;
   @ApiProperty() isActive!: boolean;

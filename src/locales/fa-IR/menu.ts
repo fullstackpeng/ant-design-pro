@@ -1,4 +1,11 @@
 export default {
+  'menu.platform.settings': 'تنظیمات سیستم',
+  'menu.platform.navigation': 'مدیریت منو',
+
+  'menu.platform.users': 'مدیریت کاربران',
+  'menu.tenant-roles': 'مدیریت نقش‌ها',
+  'menu.account.theme': 'تنظیمات پوسته',
+
   'menu.platform': 'Platform',
   'menu.platform.tenants': 'Tenants',
   'menu.platform.plans': 'Plans',

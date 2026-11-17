@@ -15,10 +15,35 @@ model User {
   passwordHash    String             @map("password_hash")
   name            String             @db.VarChar(100)
   isPlatformAdmin Boolean            @default(false) @map("is_platform_admin")
+  isActive        Boolean            @default(true) @map("is_active")
   memberships     TenantMembership[]
   sessions        Session[]
 
   @@map("app_users")
+}
+
+model SiteSettings {
+  id              Int      @id @default(1)
+  title           String   @db.VarChar(100)
+  logo            String   @db.VarChar(2048)
+  loginBackground String   @map("login_background") @db.VarChar(2048)
+  footerText      String   @map("footer_text") @db.VarChar(200)
+  colorPrimary    String   @map("color_primary") @db.VarChar(7)
+  defaultLocale   String   @map("default_locale") @db.VarChar(20)
+  revision        Int      @default(0)
+
+  @@map("app_site_settings")
+}
+
+model SiteSettingsAudit {
+  id        BigInt   @id @default(autoincrement())
+  actorId   BigInt   @map("actor_id")
+  actorName String   @map("actor_name") @db.VarChar(100)
+  before    Json
+  after     Json
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("app_site_settings_audits")
 }
 
 model Tenant {
@@ -29,6 +54,7 @@ model Tenant {
   memberships  TenantMembership[]
   subscription Subscription?
   features     TenantFeature[]
+  roles        TenantRole[]
 
   @@map("app_tenants")
 }
@@ -60,6 +86,7 @@ model Menu {
   kind        String  @default("page") @db.VarChar(20)
   path        String? @unique @db.VarChar(200)
   name        String  @db.VarChar(100)
+  i18nKey     String? @map("i18n_key") @db.VarChar(150)
   icon        String  @default("") @db.VarChar(64)
   sortOrder   Int     @default(0) @map("sort_order")
   scope       String  @db.VarChar(20)
@@ -81,10 +108,35 @@ model TenantMembership {
   tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   sessions Session[]
+  roles    MemberRole[]
 
   @@id([tenantId, userId])
   @@index([userId])
   @@map("app_tenant_memberships")
+}
+
+model TenantRole {
+  id          BigInt       @id @default(autoincrement())
+  tenantId    BigInt       @map("tenant_id")
+  name        String       @db.VarChar(100)
+  permissions String[]
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  members     MemberRole[]
+
+  @@unique([tenantId, name])
+  @@unique([tenantId, id])
+  @@map("app_tenant_roles")
+}
+
+model MemberRole {
+  tenantId BigInt @map("tenant_id")
+  userId   BigInt @map("user_id")
+  roleId   BigInt @map("role_id")
+  member   TenantMembership @relation(fields: [tenantId, userId], references: [tenantId, userId], onDelete: Cascade)
+  role     TenantRole @relation(fields: [tenantId, roleId], references: [tenantId, id], onDelete: Restrict)
+
+  @@id([tenantId, userId, roleId])
+  @@map("app_member_roles")
 }
 
 model Session {

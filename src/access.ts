@@ -3,7 +3,10 @@
  * */
 export default function access(
   initialState:
-    | { currentUser?: API.CurrentUser & { isPlatformAdmin?: boolean } }
+    | {
+        currentUser?: API.CurrentUser & { isPlatformAdmin?: boolean };
+        navigation?: BackendAPI.NavigationDto;
+      }
     | undefined,
 ) {
   const { currentUser } = initialState ?? {};
@@ -11,6 +14,7 @@ export default function access(
     canAdmin: currentUser && currentUser.access === 'admin',
     canPlatform: currentUser?.isPlatformAdmin === true,
     canManageMembers:
-      currentUser?.isPlatformAdmin !== true && currentUser?.access === 'admin',
+      currentUser?.isPlatformAdmin !== true &&
+      initialState?.navigation?.permissions.includes('members:read') === true,
   };
 }

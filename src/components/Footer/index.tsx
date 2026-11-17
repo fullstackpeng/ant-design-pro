@@ -1,8 +1,10 @@
 import { GithubOutlined } from '@ant-design/icons';
 import packageJson from '@root/package.json';
+import { useModel } from '@umijs/max';
 import { Divider } from 'antd';
 import { createStyles } from 'antd-style';
 import React from 'react';
+import { defaultSiteSettings } from '@/services/siteSettings';
 
 const getRepoUrl = () => {
   if (!packageJson.repository)
@@ -65,11 +67,20 @@ const useStyles = createStyles(({ token, css }) => ({
 
 const Footer: React.FC = () => {
   const { styles } = useStyles();
+  const { initialState } = useModel('@@initialState');
+  const footerText =
+    initialState?.siteSettings?.footerText ?? defaultSiteSettings.footerText;
   const year = new Date().getFullYear();
 
   return (
     <div className={styles.footer}>
-      <div className={styles.copyright}>Ant Design Pro &copy; {year}</div>
+      <div className={styles.copyright}>
+        {footerText && (
+          <>
+            {footerText} &copy; {year}
+          </>
+        )}
+      </div>
       <div className={styles.meta}>
         <span className={styles.group}>
           <span className={styles.label}>ver</span>

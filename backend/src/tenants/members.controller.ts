@@ -21,10 +21,11 @@ import {
 } from '@nestjs/swagger';
 import { RequireScope } from '../auth/access-scope.decorator.js';
 import { CurrentSession } from '../auth/current-session.decorator.js';
+import { RequireFeature } from '../auth/require-feature.decorator.js';
+import { RequirePermission } from '../auth/require-permission.decorator.js';
 import type { SessionContext } from '../auth/session-context.js';
 import { IdParamDto, PaginationQueryDto } from '../common/dto/request.dto.js';
 import { ApiErrors, EmptyResponseDto } from '../common/dto/response.dto.js';
-import { RequireFeature } from '../navigation/require-feature.decorator.js';
 import { CreateMemberDto, UpdateMemberDto } from './dto/member-request.dto.js';
 import {
   MemberListResponseDto,
@@ -33,7 +34,7 @@ import {
 import { MembersService } from './members.service.js';
 
 @Controller('api/tenant')
-@RequireScope('tenant-admin')
+@RequireScope('tenant')
 @ApiTags('members')
 @ApiCookieAuth('session')
 @ApiErrors()
@@ -44,6 +45,7 @@ export class MembersController {
   ) {}
 
   @Get('members')
+  @RequirePermission('members:read')
   @RequireFeature('members')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({ operationId: 'listMembers', summary: '分页查询当前租户成员' })
@@ -56,6 +58,7 @@ export class MembersController {
   }
 
   @Post('members')
+  @RequirePermission('members:create')
   @RequireFeature('members')
   @ApiOperation({
     operationId: 'addMember',
@@ -71,6 +74,7 @@ export class MembersController {
   }
 
   @Patch('members/:id')
+  @RequirePermission('members:update')
   @RequireFeature('members')
   @ApiOperation({ operationId: 'updateMember', summary: '调整成员角色与状态' })
   @ApiBody({ type: UpdateMemberDto })
@@ -84,6 +88,7 @@ export class MembersController {
   }
 
   @Delete('members/:id')
+  @RequirePermission('members:delete')
   @RequireFeature('members')
   @ApiOperation({
     operationId: 'removeMember',

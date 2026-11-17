@@ -2,7 +2,7 @@ import { LinkOutlined } from '@ant-design/icons';
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import { SettingDrawer } from '@ant-design/pro-components';
 import type { RequestConfig, RunTimeLayoutConfig } from '@umijs/max';
-import { history, Link } from '@umijs/max';
+import { getIntl, getLocale, Helmet, history, Link } from '@umijs/max';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import React from 'react';
@@ -26,6 +26,14 @@ import {
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
 import { currentNavigation, menuTree } from './services/navigation';
+import {
+  applySiteLocale,
+  getSiteLocale,
+  loadSiteSettings,
+  siteLayoutSettings,
+} from './services/siteSettings';
+
+export const locale = { getLocale: getSiteLocale };
 
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
@@ -37,6 +45,7 @@ export async function getInitialState(): Promise<{
   settings?: Partial<LayoutSettings>;
   currentUser?: CurrentUser;
   navigation?: BackendAPI.NavigationDto;
+  siteSettings?: BackendAPI.PublicSiteSettingsDto;
   loading?: boolean;
   fetchUserInfo?: () => Promise<CurrentUser | undefined>;
   settingDrawerOpen?: boolean;
@@ -62,6 +71,12 @@ export async function getInitialState(): Promise<{
     }
     return undefined;
   };
+  const siteSettings = await loadSiteSettings();
+  applySiteLocale(siteSettings.defaultLocale);
+  const settings = {
+    ...(defaultSettings as Partial<LayoutSettings>),
+    ...siteLayoutSettings(siteSettings),
+  };
   // 如果不是登录页面，执行
   const { location } = history;
   if (
@@ -77,13 +92,15 @@ export async function getInitialState(): Promise<{
       fetchUserInfo,
       currentUser,
       navigation,
-      settings: defaultSettings as Partial<LayoutSettings>,
+      siteSettings,
+      settings,
       settingDrawerOpen: false,
     };
   }
   return {
     fetchUserInfo,
-    settings: defaultSettings as Partial<LayoutSettings>,
+    siteSettings,
+    settings,
     settingDrawerOpen: false,
   };
 }
@@ -97,11 +114,18 @@ export const layout: RunTimeLayoutConfig = ({
     menu: {
       locale: false,
       params: {
+        locale: getLocale(),
         userid: initialState?.currentUser?.userid,
         tenantId: initialState?.currentUser?.tenant?.id,
         navigation: initialState?.navigation,
       },
-      request: async () => menuTree(initialState?.navigation?.menus ?? []),
+      request: async () =>
+        menuTree(
+          initialState?.navigation?.menus ?? [],
+          null,
+          (id, defaultMessage) =>
+            getIntl(getLocale()).formatMessage({ id, defaultMessage }),
+        ),
     },
     menuItemRender: (item, dom) => {
       if (item.path) {
@@ -185,6 +209,11 @@ export const layout: RunTimeLayoutConfig = ({
       // if (initialState?.loading) return <PageLoading />;
       return (
         <>
+          <Helmet>
+            <title>
+              {initialState?.siteSettings?.title ?? defaultSettings.title}
+            </title>
+          </Helmet>
           {children}
           <SettingDrawer
             disableUrlParams
@@ -208,6 +237,12 @@ export const layout: RunTimeLayoutConfig = ({
       );
     },
     ...initialState?.settings,
+    ...(initialState?.siteSettings
+      ? {
+          title: initialState.siteSettings.title,
+          logo: initialState.siteSettings.logo || false,
+        }
+      : {}),
   };
 };
 

@@ -22,6 +22,32 @@ Other: `npm run openapi` (regenerate `src/services/`), `npm run simple` (**irrev
 
 ## Architecture Essentials
 
+### Mandatory implementation conventions
+
+Before implementing a feature, inspect the closest existing module and name the reference in the progress update. Reuse its directory structure, naming, request handling and state patterns. If no suitable reference exists, explain the concrete design choice; routine implementation choices do not require another approval step.
+
+Reference implementations:
+
+| Concern | Reference |
+| --- | --- |
+| Management page and API wrapper | `src/pages/management/plans/index.tsx`, `plans/service.ts` |
+| Tenant business logic and DTOs | `backend/src/tenants/members.controller.ts`, `members.service.ts`, `dto/` |
+| Platform business logic and DTOs | `backend/src/platform/platform.controller.ts`, `platform.service.ts`, `dto/` |
+| Authorization and page capabilities | `backend/src/auth/authorization.service.ts`, `page-registry.ts`, `permissions.ts` |
+
+- **Business ownership**: tenant members and roles belong to `tenants/`; platform accounts belong to `platform/`. `navigation/` manages menu configuration and builds navigation from authorization results. Do not put unrelated CRUD services in a module merely because its page has a menu entry.
+- **Dependency direction**: authentication and authorization must not import navigation, tenant or platform business modules. Shared authorization lives in `auth/authorization.module.ts`; business modules may consume it. Keep Nest module dependencies acyclic.
+- **Frontend request boundary**: management page/component code calls its page-local `service.ts`; only that wrapper imports generated backend clients. Keep transport options, generated parameter objects and request normalization in the wrapper. Shared cross-page API adapters may live in `src/services/`. Do not edit generated clients manually.
+- **Backend layers**: controllers handle routing, DTOs and response declarations; services enforce business rules and transactions. Reuse `success()`, `json()`, `pagination()` and `transaction()` where applicable. Public create/update operations have explicit service methods; share private validation only when it removes real duplication.
+- **DTO layout**: new business DTOs live under the owning module's `dto/`, named `<entity>-request.dto.ts` and `<entity>-response.dto.ts`. Response DTOs must not inherit or import request validation classes. Use runtime DTO imports for controller parameters and explicit response projections where persistence models contain extra fields. The existing `navigation/navigation.dto.ts` is legacy layout, not a template for new DTOs.
+- **Authorization declarations**: declare each page's `permissionCode`, default member access and menu eligibility in `auth/page-registry.ts`; declare action dependencies in `auth/permissions.ts`. Do not infer authorization from page names, permission suffixes or scattered page-code special cases. Frontend visibility and backend checks use the same stable permission codes; backend enforcement is mandatory. Keep administrator-only safeguards explicit.
+- **Scope and decomposition**: preserve behavior, API operation IDs and tenant isolation during structural refactors. Keep existing `ProTable + ModalForm` patterns; extract a component/hook only for concrete complexity or reuse. Avoid unrelated formatting and speculative generic layers. Do not alter an applied migration to perform a source-code refactor.
+- **Delivery checks**: review changed files against the reference module, check dependency direction, request wrappers, DTO ownership and duplicated rules, then run focused behavior tests plus required lint/type checks. Report necessary deviations and verification limits. Do not treat passing tests as evidence that module boundaries are correct.
+
+`npm run lint:architecture` enforces literal import boundaries for management pages, auth/business modules, tenant roles and response/request DTOs; it is included in `npm run lint`. These import checks supplement the manual structural review above.
+
+When adding or changing page/action permissions or `@RequirePermission` declarations, run `npm run test:permissions`. This checks unique permission codes, registered dependencies, dependency cycles, page references and actual Nest controller metadata (including class defaults and inherited HTTP handlers). The check is also included in backend tests and CI; it does not connect to a database or launch a browser. Backend dependencies must be installed; Prisma generation requires a `DATABASE_URL`, which may be a dummy URL for this metadata-only check.
+
 **Config**: `config/config.ts` (defineConfig), `config/routes.ts` (declarative routes). Route `name` → `menu.xxx` i18n key; `access` field gates visibility.
 
 **Convention files** (`src/`): `app.tsx` (runtime config + `getInitialState`), `access.ts` (permissions), `global.tsx` (side effects), `loading.tsx`, `typings.d.ts`.

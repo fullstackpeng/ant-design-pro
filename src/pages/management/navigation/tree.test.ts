@@ -12,6 +12,7 @@ function menu(
     kind,
     path: kind === 'page' ? `/${code}` : null,
     name: code,
+    i18nKey: null,
     icon: '',
     sortOrder: 0,
     scope: 'tenant',

@@ -2,61 +2,39 @@ import { randomUUID } from 'node:crypto';
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   Inject,
   Injectable,
 } from '@nestjs/common';
+import { AuthorizationService } from '../auth/authorization.service.js';
+import { directoryPaths, registeredPages } from '../auth/page-registry.js';
 import type { SessionContext } from '../auth/session-context.js';
 import { id } from '../common/validation.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { transaction } from '../database/transaction.js';
 import type { Menu, Prisma } from '../generated/prisma/client.js';
+import { isSystemMenu } from './menu-policy.js';
 import type { CreateMenuDto, UpdateMenuDto } from './navigation.dto.js';
-import {
-  directoryPaths,
-  isSystemMenu,
-  registeredPages,
-} from './page-registry.js';
 
 @Injectable()
 export class NavigationService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
-
-  async requireFeature(session: SessionContext, featureCode: string) {
-    if (
-      !session.tenant ||
-      !(await this.prisma.tenantFeature.findUnique({
-        where: {
-          tenantId_featureCode: {
-            tenantId: id(session.tenant.id),
-            featureCode,
-          },
-        },
-      }))
-    )
-      throw new ForbiddenException({
-        success: false,
-        errorMessage: '当前租户未开通该功能',
-      });
-  }
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(AuthorizationService)
+    private readonly authorization: AuthorizationService,
+  ) {}
 
   async current(session: SessionContext) {
-    const features = session.tenant
-      ? await this.tenantFeatures(session.tenant.id)
-      : [];
+    const { permissions, pages } = await this.authorization.resolve(session);
     const rows = await this.prisma.menu.findMany({
       orderBy: [{ sortOrder: 'asc' }, { code: 'asc' }],
     });
-    const pages = registeredPages.filter(
-      (page) =>
-        (page.scope === 'authenticated' ||
-          page.scope === (session.tenant ? 'tenant' : 'platform')) &&
-        (page.minRole === 'user' || session.access === 'admin') &&
-        (!page.featureCode || features.includes(page.featureCode)),
-    );
     const candidates = rows.filter(
       (menu) =>
         menu.isActive &&
+        (menu.kind === 'directory' ||
+          registeredPages.some(
+            (page) => page.path === menu.path && page.showInMenu,
+          )) &&
         (menu.scope === 'authenticated' ||
           menu.scope === (session.tenant ? 'tenant' : 'platform')) &&
         (menu.kind === 'directory' ||
@@ -80,10 +58,6 @@ export class NavigationService {
     const menus = visibleCandidates
       .filter(hasPage)
       .map((menu) => this.menuDto(menu));
-    const permissions =
-      features.includes('members') && session.access === 'admin'
-        ? ['members:read', 'members:create', 'members:update', 'members:delete']
-        : [];
     const allowedPaths = [
       ...pages.map((page) => page.path),
       ...directoryPaths.filter((path) =>
@@ -104,7 +78,16 @@ export class NavigationService {
   }
 
   pages() {
-    return registeredPages;
+    return registeredPages
+      .filter((page) => page.showInMenu)
+      .map(({ code, path, name, scope, featureCode, minRole }) => ({
+        code,
+        path,
+        name,
+        scope,
+        featureCode,
+        minRole,
+      }));
   }
 
   private menuDto(menu: Menu) {
@@ -143,7 +126,7 @@ export class NavigationService {
   async createMenu(body: CreateMenuDto) {
     const page =
       body.kind === 'page'
-        ? registeredPages.find((page) => page.code === body.pageCode)
+        ? this.pages().find((page) => page.code === body.pageCode)
         : undefined;
     if (body.kind === 'page' && !page)
       throw new BadRequestException({
@@ -172,6 +155,7 @@ export class NavigationService {
             kind: body.kind,
             parentCode,
             name: body.name,
+            i18nKey: body.i18nKey || null,
             icon: body.icon,
             sortOrder: body.sortOrder,
             isActive: body.isActive,
@@ -185,17 +169,8 @@ export class NavigationService {
     );
   }
 
-  async tenantFeatures(tenant: string) {
-    const row = await this.prisma.tenant.findUniqueOrThrow({
-      where: { id: id(tenant) },
-      select: {
-        features: {
-          select: { featureCode: true },
-          orderBy: { featureCode: 'asc' },
-        },
-      },
-    });
-    return row.features.map((feature) => feature.featureCode);
+  tenantFeatures(tenant: string) {
+    return this.authorization.featureCodes(tenant);
   }
 
   async assignFeatures(tenant: string, codes: string[]) {
@@ -235,6 +210,9 @@ export class NavigationService {
           where: { code },
           data: {
             name: body.name,
+            ...(body.i18nKey !== undefined
+              ? { i18nKey: body.i18nKey || null }
+              : {}),
             icon: body.icon,
             sortOrder: body.sortOrder,
             isActive: body.isActive,

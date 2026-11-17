@@ -2,6 +2,7 @@ import {
   LogoutOutlined,
   SettingOutlined,
   SkinOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import { history, useIntl, useModel } from '@umijs/max';
 import type { MenuProps } from 'antd';
@@ -13,27 +14,6 @@ import HeaderDropdown from '../HeaderDropdown';
 type GlobalHeaderRightProps = {
   children?: React.ReactNode;
 };
-
-const menuItems: MenuProps['items'] = [
-  {
-    key: 'settings',
-    icon: <SettingOutlined />,
-    label: '个人设置',
-  },
-  {
-    key: 'theme',
-    icon: <SkinOutlined />,
-    label: '主题设置',
-  },
-  {
-    type: 'divider' as const,
-  },
-  {
-    key: 'logout',
-    icon: <LogoutOutlined />,
-    label: '退出登录',
-  },
-];
 
 const loginOut = () => {
   const { search, pathname } = window.location;
@@ -56,6 +36,43 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({
   const { initialState, setInitialState } = useModel('@@initialState');
   const { message } = App.useApp();
   const intl = useIntl();
+  const menuItems: MenuProps['items'] = [
+    {
+      key: 'center',
+      icon: <UserOutlined />,
+      label: intl.formatMessage({
+        id: 'menu.account.center',
+        defaultMessage: '个人中心',
+      }),
+    },
+    {
+      key: 'settings',
+      icon: <SettingOutlined />,
+      label: intl.formatMessage({
+        id: 'menu.account.settings',
+        defaultMessage: '个人设置',
+      }),
+    },
+    {
+      key: 'theme',
+      icon: <SkinOutlined />,
+      label: intl.formatMessage({
+        id: 'menu.account.theme',
+        defaultMessage: '主题设置',
+      }),
+    },
+    {
+      type: 'divider' as const,
+    },
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: intl.formatMessage({
+        id: 'menu.account.logout',
+        defaultMessage: '退出登录',
+      }),
+    },
+  ];
 
   const onMenuClick: MenuProps['onClick'] = async (event) => {
     const { key } = event;
