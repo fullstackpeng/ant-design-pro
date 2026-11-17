@@ -10,6 +10,31 @@
  * @param icon 配置路由的图标，取值参考 https://ant.design/components/icon-cn， 注意去除风格后缀和大小写，如想要配置图标为 <StepBackwardOutlined /> 则取值应为 stepBackward 或 StepBackward，如想要配置图标为 <UserOutlined /> 则取值应为 user 或者 User
  * @doc https://umijs.org/docs/guides/routes
  */
+interface RouteConfig {
+  path: string;
+  routes?: RouteConfig[];
+  [key: string]: unknown;
+}
+
+// Wrappers introduce an empty-path route. Relative children remain valid under that layer.
+function relativeChildren(
+  routes: RouteConfig[],
+  parentPath: string,
+): RouteConfig[] {
+  return routes.map((route) => ({
+    ...route,
+    path:
+      route.path === parentPath
+        ? ''
+        : route.path.startsWith(`${parentPath}/`)
+          ? route.path.slice(parentPath.length + 1)
+          : route.path,
+    ...(route.routes
+      ? { routes: relativeChildren(route.routes, route.path) }
+      : {}),
+  }));
+}
+
 export default [
   {
     path: '/user',
@@ -84,6 +109,12 @@ export default [
         name: 'plans',
         access: 'canPlatform',
         component: './management/plans',
+      },
+      {
+        path: '/platform/navigation',
+        name: 'navigation',
+        access: 'canPlatform',
+        component: './management/navigation',
       },
     ],
   },
@@ -317,10 +348,23 @@ export default [
   {
     path: '/',
     layout: false,
-    redirect: '/dashboard/analysis',
+    redirect: '/welcome',
   },
   {
     component: './exception/404',
     path: '/*',
   },
-];
+].map((route) =>
+  route.path !== '/user' &&
+  route.path !== '/exception' &&
+  route.path !== '/' &&
+  route.path !== '/*'
+    ? {
+        ...route,
+        wrappers: ['@/wrappers/AuthorizedPage'],
+        ...(route.routes
+          ? { routes: relativeChildren(route.routes, route.path) }
+          : {}),
+      }
+    : route,
+);

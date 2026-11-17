@@ -24,6 +24,7 @@ import { CurrentSession } from '../auth/current-session.decorator.js';
 import type { SessionContext } from '../auth/session-context.js';
 import { IdParamDto, PaginationQueryDto } from '../common/dto/request.dto.js';
 import { ApiErrors, EmptyResponseDto } from '../common/dto/response.dto.js';
+import { RequireFeature } from '../navigation/require-feature.decorator.js';
 import { CreateMemberDto, UpdateMemberDto } from './dto/member-request.dto.js';
 import {
   MemberListResponseDto,
@@ -43,6 +44,7 @@ export class MembersController {
   ) {}
 
   @Get('members')
+  @RequireFeature('members')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({ operationId: 'listMembers', summary: '分页查询当前租户成员' })
   @ApiOkResponse({ type: MemberListResponseDto })
@@ -54,6 +56,7 @@ export class MembersController {
   }
 
   @Post('members')
+  @RequireFeature('members')
   @ApiOperation({
     operationId: 'addMember',
     summary: '添加已有账号或创建新成员',
@@ -68,6 +71,7 @@ export class MembersController {
   }
 
   @Patch('members/:id')
+  @RequireFeature('members')
   @ApiOperation({ operationId: 'updateMember', summary: '调整成员角色与状态' })
   @ApiBody({ type: UpdateMemberDto })
   @ApiOkResponse({ type: EmptyResponseDto })
@@ -80,6 +84,7 @@ export class MembersController {
   }
 
   @Delete('members/:id')
+  @RequireFeature('members')
   @ApiOperation({
     operationId: 'removeMember',
     summary: '移除成员，保留全局账号',

@@ -4,11 +4,13 @@
 // API 唯一标识：
 import * as health from "./health";
 import * as auth from "./auth";
+import * as navigation from "./navigation";
 import * as members from "./members";
 import * as platform from "./platform";
 export default {
   health,
   auth,
+  navigation,
   members,
   platform,
 };

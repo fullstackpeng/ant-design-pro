@@ -1,10 +1,9 @@
 import 'reflect-metadata';
 import assert from 'node:assert/strict';
-import { execFile } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
+import { readdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { test } from 'node:test';
-import { promisify } from 'node:util';
 import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
 import { Pool } from 'pg';
@@ -57,11 +56,27 @@ test('platform, tenant members and manual subscriptions', async (t) => {
     return result.data;
   }
   try {
-    await promisify(execFile)(
-      process.execPath,
-      [resolve('node_modules/prisma/build/index.js'), 'migrate', 'deploy'],
-      { env: process.env },
-    );
+    // Apply the real migration SQL inside the isolated test schema.
+    const migrationClient = await admin.connect();
+    try {
+      await migrationClient.query(`SET search_path TO ${schema}`);
+      const migrations = await readdir(resolve('prisma/migrations'), {
+        withFileTypes: true,
+      });
+      for (const migration of migrations
+        .filter((entry) => entry.isDirectory())
+        .sort((a, b) => a.name.localeCompare(b.name))) {
+        await migrationClient.query(
+          await readFile(
+            resolve('prisma/migrations', migration.name, 'migration.sql'),
+            'utf8',
+          ),
+        );
+      }
+    } finally {
+      await migrationClient.query('RESET search_path');
+      migrationClient.release();
+    }
     await seedDemoData(prisma, password);
     app = await NestFactory.create(AppModule, {
       logger: false,
@@ -197,6 +212,542 @@ test('platform, tenant members and manual subscriptions', async (t) => {
       },
     );
 
+    await t.test(
+      'navigation follows tenant features and roles, with immediate revocation',
+      async () => {
+        const a = await prisma.tenant.findUniqueOrThrow({
+          where: { code: 'tenant-a' },
+        });
+        const b = await prisma.tenant.findUniqueOrThrow({
+          where: { code: 'tenant-b' },
+        });
+        const featurePath = `/api/platform/tenants/${a.id}/features`;
+        const original = await data(await call(featurePath, platform));
+        assert.equal(original.length, 8);
+        const catalog = await data(
+          await call('/api/platform/features', platform),
+        );
+        assert.equal(
+          catalog.find(
+            (feature: { code: string }) => feature.code === 'members',
+          ).name,
+          '成员管理',
+        );
+        assert.equal((await call('/api/current/navigation')).status, 401);
+        const platformNav = await data(
+          await call('/api/current/navigation', platform),
+        );
+        assert(platformNav.allowedPaths.includes('/platform/navigation'));
+        assert.equal(
+          platformNav.menus.find(
+            (menu: { code: string }) => menu.code === 'platform-navigation',
+          ).name,
+          '菜单管理',
+        );
+        assert(!platformNav.allowedPaths.includes('/tenant/members'));
+        const adminNav = await data(
+          await call('/api/current/navigation', tenantA),
+        );
+        assert(adminNav.allowedPaths.includes('/tenant/members'));
+        assert(adminNav.permissions.includes('members:create'));
+        assert(!adminNav.allowedPaths.includes('/platform/tenants'));
+        const memberNav = await data(
+          await call('/api/current/navigation', member),
+        );
+        assert(!memberNav.allowedPaths.includes('/tenant/members'));
+        assert.deepEqual(memberNav.permissions, []);
+        assert.equal(
+          (await call(featurePath, tenantA, 'PATCH', { featureCodes: [] }))
+            .status,
+          403,
+        );
+        assert.equal((await call('/api/platform/menus', member)).status, 403);
+        assert.equal(
+          (
+            await call('/api/current/navigation', tenantA, 'GET', undefined, {
+              'X-Tenant-ID': b.id.toString(),
+            })
+          ).status,
+          403,
+        );
+        for (const featureCodes of [
+          ['unknown'],
+          ['members', 'members'],
+          null,
+          'members',
+          [42],
+        ]) {
+          assert.equal(
+            (await call(featurePath, platform, 'PATCH', { featureCodes }))
+              .status,
+            400,
+          );
+          assert.deepEqual(
+            await data(await call(featurePath, platform)),
+            original,
+          );
+        }
+        assert.equal(
+          (await call(featurePath, platform, 'PATCH', { featureCodes: [] }))
+            .status,
+          200,
+        );
+        const revoked = await data(
+          await call('/api/current/navigation', tenantA),
+        );
+        assert(!revoked.allowedPaths.includes('/tenant/members'));
+        assert(!revoked.allowedPaths.includes('/dashboard/analysis'));
+        assert(revoked.allowedPaths.includes('/welcome'));
+        assert(revoked.allowedPaths.includes('/account/settings'));
+        for (const [method, path, body] of [
+          ['GET', '/api/tenant/members', undefined],
+          ['POST', '/api/tenant/members', {}],
+          ['PATCH', '/api/tenant/members/1', {}],
+          ['DELETE', '/api/tenant/members/1', undefined],
+        ] as const)
+          assert.equal((await call(path, tenantA, method, body)).status, 403);
+        assert.equal((await call('/api/tenant/members', tenantB)).status, 200);
+        // Seeding must not restore an explicitly revoked grant.
+        await seedDemoData(prisma, password);
+        assert.deepEqual(await data(await call(featurePath, platform)), []);
+        assert.equal(
+          (
+            await call(featurePath, platform, 'PATCH', {
+              featureCodes: ['members'],
+            })
+          ).status,
+          200,
+        );
+        assert.equal((await call('/api/tenant/members', tenantA)).status, 200);
+        assert.equal((await call('/api/tenant/members', member)).status, 403);
+        await call(featurePath, platform, 'PATCH', { featureCodes: original });
+      },
+    );
+
+    await t.test(
+      'persisted menu edits affect navigation and parent visibility without changing routes',
+      async () => {
+        const dashboard = await prisma.menu.findUniqueOrThrow({
+          where: { code: 'dashboard' },
+        });
+        const path = '/api/platform/menus/dashboard';
+        const body = {
+          name: 'Renamed dashboard',
+          icon: 'home',
+          sortOrder: 999,
+          isActive: false,
+        };
+        assert.equal((await call(path, tenantA, 'PATCH', body)).status, 403);
+        for (const invalid of [
+          { ...body, sortOrder: '1' },
+          { ...body, isActive: 'false' },
+          { ...body, name: ' ' },
+        ])
+          assert.equal(
+            (await call(path, platform, 'PATCH', invalid)).status,
+            400,
+          );
+        assert.equal(
+          (
+            await call(path, platform, 'PATCH', {
+              ...body,
+              path: '/platform/tenants',
+              scope: 'platform',
+            })
+          ).status,
+          200,
+        );
+        const saved = await prisma.menu.findUniqueOrThrow({
+          where: { code: 'dashboard' },
+        });
+        assert.equal(saved.path, dashboard.path);
+        assert.equal(saved.scope, 'tenant');
+        const nav = await data(await call('/api/current/navigation', tenantA));
+        assert(
+          !nav.menus.some((entry: { path: string | null }) =>
+            entry.path?.startsWith('/dashboard'),
+          ),
+        );
+        assert(nav.allowedPaths.includes('/dashboard/analysis'));
+        assert.equal(
+          (await call('/api/platform/menus/welcome', platform, 'PATCH', body))
+            .status,
+          400,
+        );
+        assert.equal(
+          (
+            await call(
+              '/api/platform/menus/platform-navigation',
+              platform,
+              'PATCH',
+              body,
+            )
+          ).status,
+          400,
+        );
+        assert.equal(
+          (
+            await call(
+              '/api/platform/menus/missing-menu',
+              platform,
+              'PATCH',
+              body,
+            )
+          ).status,
+          404,
+        );
+        await call(path, platform, 'PATCH', { ...body, isActive: true });
+        const enabled = await data(
+          await call('/api/current/navigation', tenantA),
+        );
+        assert.equal(
+          enabled.menus.find(
+            (menu: { code: string }) => menu.code === 'dashboard',
+          ).name,
+          body.name,
+        );
+        assert(enabled.allowedPaths.includes('/dashboard/analysis'));
+        await prisma.menu.updateMany({
+          where: { parentCode: 'dashboard' },
+          data: { isActive: false },
+        });
+        const emptyDirectory = await data(
+          await call('/api/current/navigation', tenantA),
+        );
+        assert(
+          !emptyDirectory.menus.some(
+            (menu: { code: string }) => menu.code === 'dashboard',
+          ),
+        );
+        assert(emptyDirectory.allowedPaths.includes('/dashboard'));
+        await prisma.menu.updateMany({
+          where: { parentCode: 'dashboard' },
+          data: { isActive: true },
+        });
+        await call(path, platform, 'PATCH', {
+          name: dashboard.name,
+          icon: dashboard.icon,
+          sortOrder: dashboard.sortOrder,
+          isActive: true,
+        });
+      },
+    );
+
+    await t.test(
+      'menu editor validates registered pages, hierarchy and module authorization',
+      async () => {
+        const baseMenu = {
+          name: 'Custom menu',
+          icon: '',
+          sortOrder: 1,
+          isActive: true,
+        };
+        assert.equal((await call('/api/platform/pages', tenantA)).status, 403);
+        const pages = await data(await call('/api/platform/pages', platform));
+        assert.equal(
+          pages.find((page: { code: string }) => page.code === 'tenant-members')
+            .featureCode,
+          'members',
+        );
+        assert.equal(
+          (
+            await call('/api/platform/menus', member, 'POST', {
+              ...baseMenu,
+              kind: 'directory',
+              scope: 'tenant',
+            })
+          ).status,
+          403,
+        );
+        for (const invalid of [
+          { kind: 'page', pageCode: 'unknown' },
+          { kind: 'page' },
+          { kind: 'directory', scope: 'authenticated' },
+          { kind: 'directory' },
+          {
+            kind: 'directory',
+            scope: 'tenant',
+            parentCode: 'dashboard-analysis',
+          },
+          { kind: 'directory', scope: 'tenant', parentCode: 'platform' },
+          { kind: 'directory', scope: 'tenant', parentCode: 'unknown' },
+        ])
+          assert.equal(
+            (
+              await call('/api/platform/menus', platform, 'POST', {
+                ...baseMenu,
+                ...invalid,
+              })
+            ).status,
+            400,
+          );
+        const create = await call('/api/platform/menus', platform, 'POST', {
+          ...baseMenu,
+          kind: 'directory',
+          scope: 'tenant',
+          featureCode: 'members',
+          path: '/fake-path',
+        });
+        assert.equal(create.status, 201);
+        const directory = (await data(create))[0];
+        assert.equal(directory.path, null);
+        assert.equal(directory.featureCode, null);
+        const childCreate = await call(
+          '/api/platform/menus',
+          platform,
+          'POST',
+          {
+            ...baseMenu,
+            kind: 'directory',
+            scope: 'tenant',
+            parentCode: directory.code,
+          },
+        );
+        assert.equal(childCreate.status, 201);
+        const child = (await data(childCreate))[0];
+        for (const parentCode of [
+          directory.code,
+          child.code,
+          'platform',
+          'dashboard-analysis',
+        ])
+          assert.equal(
+            (
+              await call(
+                `/api/platform/menus/${directory.code}`,
+                platform,
+                'PATCH',
+                { ...baseMenu, parentCode },
+              )
+            ).status,
+            400,
+          );
+        assert.equal(
+          (
+            await call(
+              `/api/platform/menus/${directory.code}`,
+              platform,
+              'DELETE',
+            )
+          ).status,
+          409,
+        );
+        for (const code of ['welcome', 'platform-navigation', 'account'])
+          assert.equal(
+            (await call(`/api/platform/menus/${code}`, platform, 'DELETE'))
+              .status,
+            400,
+          );
+        assert.equal(
+          (
+            await call(
+              '/api/platform/menus/platform-tenants',
+              platform,
+              'PATCH',
+              { ...baseMenu, parentCode: null },
+            )
+          ).status,
+          400,
+        );
+
+        const original = await prisma.menu.findUniqueOrThrow({
+          where: { code: 'tenant-members' },
+        });
+        assert.equal(
+          (await call('/api/platform/menus/tenant-members', platform, 'DELETE'))
+            .status,
+          200,
+        );
+        // Removing the navigation entry must not revoke the tenant's module or API permissions.
+        const noEntry = await data(
+          await call('/api/current/navigation', tenantA),
+        );
+        assert(noEntry.allowedPaths.includes('/tenant/members'));
+        assert(
+          !noEntry.menus.some(
+            (menu: { path: string }) => menu.path === '/tenant/members',
+          ),
+        );
+        assert.equal((await call('/api/tenant/members', tenantA)).status, 200);
+        const createPage = {
+          ...baseMenu,
+          kind: 'page',
+          pageCode: 'tenant-members',
+          parentCode: child.code,
+          scope: 'platform',
+          minRole: 'user',
+          featureCode: 'dashboard',
+        };
+        const created = await call(
+          '/api/platform/menus',
+          platform,
+          'POST',
+          createPage,
+        );
+        assert.equal(created.status, 201);
+        const page = (await data(created))[0];
+        assert.equal(page.path, '/tenant/members');
+        assert.equal(page.featureCode, 'members');
+        assert.equal(page.scope, 'tenant');
+        assert.equal(page.minRole, 'admin');
+        assert.equal(
+          (await call('/api/platform/menus', platform, 'POST', createPage))
+            .status,
+          409,
+        );
+        const adminNav = await data(
+          await call('/api/current/navigation', tenantA),
+        );
+        assert(
+          adminNav.menus.some(
+            (menu: { code: string }) => menu.code === directory.code,
+          ),
+        );
+        const memberNav = await data(
+          await call('/api/current/navigation', member),
+        );
+        assert(
+          !memberNav.menus.some((menu: { code: string }) =>
+            [page.code, child.code, directory.code].includes(menu.code),
+          ),
+        );
+        assert(!memberNav.allowedPaths.includes('/tenant/members'));
+        const analysis = await prisma.menu.findUniqueOrThrow({
+          where: { code: 'dashboard-analysis' },
+        });
+        await call(
+          '/api/platform/menus/dashboard-analysis',
+          platform,
+          'PATCH',
+          {
+            name: analysis.name,
+            icon: analysis.icon,
+            sortOrder: analysis.sortOrder,
+            isActive: true,
+            parentCode: child.code,
+          },
+        );
+        const tenant = await prisma.tenant.findUniqueOrThrow({
+          where: { code: 'tenant-a' },
+        });
+        const featurePath = `/api/platform/tenants/${tenant.id}/features`;
+        const grants = await data(await call(featurePath, platform));
+        await call(featurePath, platform, 'PATCH', {
+          featureCodes: ['dashboard'],
+        });
+        const mixedDirectory = await data(
+          await call('/api/current/navigation', tenantA),
+        );
+        assert(
+          mixedDirectory.menus.some(
+            (menu: { code: string }) => menu.code === directory.code,
+          ),
+        );
+        assert(
+          mixedDirectory.menus.some(
+            (menu: { path: string }) => menu.path === '/dashboard/analysis',
+          ),
+        );
+        assert(
+          !mixedDirectory.menus.some(
+            (menu: { code: string }) => menu.code === page.code,
+          ),
+        );
+        assert(!mixedDirectory.allowedPaths.includes('/tenant/members'));
+        assert.equal((await call('/api/tenant/members', tenantA)).status, 403);
+        await call(featurePath, platform, 'PATCH', { featureCodes: grants });
+        await call(
+          '/api/platform/menus/dashboard-analysis',
+          platform,
+          'PATCH',
+          {
+            name: analysis.name,
+            icon: analysis.icon,
+            sortOrder: analysis.sortOrder,
+            isActive: true,
+            parentCode: analysis.parentCode,
+          },
+        );
+        await call(`/api/platform/menus/${page.code}`, platform, 'PATCH', {
+          ...baseMenu,
+          parentCode: null,
+          isActive: false,
+        });
+        const hidden = await data(
+          await call('/api/current/navigation', tenantA),
+        );
+        assert(
+          !hidden.menus.some(
+            (menu: { code: string }) => menu.code === page.code,
+          ),
+        );
+        assert(hidden.allowedPaths.includes('/tenant/members'));
+        assert.equal((await call('/api/tenant/members', tenantA)).status, 200);
+        assert.equal(
+          (await call(`/api/platform/menus/${page.code}`, tenantA, 'DELETE'))
+            .status,
+          403,
+        );
+        await call(`/api/platform/menus/${page.code}`, platform, 'DELETE');
+        await call(`/api/platform/menus/${child.code}`, platform, 'DELETE');
+        await call(`/api/platform/menus/${directory.code}`, platform, 'DELETE');
+        await prisma.menu.create({ data: original });
+      },
+    );
+
+    await t.test(
+      'concurrent directory moves cannot create a cycle',
+      async () => {
+        const body = {
+          name: 'Concurrent directory',
+          icon: '',
+          sortOrder: 0,
+          isActive: true,
+        };
+        const a = (
+          await data(
+            await call('/api/platform/menus', platform, 'POST', {
+              ...body,
+              kind: 'directory',
+              scope: 'tenant',
+            }),
+          )
+        )[0];
+        const b = (
+          await data(
+            await call('/api/platform/menus', platform, 'POST', {
+              ...body,
+              kind: 'directory',
+              scope: 'tenant',
+            }),
+          )
+        )[0];
+        const responses = await Promise.all([
+          call(`/api/platform/menus/${a.code}`, platform, 'PATCH', {
+            ...body,
+            parentCode: b.code,
+          }),
+          call(`/api/platform/menus/${b.code}`, platform, 'PATCH', {
+            ...body,
+            parentCode: a.code,
+          }),
+        ]);
+        const statuses = responses.map((response) => response.status).sort();
+        assert.equal(statuses[0], 200);
+        assert([400, 409].includes(statuses[1]));
+        await call(`/api/platform/menus/${a.code}`, platform, 'PATCH', {
+          ...body,
+          parentCode: null,
+        });
+        await call(`/api/platform/menus/${b.code}`, platform, 'PATCH', {
+          ...body,
+          parentCode: null,
+        });
+        await call(`/api/platform/menus/${a.code}`, platform, 'DELETE');
+        await call(`/api/platform/menus/${b.code}`, platform, 'DELETE');
+      },
+    );
+
     let tenantId = '';
     let planId = '';
     let owner = '';
@@ -222,6 +773,23 @@ test('platform, tenant members and manual subscriptions', async (t) => {
         });
         assert.equal(user.isPlatformAdmin, false);
         owner = await login('acme', 'acme-owner');
+        assert.equal((await call('/api/tenant/members', owner)).status, 403);
+        const initialNav = await data(
+          await call('/api/current/navigation', owner),
+        );
+        assert(initialNav.allowedPaths.includes('/welcome'));
+        assert(!initialNav.allowedPaths.includes('/tenant/members'));
+        assert.equal(
+          (
+            await call(
+              `/api/platform/tenants/${tenantId}/features`,
+              platform,
+              'PATCH',
+              { featureCodes: ['members'] },
+            )
+          ).status,
+          200,
+        );
         assert.equal((await call('/api/tenant/members', owner)).status, 200);
         assert.equal((await call('/api/platform/tenants', owner)).status, 403);
         const duplicate = await call(

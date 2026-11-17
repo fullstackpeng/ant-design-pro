@@ -72,7 +72,11 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({
         return;
       }
       startTransition(() => {
-        setInitialState((s) => ({ ...s, currentUser: undefined }));
+        setInitialState((s) => ({
+          ...s,
+          currentUser: undefined,
+          navigation: undefined,
+        }));
       });
       window.sessionStorage.removeItem('tenantId');
       loginOut();

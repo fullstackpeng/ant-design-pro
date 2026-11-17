@@ -2,6 +2,7 @@ export default {
   'menu.platform': 'Platform',
   'menu.platform.tenants': 'Tenants',
   'menu.platform.plans': 'Plans',
+  'menu.platform.navigation': 'Menu management',
   'menu.tenant-members': 'Tenant members',
 
   'menu.welcome': 'Welcome',

@@ -25,6 +25,7 @@
     "start:pre": "cross-env UMI_ENV=pre MOCK=none max dev",
     "start:test": "cross-env UMI_ENV=test MOCK=none max dev",
     "test": "vitest run",
+    "test:routes": "node --experimental-strip-types tests/routes.test.mjs",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",

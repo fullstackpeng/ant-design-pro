@@ -15,6 +15,7 @@ import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
 import { listPlans } from '../plans/service';
 import { useManagement } from '../useManagement';
+import FeatureAssignment from './FeatureAssignment';
 import {
   assignPlan,
   createTenant,
@@ -37,6 +38,7 @@ export default function Tenants() {
   const action = useRef<ActionType | null>(null);
   const [editing, setEditing] = useState<Tenant | null>();
   const [assigning, setAssigning] = useState<Tenant>();
+  const [assigningFeatures, setAssigningFeatures] = useState<Tenant>();
   const reload = () => {
     action.current?.reload();
   };
@@ -95,6 +97,13 @@ export default function Tenants() {
         </Button>,
         <Button key="assign" type="link" onClick={() => setAssigning(row)}>
           {t('assignPlan', '分配套餐')}
+        </Button>,
+        <Button
+          key="features"
+          type="link"
+          onClick={() => setAssigningFeatures(row)}
+        >
+          {t('assignFeatures', '分配功能')}
         </Button>,
       ],
     },
@@ -269,6 +278,12 @@ export default function Tenants() {
             label={t('subscriptionEnabled', '订阅启用')}
           />
         </ModalForm>
+      )}
+      {assigningFeatures && (
+        <FeatureAssignment
+          tenant={assigningFeatures}
+          onClose={() => setAssigningFeatures(undefined)}
+        />
       )}
     </PageContainer>
   );

@@ -27,7 +27,7 @@ test('OpenAPI is complete, stable and can be served without a database connectio
         )
         .map(([, operation]) => operation),
     );
-    assert.equal(operations.length, 17);
+    assert.equal(operations.length, 26);
     const ids = operations.map((operation) => operation.operationId);
     assert.equal(new Set(ids).size, ids.length);
     const schemas = document.components?.schemas ?? {};

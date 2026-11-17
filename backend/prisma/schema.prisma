@@ -28,8 +28,48 @@ model Tenant {
   isActive     Boolean            @default(true) @map("is_active")
   memberships  TenantMembership[]
   subscription Subscription?
+  features     TenantFeature[]
 
   @@map("app_tenants")
+}
+
+model Feature {
+  code     String          @id @db.VarChar(64)
+  name     String          @db.VarChar(100)
+  tenants  TenantFeature[]
+  menus    Menu[]
+
+  @@map("app_features")
+}
+
+model TenantFeature {
+  tenantId    BigInt  @map("tenant_id")
+  featureCode String  @map("feature_code") @db.VarChar(64)
+  tenant      Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  feature     Feature @relation(fields: [featureCode], references: [code], onDelete: Restrict, onUpdate: NoAction)
+
+  @@id([tenantId, featureCode])
+  @@map("app_tenant_features")
+}
+
+model Menu {
+  code        String  @id @db.VarChar(64)
+  parentCode  String? @map("parent_code") @db.VarChar(64)
+  parent      Menu?   @relation("MenuTree", fields: [parentCode], references: [code], onDelete: Restrict, onUpdate: NoAction)
+  children    Menu[]  @relation("MenuTree")
+  kind        String  @default("page") @db.VarChar(20)
+  path        String? @unique @db.VarChar(200)
+  name        String  @db.VarChar(100)
+  icon        String  @default("") @db.VarChar(64)
+  sortOrder   Int     @default(0) @map("sort_order")
+  scope       String  @db.VarChar(20)
+  minRole     String  @default("user") @map("min_role") @db.VarChar(20)
+  isActive    Boolean @default(true) @map("is_active")
+  featureCode String? @map("feature_code") @db.VarChar(64)
+  feature     Feature? @relation(fields: [featureCode], references: [code], onDelete: Restrict, onUpdate: NoAction)
+
+  @@index([parentCode])
+  @@map("app_menus")
 }
 
 model TenantMembership {

@@ -9,6 +9,10 @@ declare namespace BackendAPI {
     password?: string;
   };
 
+  type AssignFeaturesDto = {
+    featureCodes: string[];
+  };
+
   type AssignPlanDto = {
     /** 套餐 ID，64 位正整数字符串 */
     planId: string;
@@ -23,6 +27,11 @@ declare namespace BackendAPI {
     id: string;
   };
 
+  type assignTenantFeaturesParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
   type CreateMemberDto = {
     /** 新建账号或添加已有账号；已有账号的密码不会被修改 */
     mode: "new" | "existing";
@@ -32,6 +41,22 @@ declare namespace BackendAPI {
     /** mode=new 时必填；仅用于初始化新账号 */
     password?: string;
     role: "admin" | "user";
+  };
+
+  type CreateMenuDto = {
+    /** 父目录编码；null 表示根目录，省略表示保持原层级 */
+    parentCode?: string | null;
+    name: string;
+    /** 前端图标白名单编码；留空不显示图标 */
+    icon: string;
+    sortOrder: number;
+    /** 关闭后隐藏菜单入口；页面和接口仍按模块与角色授权 */
+    isActive: boolean;
+    kind: "directory" | "page";
+    /** 新增目录时必填，页面所属端从注册表确定 */
+    scope?: "tenant" | "platform";
+    /** 新增页面菜单时必填，只能选择已注册页面 */
+    pageCode?: string;
   };
 
   type CreatePlanDto = {
@@ -77,6 +102,10 @@ declare namespace BackendAPI {
     data: CurrentUserDto;
   };
 
+  type deleteMenuParams = {
+    code: string;
+  };
+
   type EmptyResponseDto = {
     success: true;
     data: null;
@@ -88,6 +117,16 @@ declare namespace BackendAPI {
     /** 请求参数校验失败详情 */
     errors?: string[];
     errorCode?: number;
+  };
+
+  type FeatureDto = {
+    code: string;
+    name: string;
+  };
+
+  type FeatureListResponseDto = {
+    success: true;
+    data: FeatureDto[];
   };
 
   type HelloDto = {
@@ -153,6 +192,41 @@ declare namespace BackendAPI {
     name: string;
   };
 
+  type MenuCodeParamDto = {
+    code: string;
+  };
+
+  type MenuDto = {
+    code: string;
+    kind: "directory" | "page";
+    isSystem: boolean;
+    parentCode: string | null;
+    path: string | null;
+    name: string;
+    icon: string;
+    sortOrder: number;
+    scope: "authenticated" | "platform" | "tenant";
+    minRole: "admin" | "user";
+    isActive: boolean;
+    featureCode: string | null;
+  };
+
+  type MenuListResponseDto = {
+    success: true;
+    data: MenuDto[];
+  };
+
+  type NavigationDto = {
+    menus: MenuDto[];
+    allowedPaths: string[];
+    permissions: string[];
+  };
+
+  type NavigationResponseDto = {
+    success: true;
+    data: NavigationDto;
+  };
+
   type PaginationQueryDto = {
     current?: number;
     pageSize?: number;
@@ -175,6 +249,20 @@ declare namespace BackendAPI {
   type PlanResponseDto = {
     success: true;
     data: PlanDto;
+  };
+
+  type RegisteredPageDto = {
+    code: string;
+    name: string;
+    path: string;
+    scope: "authenticated" | "platform" | "tenant";
+    featureCode: string | null;
+    minRole: "admin" | "user";
+  };
+
+  type RegisteredPageListResponseDto = {
+    success: true;
+    data: RegisteredPageDto[];
   };
 
   type removeMemberParams = {
@@ -221,6 +309,16 @@ declare namespace BackendAPI {
     isActive: boolean;
   };
 
+  type tenantFeaturesParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type TenantFeaturesResponseDto = {
+    success: true;
+    data: string[];
+  };
+
   type TenantIdentityDto = {
     id: string;
     code: string;
@@ -262,6 +360,21 @@ declare namespace BackendAPI {
   type updateMemberParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
+  };
+
+  type UpdateMenuDto = {
+    /** 父目录编码；null 表示根目录，省略表示保持原层级 */
+    parentCode?: string | null;
+    name: string;
+    /** 前端图标白名单编码；留空不显示图标 */
+    icon: string;
+    sortOrder: number;
+    /** 关闭后隐藏菜单入口；页面和接口仍按模块与角色授权 */
+    isActive: boolean;
+  };
+
+  type updateMenuParams = {
+    code: string;
   };
 
   type UpdatePlanDto = {

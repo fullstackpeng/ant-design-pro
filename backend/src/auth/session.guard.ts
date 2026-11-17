@@ -6,6 +6,8 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { NavigationService } from '../navigation/navigation.service.js';
+import { REQUIRED_FEATURE } from '../navigation/require-feature.decorator.js';
 import { ACCESS_SCOPE, type AccessScope } from './access-scope.decorator.js';
 import { AuthService } from './auth.service.js';
 import { IS_PUBLIC } from './public.decorator.js';
@@ -16,6 +18,7 @@ export class SessionGuard implements CanActivate {
   constructor(
     @Inject(Reflector) private readonly reflector: Reflector,
     @Inject(AuthService) private readonly auth: AuthService,
+    @Inject(NavigationService) private readonly navigation: NavigationService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -53,6 +56,11 @@ export class SessionGuard implements CanActivate {
         errorMessage: '无权执行此操作',
       });
     }
+    const feature = this.reflector.getAllAndOverride<string>(REQUIRED_FEATURE, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (feature) await this.navigation.requireFeature(session, feature);
     request.sessionContext = session;
     return true;
   }

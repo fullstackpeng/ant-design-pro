@@ -25,6 +25,7 @@ import {
 } from '@/services/auth';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
+import { currentNavigation, menuTree } from './services/navigation';
 
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
@@ -35,6 +36,7 @@ const loginPath = '/user/login';
 export async function getInitialState(): Promise<{
   settings?: Partial<LayoutSettings>;
   currentUser?: CurrentUser;
+  navigation?: BackendAPI.NavigationDto;
   loading?: boolean;
   fetchUserInfo?: () => Promise<CurrentUser | undefined>;
   settingDrawerOpen?: boolean;
@@ -68,9 +70,13 @@ export async function getInitialState(): Promise<{
     )
   ) {
     const currentUser = await fetchUserInfo();
+    const navigation = currentUser
+      ? (await currentNavigation()).data
+      : undefined;
     return {
       fetchUserInfo,
       currentUser,
+      navigation,
       settings: defaultSettings as Partial<LayoutSettings>,
       settingDrawerOpen: false,
     };
@@ -88,6 +94,15 @@ export const layout: RunTimeLayoutConfig = ({
   setInitialState,
 }) => {
   return {
+    menu: {
+      locale: false,
+      params: {
+        userid: initialState?.currentUser?.userid,
+        tenantId: initialState?.currentUser?.tenant?.id,
+        navigation: initialState?.navigation,
+      },
+      request: async () => menuTree(initialState?.navigation?.menus ?? []),
+    },
     menuItemRender: (item, dom) => {
       if (item.path) {
         return (

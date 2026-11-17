@@ -37,12 +37,28 @@ export async function seedDemoData(
     const tenantA = await tx.tenant.upsert({
       where: { code: 'tenant-a' },
       update: {},
-      create: { code: 'tenant-a', name: '示例企业 A' },
+      create: {
+        code: 'tenant-a',
+        name: '示例企业 A',
+        features: {
+          create: (await tx.feature.findMany()).map((feature) => ({
+            featureCode: feature.code,
+          })),
+        },
+      },
     });
     const tenantB = await tx.tenant.upsert({
       where: { code: 'tenant-b' },
       update: {},
-      create: { code: 'tenant-b', name: '示例企业 B' },
+      create: {
+        code: 'tenant-b',
+        name: '示例企业 B',
+        features: {
+          create: (await tx.feature.findMany()).map((feature) => ({
+            featureCode: feature.code,
+          })),
+        },
+      },
     });
     const admin = await tx.user.upsert({
       where: { username: 'admin' },
