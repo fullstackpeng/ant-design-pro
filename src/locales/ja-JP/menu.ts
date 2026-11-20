@@ -1,4 +1,5 @@
 export default {
+  'menu.tenant-dictionaries': '辞書管理',
   'menu.platform.settings': 'システム設定',
   'menu.platform.navigation': 'メニュー管理',
 

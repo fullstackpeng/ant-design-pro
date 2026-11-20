@@ -1,4 +1,5 @@
 export default {
+  'menu.tenant-dictionaries': 'অভিধান',
   'menu.platform.settings': 'সিস্টেম সেটিংস',
   'menu.platform.navigation': 'মেনু ব্যবস্থাপনা',
 

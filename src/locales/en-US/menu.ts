@@ -1,4 +1,5 @@
 export default {
+  'menu.tenant-dictionaries': 'Dictionaries',
   'menu.platform.settings': 'System settings',
   'menu.platform.users': 'Users',
   'menu.tenant-roles': 'Roles',

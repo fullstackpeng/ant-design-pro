@@ -6,6 +6,7 @@ import { HelloResponseDto } from './auth/dto/auth-response.dto.js';
 import { Public } from './auth/public.decorator.js';
 import { HttpExceptionFilter } from './common/http-exception.filter.js';
 import { createValidationPipe } from './common/validation.pipe.js';
+import { DictionariesModule } from './dictionaries/dictionaries.module.js';
 import { NavigationModule } from './navigation/navigation.module.js';
 import { PlatformModule } from './platform/platform.module.js';
 import { TenantsModule } from './tenants/tenants.module.js';
@@ -23,7 +24,13 @@ class AppController {
 }
 
 @Module({
-  imports: [AuthModule, TenantsModule, PlatformModule, NavigationModule],
+  imports: [
+    AuthModule,
+    TenantsModule,
+    PlatformModule,
+    NavigationModule,
+    DictionariesModule,
+  ],
   controllers: [AppController],
   providers: [
     { provide: APP_PIPE, useFactory: createValidationPipe },

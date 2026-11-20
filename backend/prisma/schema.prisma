@@ -55,6 +55,7 @@ model Tenant {
   subscription Subscription?
   features     TenantFeature[]
   roles        TenantRole[]
+  dictionaries DictionaryType[]
 
   @@map("app_tenants")
 }
@@ -149,6 +150,37 @@ model Session {
 
   @@index([tenantId, userId])
   @@map("app_sessions")
+}
+
+model DictionaryType {
+  id       BigInt @id @default(autoincrement())
+  tenantId BigInt @map("tenant_id")
+  code     String @db.VarChar(64)
+  name     String @db.VarChar(100)
+  remark   String @default("") @db.VarChar(500)
+  isActive Boolean @default(true) @map("is_active")
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  items    DictionaryItem[]
+
+  @@unique([tenantId, code])
+  @@unique([tenantId, id])
+  @@map("app_dictionary_types")
+}
+
+model DictionaryItem {
+  id           BigInt @id @default(autoincrement())
+  tenantId     BigInt @map("tenant_id")
+  dictionaryId BigInt @map("dictionary_id")
+  value        String @db.VarChar(64)
+  label        String @db.VarChar(100)
+  sortOrder    Int @default(0) @map("sort_order")
+  isActive     Boolean @default(true) @map("is_active")
+  color        String @default("") @db.VarChar(20)
+  dictionary   DictionaryType @relation(fields: [tenantId, dictionaryId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, dictionaryId, value])
+  @@unique([tenantId, id])
+  @@map("app_dictionary_items")
 }
 
 model Plan {

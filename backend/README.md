@@ -1,5 +1,20 @@
 # 本地后端
 
+## 租户字典
+
+租户管理页 `/tenant/dictionaries` 支持字典类型和字典项的新增、编辑、排序及启停。平台通过 `dictionaries` 功能模块控制开通；迁移仅自动为现有示例租户 `tenant-a`、`tenant-b` 开通，其他租户需在“分配功能”中启用。新建示例租户的 seed 会沿用现有全模块开通规则，重复 seed 不会恢复撤销的授权。
+
+- 字典类型编码在本租户内唯一，字典项的值在类型内唯一；二者创建后不可修改。首期不提供删除，避免历史记录失去标签。
+- `dictionaries:read/create/update` 分别控制管理页查看、新增类型及选项、修改类型及选项。新增和修改依赖查看权限，租户管理员拥有已开通模块的全部权限；普通成员无需管理权限即可按编码读取本租户字典。
+- `GET /api/tenant/dictionaries` 分页查询类型，支持 `keyword` 搜索编码和名称；`GET /api/tenant/dictionaries/:code` 返回类型及按排序排列的全部选项，包含停用数据用于历史展示。创建和修改分别使用 `POST/PATCH`，字典项路径为 `/:code/items` 和 `/:code/items/:id`。
+- 前端复用 `src/components/Dictionary` 的 `DictionarySelect`（单选或 `mode="multiple"`）、`DictionaryText` 和 `useDictionary`。缓存按租户、用户、编码区分，修改后失效，重新挂载或窗口聚焦时重新读取；请求失败提供重试。停用项仅在已有选择中显示且不可重新选取，停用类型不再提供新选项。
+- 业务表保存稳定的字典值，不能保存显示标签。业务模块导入 `DictionariesModule` 后，在保存事务中调用 `DictionariesService.validateValues(tx, session, code, values, previousValues)`：只允许存在且启用的新值，允许保留数据库中原有的停用值，拒绝重复或未知值。`previousValues` 必须从当前租户的已有业务记录读取，不能来自客户端；事务使用现有 `transaction()` 的串行化与重试机制。
+- 当前项目没有客户业务表，管理页提供单选、多选、标签预览，不保存预览结果。后续接入实际业务字段时，必须同时使用前端组件和上述后端校验，不能只改下拉框。
+
+验证：后端 `npm test` 包含独立 PostgreSQL schema 下的字典隔离、复合外键、权限、重复数据、不可变编码和值、停用历史及事务校验测试。前端组件测试为 `src/components/Dictionary/index.test.tsx`。
+
+## 启动与现有功能
+
 NestJS 12 + Prisma 7 + PostgreSQL，使用 Node.js 22.12 或更高的受支持 LTS 版本。前端使用 `npm run dev` 关闭 Mock，开发代理将 `/api/` 转发到本服务的 `3000` 端口。
 
 首次运行：

@@ -32,6 +32,25 @@ declare namespace BackendAPI {
     id: string;
   };
 
+  type CreateDictionaryDto = {
+    name: string;
+    remark: string;
+    isActive: boolean;
+    code: string;
+  };
+
+  type CreateDictionaryItemDto = {
+    label: string;
+    sortOrder: number;
+    isActive: boolean;
+    color: "" | "blue" | "green" | "orange" | "red" | "purple" | "cyan";
+    value: string;
+  };
+
+  type createDictionaryItemParams = {
+    code: string;
+  };
+
   type CreateMemberDto = {
     /** 新建账号或添加已有账号；已有账号的密码不会被修改 */
     mode: "new" | "existing";
@@ -125,6 +144,57 @@ declare namespace BackendAPI {
     id: string;
   };
 
+  type DictionaryCodeParamDto = {
+    code: string;
+  };
+
+  type DictionaryDetailDto = {
+    code: string;
+    name: string;
+    remark: string;
+    isActive: boolean;
+    items: DictionaryItemDto[];
+  };
+
+  type DictionaryDetailResponseDto = {
+    success: true;
+    data: DictionaryDetailDto;
+  };
+
+  type DictionaryDto = {
+    code: string;
+    name: string;
+    remark: string;
+    isActive: boolean;
+  };
+
+  type DictionaryItemDto = {
+    id: string;
+    value: string;
+    label: string;
+    sortOrder: number;
+    isActive: boolean;
+    color: string;
+  };
+
+  type DictionaryItemParamDto = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+    code: string;
+  };
+
+  type DictionaryListResponseDto = {
+    success: true;
+    data: DictionaryDto[];
+    total: number;
+  };
+
+  type DictionaryQueryDto = {
+    current?: number;
+    pageSize?: number;
+    keyword?: string;
+  };
+
   type EmptyResponseDto = {
     success: true;
     data: null;
@@ -148,6 +218,10 @@ declare namespace BackendAPI {
     data: FeatureDto[];
   };
 
+  type getDictionaryParams = {
+    code: string;
+  };
+
   type HelloDto = {
     message: string;
   };
@@ -160,6 +234,12 @@ declare namespace BackendAPI {
   type IdParamDto = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
+  };
+
+  type listDictionariesParams = {
+    current?: number;
+    pageSize?: number;
+    keyword?: string;
   };
 
   type listMembersParams = {
@@ -482,6 +562,29 @@ declare namespace BackendAPI {
   type TenantResponseDto = {
     success: true;
     data: TenantDto;
+  };
+
+  type UpdateDictionaryDto = {
+    name: string;
+    remark: string;
+    isActive: boolean;
+  };
+
+  type UpdateDictionaryItemDto = {
+    label: string;
+    sortOrder: number;
+    isActive: boolean;
+    color: "" | "blue" | "green" | "orange" | "red" | "purple" | "cyan";
+  };
+
+  type updateDictionaryItemParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+    code: string;
+  };
+
+  type updateDictionaryParams = {
+    code: string;
   };
 
   type UpdateMemberDto = {

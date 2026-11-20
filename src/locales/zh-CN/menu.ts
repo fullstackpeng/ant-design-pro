@@ -1,4 +1,5 @@
 export default {
+  'menu.tenant-dictionaries': '字典管理',
   'menu.platform.settings': '系统配置',
   'menu.platform.users': '用户管理',
   'menu.tenant-roles': '角色管理',

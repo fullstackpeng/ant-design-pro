@@ -3365,6 +3365,587 @@
           "navigation"
         ]
       }
+    },
+    "/api/tenant/dictionaries": {
+      "get": {
+        "operationId": "listDictionaries",
+        "parameters": [
+          {
+            "name": "current",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "keyword",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DictionaryListResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "查询当前租户字典类型",
+        "tags": [
+          "dictionaries"
+        ]
+      },
+      "post": {
+        "operationId": "createDictionary",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDictionaryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "创建字典类型",
+        "tags": [
+          "dictionaries"
+        ]
+      }
+    },
+    "/api/tenant/dictionaries/{code}": {
+      "get": {
+        "operationId": "getDictionary",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DictionaryDetailResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "读取字典及历史选项，停用项只用于展示",
+        "tags": [
+          "dictionaries"
+        ]
+      },
+      "patch": {
+        "operationId": "updateDictionary",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDictionaryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "修改字典类型，编码不可修改",
+        "tags": [
+          "dictionaries"
+        ]
+      }
+    },
+    "/api/tenant/dictionaries/{code}/items": {
+      "post": {
+        "operationId": "createDictionaryItem",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDictionaryItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "创建字典项",
+        "tags": [
+          "dictionaries"
+        ]
+      }
+    },
+    "/api/tenant/dictionaries/{code}/items/{id}": {
+      "patch": {
+        "operationId": "updateDictionaryItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "64 位正整数 ID，以字符串传输",
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "example": "1",
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDictionaryItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "修改字典项，值不可修改",
+        "tags": [
+          "dictionaries"
+        ]
+      }
     }
   },
   "info": {
@@ -5196,6 +5777,309 @@
         },
         "required": [
           "featureCodes"
+        ]
+      },
+      "DictionaryCodeParamDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "DictionaryItemParamDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "description": "64 位正整数 ID，以字符串传输"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+          }
+        },
+        "required": [
+          "id",
+          "code"
+        ]
+      },
+      "DictionaryQueryDto": {
+        "type": "object",
+        "properties": {
+          "current": {
+            "type": "integer",
+            "default": 1,
+            "minimum": 1,
+            "maximum": 100000
+          },
+          "pageSize": {
+            "type": "integer",
+            "default": 20,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "keyword": {
+            "type": "string",
+            "maxLength": 100
+          }
+        }
+      },
+      "DictionaryDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "remark": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "remark",
+          "isActive"
+        ]
+      },
+      "DictionaryListResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DictionaryDto"
+            }
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "total"
+        ]
+      },
+      "DictionaryItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "color": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "value",
+          "label",
+          "sortOrder",
+          "isActive",
+          "color"
+        ]
+      },
+      "DictionaryDetailDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "remark": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DictionaryItemDto"
+            }
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "remark",
+          "isActive",
+          "items"
+        ]
+      },
+      "DictionaryDetailResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DictionaryDetailDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "CreateDictionaryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "remark": {
+            "type": "string",
+            "maxLength": 500,
+            "default": ""
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+          }
+        },
+        "required": [
+          "name",
+          "remark",
+          "isActive",
+          "code"
+        ]
+      },
+      "UpdateDictionaryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "remark": {
+            "type": "string",
+            "maxLength": 500,
+            "default": ""
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "remark",
+          "isActive"
+        ]
+      },
+      "CreateDictionaryItemDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "sortOrder": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "",
+              "blue",
+              "green",
+              "orange",
+              "red",
+              "purple",
+              "cyan"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,63}$"
+          }
+        },
+        "required": [
+          "label",
+          "sortOrder",
+          "isActive",
+          "color",
+          "value"
+        ]
+      },
+      "UpdateDictionaryItemDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "sortOrder": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "",
+              "blue",
+              "green",
+              "orange",
+              "red",
+              "purple",
+              "cyan"
+            ]
+          }
+        },
+        "required": [
+          "label",
+          "sortOrder",
+          "isActive",
+          "color"
         ]
       }
     }

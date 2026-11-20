@@ -136,6 +136,12 @@ export default [
     component: './management/roles',
   },
   {
+    path: '/tenant/dictionaries',
+    name: 'tenant-dictionaries',
+    icon: 'book',
+    component: './management/dictionaries',
+  },
+  {
     path: '/tenant/members',
     name: 'tenant-members',
     icon: 'team',

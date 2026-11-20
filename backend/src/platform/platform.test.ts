@@ -787,7 +787,7 @@ test('platform, tenant members and manual subscriptions', async (t) => {
         });
         const featurePath = `/api/platform/tenants/${a.id}/features`;
         const original = await data(await call(featurePath, platform));
-        assert.equal(original.length, 8);
+        assert.equal(original.length, 9);
         const catalog = await data(
           await call('/api/platform/features', platform),
         );

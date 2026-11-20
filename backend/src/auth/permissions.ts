@@ -11,6 +11,13 @@ interface PermissionDefinition {
 
 // Page permissions live with their pages; action dependencies are declared here.
 export const permissionCatalog: PermissionDefinition[] = [
+  ...['create', 'update'].map((action) => ({
+    code: `dictionaries:${action}`,
+    name: action === 'create' ? '新增字典及字典项' : '编辑字典及字典项',
+    featureCode: 'dictionaries',
+    defaultMemberAccess: false,
+    requires: ['dictionaries:read'],
+  })),
   ...registeredPages.flatMap((page) =>
     page.permissionCode && page.featureCode
       ? [

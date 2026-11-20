@@ -58,6 +58,11 @@ export const registeredPages: RegisteredPage[] = [
     featureCode: 'members',
     minRole: 'admin',
   }),
+  page('tenant-dictionaries', '/tenant/dictionaries', '字典管理', 'tenant', {
+    featureCode: 'dictionaries',
+    minRole: 'admin',
+    permissionCode: 'dictionaries:read',
+  }),
   page('platform-settings', '/platform/settings', '系统配置', 'platform'),
   page('platform-navigation', '/platform/navigation', '菜单管理', 'platform'),
   page('admin-sub-page', '/admin/sub-page', '管理示例', 'tenant', {

@@ -6,7 +6,7 @@
     "build": "npm run db:generate && tsc -p tsconfig.json",
     "start": "npm run build && node --env-file=.env dist/main.js",
     "db:init": "npm run db:deploy && npm run db:seed",
-    "test": "npm run build && node --env-file=.env --test dist/auth/auth.test.js dist/platform/platform.test.js dist/openapi.test.js dist/auth/permissions.test.js",
+    "test": "npm run build && node --env-file=.env --test dist/auth/auth.test.js dist/platform/platform.test.js dist/openapi.test.js dist/auth/permissions.test.js dist/dictionaries/dictionaries.test.js",
     "test:permissions": "npm run build && node --test dist/auth/permissions.test.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
