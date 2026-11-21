@@ -1,4 +1,5 @@
 export default {
+  'menu.platform.dictionaries': 'Platform dictionaries',
   'menu.tenant-dictionaries': 'Dictionaries',
   'menu.platform.settings': 'System settings',
   'menu.platform.users': 'Users',

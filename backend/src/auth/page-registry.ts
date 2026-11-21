@@ -53,6 +53,12 @@ export const registeredPages: RegisteredPage[] = [
   }),
   page('platform-tenants', '/platform/tenants', '租户管理', 'platform'),
   page('platform-plans', '/platform/plans', '套餐管理', 'platform'),
+  page(
+    'platform-dictionaries',
+    '/platform/dictionaries',
+    '平台字典',
+    'platform',
+  ),
   page('platform-users', '/platform/users', '用户管理', 'platform'),
   page('tenant-roles', '/tenant/roles', '角色管理', 'tenant', {
     featureCode: 'members',

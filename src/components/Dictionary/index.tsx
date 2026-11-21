@@ -1,6 +1,7 @@
 import { useIntl } from '@umijs/max';
 import { Alert, Button, Select, type SelectProps, Tag } from 'antd';
 import React from 'react';
+import type { DictionaryScope } from '@/services/dictionaries';
 import { useDictionary } from './useDictionary';
 
 type DictionaryValue = string | string[];
@@ -10,17 +11,21 @@ export interface DictionarySelectProps
     'options' | 'mode' | 'labelInValue' | 'fieldNames' | 'defaultValue'
   > {
   dictionaryCode: string;
+  scope: DictionaryScope;
   mode?: 'multiple';
 }
 
 export function DictionarySelect({
   dictionaryCode,
+  scope,
   value,
   disabled,
   ...props
 }: DictionarySelectProps) {
-  const { data, isPending, isError, available, refetch } =
-    useDictionary(dictionaryCode);
+  const { data, isPending, isError, available, refetch } = useDictionary(
+    scope,
+    dictionaryCode,
+  );
   const intl = useIntl();
   const text = (id: string, defaultMessage: string) =>
     intl.formatMessage({ id: `dictionary.${id}`, defaultMessage });
@@ -77,12 +82,17 @@ export function DictionarySelect({
 
 export function DictionaryText({
   dictionaryCode,
+  scope,
   value,
 }: {
   dictionaryCode: string;
+  scope: DictionaryScope;
   value?: DictionaryValue;
 }) {
-  const { data, isError, isPending, available } = useDictionary(dictionaryCode);
+  const { data, isError, isPending, available } = useDictionary(
+    scope,
+    dictionaryCode,
+  );
   const intl = useIntl();
   if (
     value === undefined ||

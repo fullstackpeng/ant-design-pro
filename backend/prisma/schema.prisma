@@ -50,12 +50,14 @@ model Tenant {
   id           BigInt             @id @default(autoincrement())
   code         String             @unique @db.VarChar(64)
   name         String             @db.VarChar(100)
+  industry     String             @default("") @db.VarChar(64)
   isActive     Boolean            @default(true) @map("is_active")
   memberships  TenantMembership[]
   subscription Subscription?
   features     TenantFeature[]
   roles        TenantRole[]
   dictionaries DictionaryType[]
+  dictionaryAudits DictionaryAudit[]
 
   @@map("app_tenants")
 }
@@ -181,6 +183,52 @@ model DictionaryItem {
   @@unique([tenantId, dictionaryId, value])
   @@unique([tenantId, id])
   @@map("app_dictionary_items")
+}
+
+model PlatformDictionaryType {
+  id       BigInt @id @default(autoincrement())
+  code     String @unique @db.VarChar(64)
+  name     String @db.VarChar(100)
+  remark   String @default("") @db.VarChar(500)
+  isActive Boolean @default(true) @map("is_active")
+  revision Int @default(0)
+  items    PlatformDictionaryItem[]
+
+  @@map("app_platform_dictionary_types")
+}
+
+model PlatformDictionaryItem {
+  id           BigInt @id @default(autoincrement())
+  dictionaryId BigInt @map("dictionary_id")
+  value        String @db.VarChar(64)
+  label        String @db.VarChar(100)
+  sortOrder    Int @default(0) @map("sort_order")
+  isActive     Boolean @default(true) @map("is_active")
+  color        String @default("") @db.VarChar(20)
+  revision     Int @default(0)
+  dictionary   PlatformDictionaryType @relation(fields: [dictionaryId], references: [id], onDelete: Restrict)
+
+  @@unique([dictionaryId, value])
+  @@map("app_platform_dictionary_items")
+}
+
+model DictionaryAudit {
+  id             BigInt @id @default(autoincrement())
+  scope          String @db.VarChar(20)
+  tenantId       BigInt? @map("tenant_id")
+  dictionaryCode String @map("dictionary_code") @db.VarChar(64)
+  entityType     String @map("entity_type") @db.VarChar(20)
+  targetValue    String @default("") @map("target_value") @db.VarChar(64)
+  action         String @db.VarChar(20)
+  actorId        BigInt @map("actor_id")
+  actorName      String @map("actor_name") @db.VarChar(100)
+  before         Json
+  after          Json
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  tenant         Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([scope, tenantId, dictionaryCode, id])
+  @@map("app_dictionary_audits")
 }
 
 model Plan {

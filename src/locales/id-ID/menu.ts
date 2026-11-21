@@ -1,4 +1,5 @@
 export default {
+  'menu.platform.dictionaries': 'Kamus platform',
   'menu.tenant-dictionaries': 'Kamus',
   'menu.platform.settings': 'Pengaturan sistem',
   'menu.platform.navigation': 'Pengelolaan menu',

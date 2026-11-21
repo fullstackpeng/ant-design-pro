@@ -12,11 +12,13 @@ import {
 } from '@ant-design/pro-components';
 import { useQueryClient } from '@tanstack/react-query';
 import { useModel } from '@umijs/max';
-import { Alert, Button, Space, Tag } from 'antd';
+import { Alert, App, Button, Space, Tag } from 'antd';
 import React, { useRef, useState } from 'react';
 import { DictionarySelect, DictionaryText } from '@/components/Dictionary';
 import { useDictionary } from '@/components/Dictionary/useDictionary';
+import type { DictionaryScope } from '@/services/dictionaries';
 import { useManagement } from '../useManagement';
+import DictionaryHistory from './History';
 import {
   createDictionary,
   createDictionaryItem,
@@ -28,31 +30,50 @@ import {
 } from './service';
 
 function DictionaryItems({
+  scope,
   code,
   canCreate,
   canUpdate,
 }: {
+  scope: DictionaryScope;
   code: string;
   canCreate: boolean;
   canUpdate: boolean;
 }) {
   const { t, run } = useManagement();
+  const { modal } = App.useApp();
   const queryClient = useQueryClient();
-  const { data, isPending, isError, refetch } = useDictionary(code);
+  const { data, isPending, isError, refetch, dataUpdatedAt } = useDictionary(
+    scope,
+    code,
+  );
+  const [keyword, setKeyword] = useState('');
   const [editing, setEditing] = useState<DictionaryItem | null>();
   const [single, setSingle] = useState<string | string[]>();
   const [multiple, setMultiple] = useState<string | string[]>([]);
   const columns: ProColumns<DictionaryItem>[] = [
-    { title: t('dictionaryValue', '值'), dataIndex: 'value' },
+    {
+      title: t('dictionaryItemSearch', '值或标签'),
+      dataIndex: 'keyword',
+      hideInTable: true,
+    },
+    { title: t('dictionaryValue', '值'), dataIndex: 'value', search: false },
     {
       title: t('dictionaryLabel', '标签'),
       dataIndex: 'label',
+      search: false,
       render: (_, row) => <Tag color={row.color || undefined}>{row.label}</Tag>,
     },
-    { title: t('sortOrder', '排序'), dataIndex: 'sortOrder', width: 90 },
+    {
+      title: t('sortOrder', '排序'),
+      dataIndex: 'sortOrder',
+      width: 90,
+      search: false,
+    },
     {
       title: t('dictionaryStatus', '状态'),
       dataIndex: 'isActive',
+      search: false,
       render: (_, row) =>
         row.isActive ? t('enabled', '启用') : t('disabled', '停用'),
     },
@@ -83,11 +104,24 @@ function DictionaryItems({
       <ProTable<DictionaryItem>
         headerTitle={`${data?.name ?? code} · ${t('dictionaryItems', '字典数据')}`}
         rowKey="id"
-        search={false}
+        search={{ labelWidth: 'auto' }}
+        onSubmit={(params) =>
+          setKeyword((params.keyword ?? '').trim().toLowerCase())
+        }
+        onReset={() => setKeyword('')}
         options={false}
         pagination={{ pageSize: 10 }}
         loading={isPending}
-        dataSource={isError ? [] : (data?.items ?? [])}
+        dataSource={
+          isError
+            ? []
+            : (data?.items ?? []).filter(
+                (item) =>
+                  !keyword ||
+                  item.value.toLowerCase().includes(keyword) ||
+                  item.label.toLowerCase().includes(keyword),
+              )
+        }
         columns={columns}
         toolBarRender={() =>
           canCreate && !isError
@@ -112,20 +146,26 @@ function DictionaryItems({
         </p>
         <Space vertical style={{ width: '100%' }}>
           <DictionarySelect
+            scope={scope}
             aria-label={t('dictionarySingle', '单选预览')}
             dictionaryCode={code}
             value={single}
             onChange={setSingle}
           />
-          <DictionaryText dictionaryCode={code} value={single} />
+          <DictionaryText scope={scope} dictionaryCode={code} value={single} />
           <DictionarySelect
+            scope={scope}
             aria-label={t('dictionaryMultiple', '多选预览')}
             dictionaryCode={code}
             mode="multiple"
             value={multiple}
             onChange={setMultiple}
           />
-          <DictionaryText dictionaryCode={code} value={multiple} />
+          <DictionaryText
+            scope={scope}
+            dictionaryCode={code}
+            value={multiple}
+          />
         </Space>
       </div>
       {editing !== undefined && (
@@ -140,25 +180,43 @@ function DictionaryItems({
             if (!open) setEditing(undefined);
           }}
           initialValues={editing ?? { isActive: true, sortOrder: 0, color: '' }}
-          onFinish={(values) =>
-            run(
+          onFinish={async (values) => {
+            if (scope === 'platform' && editing?.isActive && !values.isActive) {
+              const confirmed = await modal.confirm({
+                title: t('disableSharedDictionary', '停用平台共享选项？'),
+                content: t(
+                  'disableSharedDictionaryHelp',
+                  '此操作会影响所有企业的新录入；已有记录继续保留标签展示。',
+                ),
+                okText: t('confirmDisable', '确认停用'),
+                cancelText: t('cancel', '取消'),
+              });
+              if (!confirmed) return false;
+            }
+            return run(
               () =>
                 editing
-                  ? updateDictionaryItem(code, editing.id, {
-                      label: values.label,
-                      sortOrder: values.sortOrder,
-                      isActive: values.isActive,
-                      color: values.color,
-                    })
-                  : createDictionaryItem(code, values),
+                  ? updateDictionaryItem(
+                      scope,
+                      code,
+                      editing.id,
+                      {
+                        label: values.label,
+                        sortOrder: values.sortOrder,
+                        isActive: values.isActive,
+                        color: values.color,
+                      },
+                      editing.revision,
+                    )
+                  : createDictionaryItem(scope, code, values),
               () => {
                 setEditing(undefined);
                 void queryClient.invalidateQueries({
                   queryKey: ['dictionaries'],
                 });
               },
-            )
-          }
+            );
+          }}
         >
           <ProFormText
             name="value"
@@ -199,17 +257,29 @@ function DictionaryItems({
           <ProFormSwitch name="isActive" label={t('enabled', '启用')} />
         </ModalForm>
       )}
+      <DictionaryHistory scope={scope} code={code} updatedAt={dataUpdatedAt} />
     </>
   );
 }
 
-export default function Dictionaries() {
+export default function Dictionaries({
+  scope = 'tenant',
+}: {
+  scope?: DictionaryScope;
+}) {
   const { t, run, load } = useManagement();
+  const { modal } = App.useApp();
   const { initialState } = useModel('@@initialState');
   const queryClient = useQueryClient();
   const permissions = initialState?.navigation?.permissions ?? [];
-  const canCreate = permissions.includes('dictionaries:create');
-  const canUpdate = permissions.includes('dictionaries:update');
+  const canCreate =
+    scope === 'platform'
+      ? initialState?.currentUser?.isPlatformAdmin === true
+      : permissions.includes('dictionaries:create');
+  const canUpdate =
+    scope === 'platform'
+      ? initialState?.currentUser?.isPlatformAdmin === true
+      : permissions.includes('dictionaries:update');
   const action = useRef<ActionType | null>(null);
   const [editing, setEditing] = useState<Dictionary | null>();
   const [selected, setSelected] = useState<string>();
@@ -256,11 +326,22 @@ export default function Dictionaries() {
   ];
   return (
     <PageContainer
-      title={t('dictionaries', '字典管理')}
-      content={t(
-        'dictionaryHelp',
-        '维护本企业的表单选项。编码和值创建后不可修改；停用后保留历史展示。',
-      )}
+      title={
+        scope === 'platform'
+          ? t('platformDictionaries', '平台字典')
+          : t('dictionaries', '字典管理')
+      }
+      content={
+        scope === 'platform'
+          ? t(
+              'platformDictionaryHelp',
+              '平台统一维护，所有企业只读使用。修改标签会影响所有引用页面；停用后保留历史展示。',
+            )
+          : t(
+              'dictionaryHelp',
+              '维护本企业的表单选项。编码和值创建后不可修改；停用后保留历史展示。',
+            )
+      }
     >
       <ProTable<Dictionary>
         rowKey="code"
@@ -268,7 +349,7 @@ export default function Dictionaries() {
         columns={columns}
         request={(params) =>
           load(() =>
-            listDictionaries({
+            listDictionaries(scope, {
               current: params.current,
               pageSize: params.pageSize,
               keyword: params.keyword,
@@ -291,7 +372,8 @@ export default function Dictionaries() {
       />
       {selected && (
         <DictionaryItems
-          key={selected}
+          key={`${scope}:${selected}`}
+          scope={scope}
           code={selected}
           canCreate={canCreate}
           canUpdate={canUpdate}
@@ -309,16 +391,33 @@ export default function Dictionaries() {
             if (!open) setEditing(undefined);
           }}
           initialValues={editing ?? { isActive: true, remark: '' }}
-          onFinish={(values) =>
-            run(
+          onFinish={async (values) => {
+            if (scope === 'platform' && editing?.isActive && !values.isActive) {
+              const confirmed = await modal.confirm({
+                title: t('disableSharedDictionaryType', '停用平台共享字典？'),
+                content: t(
+                  'disableSharedDictionaryHelp',
+                  '此操作会影响所有企业的新录入；已有记录继续保留标签展示。',
+                ),
+                okText: t('confirmDisable', '确认停用'),
+                cancelText: t('cancel', '取消'),
+              });
+              if (!confirmed) return false;
+            }
+            return run(
               () =>
                 editing
-                  ? updateDictionary(editing.code, {
-                      name: values.name,
-                      remark: values.remark ?? '',
-                      isActive: values.isActive,
-                    })
-                  : createDictionary({
+                  ? updateDictionary(
+                      scope,
+                      editing.code,
+                      {
+                        name: values.name,
+                        remark: values.remark ?? '',
+                        isActive: values.isActive,
+                      },
+                      editing.revision,
+                    )
+                  : createDictionary(scope, {
                       ...values,
                       remark: values.remark ?? '',
                     }),
@@ -330,8 +429,8 @@ export default function Dictionaries() {
                 });
                 if (!editing) setSelected(values.code.trim());
               },
-            )
-          }
+            );
+          }}
         >
           <ProFormText
             name="code"

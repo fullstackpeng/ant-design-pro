@@ -1,4 +1,5 @@
 export default {
+  'menu.platform.dictionaries': '平台字典',
   'menu.tenant-dictionaries': '字典管理',
   'menu.platform.settings': '系統設定',
   'menu.platform.navigation': '選單管理',

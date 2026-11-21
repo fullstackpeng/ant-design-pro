@@ -3,6 +3,7 @@ import {
   ModalForm,
   PageContainer,
   type ProColumns,
+  ProForm,
   ProFormDateTimePicker,
   ProFormDependency,
   ProFormSelect,
@@ -13,12 +14,14 @@ import {
 import { Button, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
+import { DictionarySelect, DictionaryText } from '@/components/Dictionary';
 import { listPlans } from '../plans/service';
 import { useManagement } from '../useManagement';
 import FeatureAssignment from './FeatureAssignment';
 import {
   assignPlan,
   createTenant,
+  industryDictionary,
   listTenants,
   type Tenant,
   updateTenant,
@@ -27,6 +30,7 @@ import {
 interface TenantForm {
   code: string;
   name: string;
+  industry?: string;
   isActive: boolean;
   mode: 'new' | 'existing';
   username: string;
@@ -45,6 +49,19 @@ export default function Tenants() {
   const columns: ProColumns<Tenant>[] = [
     { title: t('code', '编码'), dataIndex: 'code', search: false },
     { title: t('tenantName', '企业名称'), dataIndex: 'name' },
+    {
+      title: t('industry', '所属行业'),
+      dataIndex: 'industry',
+      width: 110,
+      search: false,
+      render: (_, row) => (
+        <DictionaryText
+          scope={industryDictionary.scope}
+          dictionaryCode={industryDictionary.code}
+          value={row.industry}
+        />
+      ),
+    },
     {
       title: t('status', '状态'),
       dataIndex: 'isActive',
@@ -118,6 +135,7 @@ export default function Tenants() {
     >
       <ProTable<Tenant>
         rowKey="id"
+        scroll={{ x: 1300 }}
         actionRef={action}
         columns={columns}
         request={(params) => load(() => listTenants(params))}
@@ -146,10 +164,12 @@ export default function Tenants() {
                   ? updateTenant(editing.id, {
                       name: values.name,
                       isActive: values.isActive,
+                      industry: values.industry,
                     })
                   : createTenant({
                       code: values.code,
                       name: values.name,
+                      industry: values.industry,
                       admin: {
                         mode: values.mode,
                         username: values.username,
@@ -164,6 +184,12 @@ export default function Tenants() {
             )
           }
         >
+          <ProForm.Item name="industry" label={t('industry', '所属行业')}>
+            <DictionarySelect
+              scope={industryDictionary.scope}
+              dictionaryCode={industryDictionary.code}
+            />
+          </ProForm.Item>
           <ProFormText
             name="code"
             label={t('tenantCode', '租户编码')}

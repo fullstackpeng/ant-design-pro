@@ -5,7 +5,10 @@ import { render } from 'vitest-browser-react';
 import { getDictionary } from '@/services/dictionaries';
 import { DictionarySelect, DictionaryText } from './index';
 
-const state = vi.hoisted(() => ({ tenantId: '1', userId: '10' }));
+const state = vi.hoisted(() => ({
+  tenantId: '1' as string | undefined,
+  userId: '10',
+}));
 vi.mock('@umijs/max', () => ({
   useModel: () => ({
     initialState: {
@@ -19,12 +22,12 @@ vi.mock('@umijs/max', () => ({
 }));
 vi.mock('@/services/dictionaries', () => ({
   getDictionary: vi.fn(),
-  dictionaryQueryKey: (tenant: string, user: string, code: string) => [
-    'dictionaries',
-    tenant,
-    user,
-    code,
-  ],
+  dictionaryQueryKey: (
+    scope: string,
+    tenant: string,
+    user: string,
+    code: string,
+  ) => ['dictionaries', scope, tenant, user, code],
 }));
 
 const dictionary: BackendAPI.DictionaryDetailDto = {
@@ -68,7 +71,11 @@ describe('dictionary fields', () => {
   it('renders inactive historical labels and falls back to unknown stored values', async () => {
     const screen = await render(
       <QueryClientProvider client={client}>
-        <DictionaryText dictionaryCode="source" value={['old', 'missing']} />
+        <DictionaryText
+          scope="tenant"
+          dictionaryCode="source"
+          value={['old', 'missing']}
+        />
       </QueryClientProvider>,
     );
     await expect.element(screen.getByText('展会')).toBeVisible();
@@ -78,7 +85,12 @@ describe('dictionary fields', () => {
   it('offers active values and retains an inactive selected value as disabled', async () => {
     await render(
       <QueryClientProvider client={client}>
-        <DictionarySelect dictionaryCode="source" value="old" open />
+        <DictionarySelect
+          scope="tenant"
+          dictionaryCode="source"
+          value="old"
+          open
+        />
       </QueryClientProvider>,
     );
     await vi.waitFor(() => {
@@ -98,7 +110,7 @@ describe('dictionary fields', () => {
     });
     const screen = await render(
       <QueryClientProvider client={client}>
-        <DictionarySelect dictionaryCode="source" open />
+        <DictionarySelect scope="tenant" dictionaryCode="source" open />
       </QueryClientProvider>,
     );
     await expect.element(screen.getByText('暂无可用选项')).toBeVisible();
@@ -109,7 +121,7 @@ describe('dictionary fields', () => {
   it('keeps cached labels separate between tenants and users', async () => {
     const screen = await render(
       <QueryClientProvider client={client}>
-        <DictionaryText dictionaryCode="source" value="web" />
+        <DictionaryText scope="tenant" dictionaryCode="source" value="web" />
       </QueryClientProvider>,
     );
     await expect.element(screen.getByText('官网')).toBeVisible();
@@ -124,13 +136,13 @@ describe('dictionary fields', () => {
     });
     await screen.rerender(
       <QueryClientProvider client={client}>
-        <DictionaryText dictionaryCode="source" value="web" />
+        <DictionaryText scope="tenant" dictionaryCode="source" value="web" />
       </QueryClientProvider>,
     );
     await expect.element(screen.getByText('B 企业官网')).toBeVisible();
-    expect(client.getQueryData(['dictionaries', '1', '10', 'source'])).toEqual(
-      dictionary,
-    );
+    expect(
+      client.getQueryData(['dictionaries', 'tenant', '1', '10', 'source']),
+    ).toEqual(dictionary);
     expect(getDictionary).toHaveBeenCalledTimes(2);
   });
 
@@ -140,12 +152,65 @@ describe('dictionary fields', () => {
       .mockResolvedValue({ success: true, data: dictionary });
     const screen = await render(
       <QueryClientProvider client={client}>
-        <DictionarySelect dictionaryCode="source" />
+        <DictionarySelect scope="tenant" dictionaryCode="source" />
       </QueryClientProvider>,
     );
     await expect.element(screen.getByText('字典加载失败')).toBeVisible();
     await screen.getByRole('button', { name: /重\s*试/ }).click();
     await vi.waitFor(() => expect(getDictionary).toHaveBeenCalledTimes(2));
     await expect.element(screen.getByRole('combobox')).toBeEnabled();
+  });
+
+  it('separates same-code platform and tenant dictionaries without a fallback', async () => {
+    const screen = await render(
+      <QueryClientProvider client={client}>
+        <DictionaryText scope="tenant" dictionaryCode="source" value="web" />
+      </QueryClientProvider>,
+    );
+    await expect.element(screen.getByText('官网')).toBeVisible();
+    vi.mocked(getDictionary).mockResolvedValue({
+      success: true,
+      data: {
+        ...dictionary,
+        items: [{ ...dictionary.items[0], label: '平台官网' }],
+      },
+    });
+    await screen.rerender(
+      <QueryClientProvider client={client}>
+        <DictionaryText scope="platform" dictionaryCode="source" value="web" />
+      </QueryClientProvider>,
+    );
+    await expect.element(screen.getByText('平台官网')).toBeVisible();
+    expect(getDictionary).toHaveBeenLastCalledWith('platform', 'source');
+    expect(
+      client.getQueryData(['dictionaries', 'tenant', '1', '10', 'source']),
+    ).toEqual(dictionary);
+    vi.mocked(getDictionary).mockRejectedValue(new Error('not found'));
+    await screen.rerender(
+      <QueryClientProvider client={client}>
+        <DictionaryText scope="platform" dictionaryCode="missing" value="web" />
+      </QueryClientProvider>,
+    );
+    await expect.element(screen.getByText('字典加载失败')).toBeVisible();
+    expect(getDictionary).toHaveBeenLastCalledWith('platform', 'missing');
+  });
+
+  it('allows platform sessions to read shared dictionaries without a tenant, and stops requests after logout', async () => {
+    state.tenantId = undefined;
+    const screen = await render(
+      <QueryClientProvider client={client}>
+        <DictionaryText scope="platform" dictionaryCode="source" value="web" />
+      </QueryClientProvider>,
+    );
+    await expect.element(screen.getByText('官网')).toBeVisible();
+    expect(getDictionary).toHaveBeenCalledWith('platform', 'source');
+    state.userId = '';
+    await screen.rerender(
+      <QueryClientProvider client={client}>
+        <DictionaryText scope="platform" dictionaryCode="source" value="web" />
+      </QueryClientProvider>,
+    );
+    await expect.element(screen.getByText('字典加载失败')).toBeVisible();
+    expect(getDictionary).toHaveBeenCalledTimes(1);
   });
 });

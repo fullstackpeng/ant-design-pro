@@ -26,6 +26,8 @@ export class TenantDto {
   @ApiProperty() code!: string;
   @ApiProperty() name!: string;
   @ApiProperty() isActive!: boolean;
+  @ApiProperty({ description: '平台 industry 字典值，空字符串表示未填写' })
+  industry!: string;
 }
 
 export class MembershipCountDto {

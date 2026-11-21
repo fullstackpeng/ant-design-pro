@@ -1,7 +1,13 @@
 import * as dictionaries from './backend/dictionaries';
+import * as platform from './backend/platformDictionaries';
 
-export const getDictionary = (code: string) =>
-  dictionaries.getDictionary({ code }, { skipErrorHandler: true });
+export type DictionaryScope = 'platform' | 'tenant';
+export interface DictionaryReference { scope: DictionaryScope; code: string; }
 
-export const dictionaryQueryKey = (tenantId: string | undefined, userId: string | undefined, code: string) =>
-  ['dictionaries', tenantId, userId, code] as const;
+export const getDictionary = (scope: DictionaryScope, code: string) =>
+  scope === 'platform'
+    ? platform.getPlatformDictionary({ code }, { skipErrorHandler: true })
+    : dictionaries.getDictionary({ code }, { skipErrorHandler: true });
+
+export const dictionaryQueryKey = (scope: DictionaryScope, tenantId: string | undefined, userId: string | undefined, code: string) =>
+  ['dictionaries', scope, tenantId, userId, code] as const;

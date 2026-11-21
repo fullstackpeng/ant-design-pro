@@ -78,6 +78,29 @@ export async function updateDictionary(
   );
 }
 
+/** 查询本租户字典变更记录 GET /api/tenant/dictionaries/${param0}/history */
+export async function listDictionaryHistory(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: BackendAPI.listDictionaryHistoryParams,
+  options?: RequestOptions
+) {
+  const { code: param0, ...queryParams } = params;
+  return request<BackendAPI.DictionaryAuditListResponseDto>(
+    `/api/tenant/dictionaries/${param0}/history`,
+    {
+      method: "GET",
+      params: {
+        // current has a default value: 1
+        current: "1",
+        // pageSize has a default value: 20
+        pageSize: "20",
+        ...queryParams,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
 /** 创建字典项 POST /api/tenant/dictionaries/${param0}/items */
 export async function createDictionaryItem(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

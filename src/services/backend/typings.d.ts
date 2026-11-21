@@ -89,6 +89,10 @@ declare namespace BackendAPI {
     code: string;
   };
 
+  type createPlatformDictionaryItemParams = {
+    code: string;
+  };
+
   type CreateRoleDto = {
     name: string;
     permissions: string[];
@@ -96,6 +100,8 @@ declare namespace BackendAPI {
 
   type CreateTenantDto = {
     name: string;
+    /** 平台 industry 字典值，空字符串表示未填写；省略则保留现值 */
+    industry?: string;
     /** 创建后不可修改；不能使用保留编码 platform */
     code: string;
     /** 首位租户管理员 */
@@ -142,6 +148,24 @@ declare namespace BackendAPI {
   type deleteRoleParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
+  };
+
+  type DictionaryAuditDto = {
+    id: string;
+    actorId: string;
+    actorName: string;
+    entityType: "type" | "item";
+    targetValue: string;
+    action: "create" | "update";
+    before: Record<string, any>;
+    after: Record<string, any>;
+    createdAt: string;
+  };
+
+  type DictionaryAuditListResponseDto = {
+    success: true;
+    data: DictionaryAuditDto[];
+    total: number;
   };
 
   type DictionaryCodeParamDto = {
@@ -222,6 +246,10 @@ declare namespace BackendAPI {
     code: string;
   };
 
+  type getPlatformDictionaryParams = {
+    code: string;
+  };
+
   type HelloDto = {
     message: string;
   };
@@ -242,12 +270,30 @@ declare namespace BackendAPI {
     keyword?: string;
   };
 
+  type listDictionaryHistoryParams = {
+    code: string;
+    current?: number;
+    pageSize?: number;
+  };
+
   type listMembersParams = {
     current?: number;
     pageSize?: number;
   };
 
   type listPlansParams = {
+    current?: number;
+    pageSize?: number;
+  };
+
+  type listPlatformDictionariesParams = {
+    current?: number;
+    pageSize?: number;
+    keyword?: string;
+  };
+
+  type listPlatformDictionaryHistoryParams = {
+    code: string;
     current?: number;
     pageSize?: number;
   };
@@ -372,6 +418,44 @@ declare namespace BackendAPI {
   type PlanResponseDto = {
     success: true;
     data: PlanDto;
+  };
+
+  type PlatformDictionaryDetailDto = {
+    code: string;
+    name: string;
+    remark: string;
+    isActive: boolean;
+    revision: number;
+    items: PlatformDictionaryItemDto[];
+  };
+
+  type PlatformDictionaryDetailResponseDto = {
+    success: true;
+    data: PlatformDictionaryDetailDto;
+  };
+
+  type PlatformDictionaryDto = {
+    code: string;
+    name: string;
+    remark: string;
+    isActive: boolean;
+    revision: number;
+  };
+
+  type PlatformDictionaryItemDto = {
+    id: string;
+    value: string;
+    label: string;
+    sortOrder: number;
+    isActive: boolean;
+    color: string;
+    revision: number;
+  };
+
+  type PlatformDictionaryListResponseDto = {
+    success: true;
+    data: PlatformDictionaryDto[];
+    total: number;
   };
 
   type PlatformUserDto = {
@@ -519,6 +603,8 @@ declare namespace BackendAPI {
     code: string;
     name: string;
     isActive: boolean;
+    /** 平台 industry 字典值，空字符串表示未填写 */
+    industry: string;
   };
 
   type tenantFeaturesParams = {
@@ -542,6 +628,8 @@ declare namespace BackendAPI {
     code: string;
     name: string;
     isActive: boolean;
+    /** 平台 industry 字典值，空字符串表示未填写 */
+    industry: string;
     subscription: SubscriptionWithPlanDto | null;
     _count: MembershipCountDto;
   };
@@ -627,6 +715,31 @@ declare namespace BackendAPI {
     id: string;
   };
 
+  type UpdatePlatformDictionaryDto = {
+    name: string;
+    remark: string;
+    isActive: boolean;
+    revision: number;
+  };
+
+  type UpdatePlatformDictionaryItemDto = {
+    label: string;
+    sortOrder: number;
+    isActive: boolean;
+    color: "" | "blue" | "green" | "orange" | "red" | "purple" | "cyan";
+    revision: number;
+  };
+
+  type updatePlatformDictionaryItemParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+    code: string;
+  };
+
+  type updatePlatformDictionaryParams = {
+    code: string;
+  };
+
   type UpdateRoleDto = {
     name: string;
     permissions: string[];
@@ -658,6 +771,8 @@ declare namespace BackendAPI {
 
   type UpdateTenantDto = {
     name: string;
+    /** 平台 industry 字典值，空字符串表示未填写；省略则保留现值 */
+    industry?: string;
     isActive: boolean;
   };
 

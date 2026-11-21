@@ -29,3 +29,25 @@ export class DictionaryDetailDto extends DictionaryDto {
 export class DictionaryDetailResponseDto extends SuccessDto {
   @ApiProperty({ type: DictionaryDetailDto }) data!: DictionaryDetailDto;
 }
+
+export class DictionaryAuditDto {
+  @ApiProperty() id!: string;
+  @ApiProperty() actorId!: string;
+  @ApiProperty() actorName!: string;
+  @ApiProperty({ enum: ['type', 'item'] }) entityType!: string;
+  @ApiProperty() targetValue!: string;
+  @ApiProperty({ enum: ['create', 'update'] }) action!: string;
+  @ApiProperty({ type: 'object', additionalProperties: true }) before!: Record<
+    string,
+    unknown
+  >;
+  @ApiProperty({ type: 'object', additionalProperties: true }) after!: Record<
+    string,
+    unknown
+  >;
+  @ApiProperty({ type: String, format: 'date-time' }) createdAt!: string;
+}
+export class DictionaryAuditListResponseDto extends SuccessDto {
+  @ApiProperty({ type: [DictionaryAuditDto] }) data!: DictionaryAuditDto[];
+  @ApiProperty({ type: 'integer' }) total!: number;
+}

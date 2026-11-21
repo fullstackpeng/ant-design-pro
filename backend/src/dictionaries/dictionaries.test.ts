@@ -12,6 +12,8 @@ import type { SessionContext } from '../auth/session-context.js';
 import { createPrismaClient } from '../database/prisma.factory.js';
 import { seedDemoData } from '../database/seed.js';
 import { DictionariesService } from './dictionaries.service.js';
+import type { DictionaryAuditListResponseDto } from './dto/dictionary-response.dto.js';
+import type { PlatformDictionaryDetailDto } from './dto/platform-dictionary-response.dto.js';
 
 test('tenant dictionaries: isolation, permissions, immutable values and history', async (t) => {
   const originalUrl = process.env.DATABASE_URL;
@@ -32,7 +34,22 @@ test('tenant dictionaries: isolation, permissions, immutable values and history'
     body?: unknown,
     headers = {},
   ) {
-    return fetch(`${base}/api/tenant/dictionaries${path}`, {
+    return api(
+      `/api/tenant/dictionaries${path}`,
+      cookie,
+      method,
+      body,
+      headers,
+    );
+  }
+  async function api(
+    path: string,
+    cookie = '',
+    method = 'GET',
+    body?: unknown,
+    headers = {},
+  ) {
+    return fetch(`${base}${path}`, {
       method,
       headers: {
         'Content-Type': 'application/json',
@@ -69,6 +86,12 @@ test('tenant dictionaries: isolation, permissions, immutable values and history'
         };
       }
     ).data;
+  }
+  async function shared(cookie: string, code = 'customer_source') {
+    const response = await api(`/api/dictionaries/platform/${code}`, cookie);
+    assert.equal(response.status, 200);
+    return ((await response.json()) as { data: PlatformDictionaryDetailDto })
+      .data;
   }
   const dictionary = {
     code: 'customer_source',
@@ -314,7 +337,7 @@ test('tenant dictionaries: isolation, permissions, immutable values and history'
             service.validateValues(
               tx,
               context,
-              dictionary.code,
+              { scope: 'tenant', code: dictionary.code },
               values,
               previous,
             ),
@@ -410,6 +433,313 @@ test('tenant dictionaries: isolation, permissions, immutable values and history'
         });
         assert.equal((await call('', tenantA)).status, 403);
         assert.equal((await call('/customer_source', member)).status, 403);
+      },
+    );
+    await t.test(
+      'platform dictionaries are readable without tenant feature access and editable only in a platform session',
+      async () => {
+        const path = '/api/platform/dictionaries';
+        assert.equal(
+          (await api('/api/dictionaries/platform/industry')).status,
+          401,
+        );
+        assert.equal((await api(path)).status, 401);
+        for (const cookie of [tenantA, tenantB, member]) {
+          assert.equal((await api(path, cookie)).status, 403);
+          assert.equal(
+            (await api(path, cookie, 'POST', dictionary)).status,
+            403,
+          );
+          assert.equal(
+            (
+              await api(`${path}/industry`, cookie, 'PATCH', {
+                ...dictionary,
+                revision: 0,
+              })
+            ).status,
+            403,
+          );
+          assert.equal(
+            (await api(`${path}/industry/items`, cookie, 'POST', item)).status,
+            403,
+          );
+          assert.equal(
+            (
+              await api(`${path}/industry/items/1`, cookie, 'PATCH', {
+                ...item,
+                revision: 0,
+              })
+            ).status,
+            403,
+          );
+          assert.equal(
+            (await api(`${path}/industry/history`, cookie)).status,
+            403,
+          );
+          assert.equal((await shared(cookie, 'industry')).items.length, 6);
+        }
+        assert.equal((await api(path, platform)).status, 200);
+        assert.equal((await api(`${path}?pageSize=101`, platform)).status, 400);
+        assert.equal(
+          (await api(path, platform, 'POST', dictionary)).status,
+          201,
+        );
+        assert.equal(
+          (await api(path, platform, 'POST', dictionary)).status,
+          409,
+        );
+        assert.equal(
+          (await api(`${path}/customer_source/items`, platform, 'POST', item))
+            .status,
+          201,
+        );
+        assert.equal(
+          (await api(`${path}/customer_source/items`, platform, 'POST', item))
+            .status,
+          409,
+        );
+        assert.equal((await shared(member)).items[0].label, item.label);
+        assert.equal((await detail(tenantB)).name, 'B 企业来源');
+        assert.equal((await detail(tenantB)).items.length, 0);
+      },
+    );
+
+    await t.test(
+      'platform updates retain codes and values, reject stale versions and atomically record only successful changes',
+      async () => {
+        const path = '/api/platform/dictionaries/customer_source';
+        const current = await shared(platform);
+        const option = current.items[0];
+        assert.equal(
+          (await api(`${path}/items/${option.id}`, platform, 'PATCH', item))
+            .status,
+          400,
+        );
+        assert.equal(
+          (
+            await api(`${path}/items/9223372036854775808`, platform, 'PATCH', {
+              ...item,
+              revision: 0,
+            })
+          ).status,
+          400,
+        );
+        assert.equal(
+          (
+            await api(
+              `/api/platform/dictionaries/industry/items/${option.id}`,
+              platform,
+              'PATCH',
+              { ...item, revision: 0 },
+            )
+          ).status,
+          404,
+        );
+        const update = {
+          ...item,
+          value: 'forged-new-value',
+          label: '平台客户推荐',
+          isActive: false,
+          revision: option.revision,
+        };
+        assert.equal(
+          (await api(`${path}/items/${option.id}`, platform, 'PATCH', update))
+            .status,
+          200,
+        );
+        assert.equal(
+          (await api(`${path}/items/${option.id}`, platform, 'PATCH', update))
+            .status,
+          409,
+        );
+        const concurrent = await Promise.all([
+          api(path, platform, 'PATCH', {
+            ...dictionary,
+            code: 'renamed',
+            name: '平台渠道 A',
+            revision: current.revision,
+          }),
+          api(path, platform, 'PATCH', {
+            ...dictionary,
+            code: 'renamed',
+            name: '平台渠道 B',
+            revision: current.revision,
+          }),
+        ]);
+        assert.deepEqual(
+          concurrent.map((response) => response.status).sort(),
+          [200, 409],
+        );
+        const after = await shared(member);
+        assert.equal(after.code, dictionary.code);
+        assert.equal(after.revision, 1);
+        assert.equal(after.items[0].value, item.value);
+        assert.equal(after.items[0].label, '平台客户推荐');
+        assert.equal(after.items[0].isActive, false);
+        assert.equal(after.items[0].revision, 1);
+        assert.equal(
+          (await api('/api/dictionaries/platform/renamed', member)).status,
+          404,
+        );
+        const auditResponse = await api(`${path}/history`, platform);
+        assert.equal(auditResponse.status, 200);
+        const history =
+          (await auditResponse.json()) as DictionaryAuditListResponseDto;
+        assert.equal(history.total, 4);
+        assert(history.data.every((event) => event.actorName === '平台管理员'));
+        const itemChange = history.data.find(
+          (event) => event.entityType === 'item' && event.action === 'update',
+        );
+        assert(itemChange);
+        assert.equal(itemChange.before.label, item.label);
+        assert.equal(itemChange.after.label, '平台客户推荐');
+        assert.equal(itemChange.after.isActive, false);
+        const tenantHistory = await call('/customer_source/history', tenantB);
+        assert.equal(tenantHistory.status, 200);
+        const tenantEvents =
+          (await tenantHistory.json()) as DictionaryAuditListResponseDto;
+        assert.equal(tenantEvents.total, 1);
+        assert.equal(tenantEvents.data[0].after.name, 'B 企业来源');
+        assert.equal((await call('/other/history', tenantB)).status, 404);
+      },
+    );
+
+    await t.test(
+      'real tenant industry writes validate platform options and preserve persisted inactive values',
+      async () => {
+        const tenantPath = `/api/platform/tenants/${a.id}`;
+        const body = { name: a.name, isActive: true, industry: 'it' };
+        assert.equal(
+          (
+            await api(tenantPath, platform, 'PATCH', {
+              ...body,
+              industry: 'missing',
+              previousValues: ['missing'],
+            })
+          ).status,
+          400,
+        );
+        assert.equal(
+          (
+            await api(tenantPath, platform, 'PATCH', {
+              ...body,
+              industry: null,
+            })
+          ).status,
+          400,
+        );
+        assert.equal(
+          (await api(tenantPath, platform, 'PATCH', body)).status,
+          200,
+        );
+        assert.equal(
+          (await prisma.tenant.findUniqueOrThrow({ where: { id: a.id } }))
+            .industry,
+          'it',
+        );
+        const industry = await shared(member, 'industry');
+        const it = industry.items.find((entry) => entry.value === 'it');
+        assert(it);
+        assert.equal(
+          (
+            await api(
+              `/api/platform/dictionaries/industry/items/${it.id}`,
+              platform,
+              'PATCH',
+              { ...it, isActive: false },
+            )
+          ).status,
+          200,
+        );
+        assert.equal(
+          (await api(tenantPath, platform, 'PATCH', body)).status,
+          200,
+        );
+        assert.equal(
+          (
+            await api(tenantPath, platform, 'PATCH', {
+              name: a.name,
+              isActive: true,
+            })
+          ).status,
+          200,
+        );
+        assert.equal(
+          (await prisma.tenant.findUniqueOrThrow({ where: { id: a.id } }))
+            .industry,
+          'it',
+        );
+        assert.equal(
+          (
+            await api(`/api/platform/tenants/${b.id}`, platform, 'PATCH', {
+              name: b.name,
+              isActive: true,
+              industry: 'it',
+              previousValues: ['it'],
+            })
+          ).status,
+          400,
+        );
+        assert.equal(
+          (
+            await api('/api/platform/tenants', platform, 'POST', {
+              code: 'invalid-industry',
+              name: 'Invalid',
+              industry: 'it',
+              admin: { mode: 'existing', username: 'admin' },
+            })
+          ).status,
+          400,
+        );
+        assert.equal(
+          await prisma.tenant.count({ where: { code: 'invalid-industry' } }),
+          0,
+        );
+        assert.equal(
+          (await shared(member, 'industry')).items.find(
+            (entry) => entry.value === 'it',
+          )?.label,
+          it.label,
+        );
+        assert.equal(
+          (
+            await api(
+              '/api/platform/dictionaries/industry',
+              platform,
+              'PATCH',
+              { ...industry, isActive: false },
+            )
+          ).status,
+          200,
+        );
+        assert.equal(
+          (
+            await api(`/api/platform/tenants/${b.id}`, platform, 'PATCH', {
+              name: b.name,
+              isActive: true,
+              industry: 'finance',
+            })
+          ).status,
+          400,
+        );
+        assert.equal(
+          (await api(tenantPath, platform, 'PATCH', body)).status,
+          200,
+        );
+        assert.equal(
+          (await api(tenantPath, platform, 'PATCH', { ...body, industry: '' }))
+            .status,
+          200,
+        );
+        assert.equal(
+          (await prisma.tenant.findUniqueOrThrow({ where: { id: a.id } }))
+            .industry,
+          '',
+        );
+        assert.equal(
+          (await api(tenantPath, platform, 'PATCH', body)).status,
+          400,
+        );
       },
     );
   } finally {

@@ -1,4 +1,5 @@
 export default {
+  'menu.platform.dictionaries': 'فرهنگ داده پلتفرم',
   'menu.tenant-dictionaries': 'فرهنگ داده',
   'menu.platform.settings': 'تنظیمات سیستم',
   'menu.platform.navigation': 'مدیریت منو',

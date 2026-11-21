@@ -1,4 +1,5 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import type { SessionContext } from '../auth/session-context.js';
 import type {
   PaginationQueryDto,
   TenantQueryDto,
@@ -13,6 +14,7 @@ import {
 import { prepareAccount, resolveAccount } from '../database/accounts.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { transaction } from '../database/transaction.js';
+import { DictionariesService } from '../dictionaries/dictionaries.service.js';
 import type {
   AssignPlanDto,
   CreatePlanDto,
@@ -20,10 +22,15 @@ import type {
   UpdatePlanDto,
   UpdateTenantDto,
 } from './dto/platform-request.dto.js';
+import { tenantIndustryDictionary } from './tenant.constants.js';
 
 @Injectable()
 export class PlatformService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(DictionariesService)
+    private readonly dictionaries: DictionariesService,
+  ) {}
 
   async tenants(query: TenantQueryDto) {
     const where = query.name
@@ -46,15 +53,22 @@ export class PlatformService {
     return { success: true as const, data: json(rows), total };
   }
 
-  async createTenant(body: CreateTenantDto) {
+  async createTenant(session: SessionContext, body: CreateTenantDto) {
     const tenantCode = body.code;
     const name = body.name;
     const account = await prepareAccount(body.admin);
     return success(
       await transaction(this.prisma, async (tx) => {
+        if (body.industry)
+          await this.dictionaries.validateValues(
+            tx,
+            session,
+            tenantIndustryDictionary,
+            [body.industry],
+          );
         const user = await resolveAccount(tx, account);
         const tenant = await tx.tenant.create({
-          data: { code: tenantCode, name },
+          data: { code: tenantCode, name, industry: body.industry ?? '' },
         });
         await tx.tenantMembership.create({
           data: { tenantId: tenant.id, userId: user.id, role: 'admin' },
@@ -64,14 +78,34 @@ export class PlatformService {
     );
   }
 
-  async updateTenant(tenant: string, body: UpdateTenantDto) {
+  async updateTenant(
+    session: SessionContext,
+    tenant: string,
+    body: UpdateTenantDto,
+  ) {
     return success(
-      await this.prisma.tenant.update({
-        where: { id: id(tenant) },
-        data: {
-          name: body.name,
-          isActive: body.isActive,
-        },
+      await transaction(this.prisma, async (tx) => {
+        const where = { id: id(tenant) };
+        const before = await tx.tenant.findUniqueOrThrow({
+          where,
+          select: { industry: true },
+        });
+        if (body.industry)
+          await this.dictionaries.validateValues(
+            tx,
+            session,
+            tenantIndustryDictionary,
+            [body.industry],
+            before.industry ? [before.industry] : [],
+          );
+        return tx.tenant.update({
+          where,
+          data: {
+            name: body.name,
+            isActive: body.isActive,
+            ...(body.industry !== undefined ? { industry: body.industry } : {}),
+          },
+        });
       }),
     );
   }

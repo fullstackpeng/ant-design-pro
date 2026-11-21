@@ -23,6 +23,7 @@ import { CurrentSession } from '../auth/current-session.decorator.js';
 import { RequireFeature } from '../auth/require-feature.decorator.js';
 import { RequirePermission } from '../auth/require-permission.decorator.js';
 import type { SessionContext } from '../auth/session-context.js';
+import { PaginationQueryDto } from '../common/dto/request.dto.js';
 import { ApiErrors, EmptyResponseDto } from '../common/dto/response.dto.js';
 import { DictionariesService } from './dictionaries.service.js';
 import {
@@ -35,6 +36,7 @@ import {
   UpdateDictionaryItemDto,
 } from './dto/dictionary-request.dto.js';
 import {
+  DictionaryAuditListResponseDto,
   DictionaryDetailResponseDto,
   DictionaryListResponseDto,
 } from './dto/dictionary-response.dto.js';
@@ -49,6 +51,7 @@ import {
   DictionaryCodeParamDto,
   DictionaryItemParamDto,
   DictionaryQueryDto,
+  PaginationQueryDto,
 )
 export class DictionariesController {
   constructor(
@@ -69,6 +72,26 @@ export class DictionariesController {
     @Query() query: DictionaryQueryDto,
   ): Promise<DictionaryListResponseDto> {
     return this.dictionaries.list(session, query);
+  }
+
+  @Get(':code/history')
+  @RequirePermission('dictionaries:read')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    operationId: 'listDictionaryHistory',
+    summary: '查询本租户字典变更记录',
+  })
+  @ApiOkResponse({ type: DictionaryAuditListResponseDto })
+  history(
+    @CurrentSession() session: SessionContext,
+    @Param() params: DictionaryCodeParamDto,
+    @Query() query: PaginationQueryDto,
+  ): Promise<DictionaryAuditListResponseDto> {
+    return this.dictionaries.history(
+      session,
+      { scope: 'tenant', code: params.code },
+      query,
+    );
   }
 
   // Reading options is available to all members of a tenant with the feature enabled.

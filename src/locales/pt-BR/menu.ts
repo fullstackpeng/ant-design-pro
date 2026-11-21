@@ -1,4 +1,5 @@
 export default {
+  'menu.platform.dictionaries': 'Dicionários da plataforma',
   'menu.tenant-dictionaries': 'Dicionários',
   'menu.platform.settings': 'Configurações do sistema',
   'menu.platform.navigation': 'Gerenciar menus',

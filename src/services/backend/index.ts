@@ -9,8 +9,9 @@ import * as roles from "./roles";
 import * as platform from "./platform";
 import * as users from "./users";
 import * as settings from "./settings";
-import * as navigation from "./navigation";
 import * as dictionaries from "./dictionaries";
+import * as platformDictionaries from "./platformDictionaries";
+import * as navigation from "./navigation";
 export default {
   health,
   auth,
@@ -19,6 +20,7 @@ export default {
   platform,
   users,
   settings,
-  navigation,
   dictionaries,
+  platformDictionaries,
+  navigation,
 };

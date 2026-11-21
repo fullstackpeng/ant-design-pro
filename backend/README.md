@@ -7,11 +7,42 @@
 - 字典类型编码在本租户内唯一，字典项的值在类型内唯一；二者创建后不可修改。首期不提供删除，避免历史记录失去标签。
 - `dictionaries:read/create/update` 分别控制管理页查看、新增类型及选项、修改类型及选项。新增和修改依赖查看权限，租户管理员拥有已开通模块的全部权限；普通成员无需管理权限即可按编码读取本租户字典。
 - `GET /api/tenant/dictionaries` 分页查询类型，支持 `keyword` 搜索编码和名称；`GET /api/tenant/dictionaries/:code` 返回类型及按排序排列的全部选项，包含停用数据用于历史展示。创建和修改分别使用 `POST/PATCH`，字典项路径为 `/:code/items` 和 `/:code/items/:id`。
-- 前端复用 `src/components/Dictionary` 的 `DictionarySelect`（单选或 `mode="multiple"`）、`DictionaryText` 和 `useDictionary`。缓存按租户、用户、编码区分，修改后失效，重新挂载或窗口聚焦时重新读取；请求失败提供重试。停用项仅在已有选择中显示且不可重新选取，停用类型不再提供新选项。
-- 业务表保存稳定的字典值，不能保存显示标签。业务模块导入 `DictionariesModule` 后，在保存事务中调用 `DictionariesService.validateValues(tx, session, code, values, previousValues)`：只允许存在且启用的新值，允许保留数据库中原有的停用值，拒绝重复或未知值。`previousValues` 必须从当前租户的已有业务记录读取，不能来自客户端；事务使用现有 `transaction()` 的串行化与重试机制。
-- 当前项目没有客户业务表，管理页提供单选、多选、标签预览，不保存预览结果。后续接入实际业务字段时，必须同时使用前端组件和上述后端校验，不能只改下拉框。
+- 前端复用 `src/components/Dictionary` 的 `DictionarySelect`（单选或 `mode="multiple"`）、`DictionaryText` 和 `useDictionary(scope, code)`，必须明确指定 `scope="tenant"` 或 `scope="platform"`。缓存按作用域、租户、用户、编码区分，修改后失效，重新挂载或窗口聚焦时重新读取；请求失败提供重试。停用项仅在已有选择中显示且不可重新选取，停用类型不再提供新选项。
+- 业务表保存稳定的字典值，不能保存显示标签。业务模块导入 `DictionariesModule` 后，在保存事务中调用 `DictionariesService.validateValues(tx, session, { scope: 'tenant', code }, values, previousValues)`：只允许存在且启用的新值，允许保留数据库中原有的停用值，拒绝重复或未知值。`previousValues` 必须从已有业务记录读取，不能来自客户端；租户业务记录必须先验证租户归属，事务使用现有 `transaction()` 的串行化与重试机制。
+- 类型和选项的运行时新增、修改会在同一事务中写入审计；`GET /api/tenant/dictionaries/:code/history` 仅允许有字典查看权限的成员读取本租户记录。管理页支持选项搜索和变更记录查看。升级前的数据不补造历史审计。
 
 验证：后端 `npm test` 包含独立 PostgreSQL schema 下的字典隔离、复合外键、权限、重复数据、不可变编码和值、停用历史及事务校验测试。前端组件测试为 `src/components/Dictionary/index.test.tsx`。
+
+## 平台字典与业务接入
+
+平台管理员通过 `/platform/dictionaries` 统一维护共享字典。管理接口 `/api/platform/dictionaries` 使用独立的平台会话校验，与现有平台管理权限一致，租户管理员及自定义角色均不能维护。平台类型及字典项独立存表，不自动转换、覆盖或合并任何同编码租户字典。
+
+- `GET /api/dictionaries/platform/:code` 允许任意有效会话只读访问，包括未开通租户字典功能的企业成员；不允许匿名读取。返回全部选项，停用项只用于历史展示。此接口不能读取变更审计。
+- 平台的 `POST/PATCH` 路径与租户字典结构一致；更新类型和选项时必须携带读取到的各自 `revision`，过期版本返回 409，失败不会产生审计。编辑失败时应关闭表单并刷新后重新编辑。平台菜单维护页在停用前提示所有企业的影响并要求确认。
+- `GET /api/platform/dictionaries/:code/history` 仅平台管理员可查看，分页返回修改人、时间、对象、操作及变更前后快照。平台标签修改会反映到所有引用页面，历史名称需要由业务模块另存快照时再扩展。
+- 新迁移初始化平台 `industry` 字典及六个行业选项，供平台租户管理的“所属行业”使用；已有租户的行业为空，不根据企业名称或租户字典推断。行业保存与字典校验在同一串行化事务内完成，保留已有停用值时从当前租户记录读取旧值，清空后不可重新选入停用值。旧客户端省略 `industry` 时保留原值，传空字符串显式清空。
+
+业务引用在业务模块中明确声明：后端参考 `platform/tenant.constants.ts`，前端参考 `management/tenants/service.ts`，均固定 `{ scope: 'platform', code: 'industry' }`。请求体只提交值，不让客户端选择字典来源。组件使用方式：
+
+```tsx
+<DictionarySelect scope="platform" dictionaryCode="industry" value={industry} onChange={setIndustry} />
+<DictionaryText scope="platform" dictionaryCode="industry" value={industry} />
+```
+
+后端接入方式（以租户管理为例；空字符串在业务层表示未填写）：
+
+```ts
+await transaction(prisma, async (tx) => {
+  const before = await tx.tenant.findUniqueOrThrow({ where: { id: tenantId } });
+  if (industry) {
+    await dictionaries.validateValues(tx, session, tenantIndustryDictionary,
+      [industry], before.industry ? [before.industry] : []);
+  }
+  await tx.tenant.update({ where: { id: tenantId }, data: { industry } });
+});
+```
+
+新增引用字段时必须同步接入前端组件、稳定值存储、后端校验和历史展示。字典管理中的单选、多选预览仅用于检查效果，不保存业务数据。当前不提供树形、继承、批量导入或多语言标签。
 
 ## 启动与现有功能
 

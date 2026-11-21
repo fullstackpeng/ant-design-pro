@@ -122,6 +122,13 @@ export default [
         component: './management/plans',
       },
       {
+        path: '/platform/dictionaries',
+        name: 'dictionaries',
+        icon: 'book',
+        access: 'canPlatform',
+        component: './management/platform-dictionaries',
+      },
+      {
         path: '/platform/navigation',
         name: 'navigation',
         access: 'canPlatform',

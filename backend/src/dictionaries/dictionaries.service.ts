@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { SessionContext } from '../auth/session-context.js';
+import type { PaginationQueryDto } from '../common/dto/request.dto.js';
 import {
   id,
-  invalid,
   json,
   pagination,
   success,
@@ -11,6 +11,13 @@ import {
 import { PrismaService } from '../database/prisma.service.js';
 import { transaction } from '../database/transaction.js';
 import type { Prisma } from '../generated/prisma/client.js';
+import { recordDictionaryAudit } from './dictionary-audit.js';
+import {
+  assertDictionaryValues,
+  type DictionaryReference,
+  dictionaryItemSelect as itemSelect,
+  dictionaryTypeSelect as typeSelect,
+} from './dictionary-reference.js';
 import type {
   CreateDictionaryDto,
   CreateDictionaryItemDto,
@@ -18,21 +25,7 @@ import type {
   UpdateDictionaryDto,
   UpdateDictionaryItemDto,
 } from './dto/dictionary-request.dto.js';
-
-const typeSelect = {
-  code: true,
-  name: true,
-  remark: true,
-  isActive: true,
-} as const;
-const itemSelect = {
-  id: true,
-  value: true,
-  label: true,
-  sortOrder: true,
-  isActive: true,
-  color: true,
-} as const;
+import type { DictionaryAuditDto } from './dto/dictionary-response.dto.js';
 
 @Injectable()
 export class DictionariesService {
@@ -82,14 +75,26 @@ export class DictionariesService {
   }
 
   async create(session: SessionContext, body: CreateDictionaryDto) {
-    await this.prisma.dictionaryType.create({
-      data: {
-        tenantId: tenantId(session),
-        code: body.code,
-        name: body.name,
-        remark: body.remark,
-        isActive: body.isActive,
-      },
+    await transaction(this.prisma, async (tx) => {
+      const after = await tx.dictionaryType.create({
+        data: {
+          tenantId: tenantId(session),
+          code: body.code,
+          name: body.name,
+          remark: body.remark,
+          isActive: body.isActive,
+        },
+        select: typeSelect,
+      });
+      await recordDictionaryAudit(
+        tx,
+        session,
+        { scope: 'tenant', code: body.code },
+        'type',
+        'create',
+        {},
+        after,
+      );
     });
     return success(null);
   }
@@ -99,9 +104,26 @@ export class DictionariesService {
     code: string,
     body: UpdateDictionaryDto,
   ) {
-    await this.prisma.dictionaryType.update({
-      where: { tenantId_code: { tenantId: tenantId(session), code } },
-      data: { name: body.name, remark: body.remark, isActive: body.isActive },
+    await transaction(this.prisma, async (tx) => {
+      const where = { tenantId_code: { tenantId: tenantId(session), code } };
+      const before = await tx.dictionaryType.findUniqueOrThrow({
+        where,
+        select: typeSelect,
+      });
+      const after = await tx.dictionaryType.update({
+        where,
+        data: { name: body.name, remark: body.remark, isActive: body.isActive },
+        select: typeSelect,
+      });
+      await recordDictionaryAudit(
+        tx,
+        session,
+        { scope: 'tenant', code },
+        'type',
+        'update',
+        before,
+        after,
+      );
     });
     return success(null);
   }
@@ -116,7 +138,7 @@ export class DictionariesService {
       const dictionary = await tx.dictionaryType.findUniqueOrThrow({
         where: { tenantId_code: { tenantId: tenant, code } },
       });
-      await tx.dictionaryItem.create({
+      const after = await tx.dictionaryItem.create({
         data: {
           tenantId: tenant,
           dictionaryId: dictionary.id,
@@ -126,7 +148,18 @@ export class DictionariesService {
           isActive: body.isActive,
           color: body.color,
         },
+        select: itemSelect,
       });
+      await recordDictionaryAudit(
+        tx,
+        session,
+        { scope: 'tenant', code },
+        'item',
+        'create',
+        {},
+        after,
+        after.value,
+      );
     });
     return success(null);
   }
@@ -146,7 +179,11 @@ export class DictionariesService {
         tenantId_id: { tenantId: tenant, id: id(itemId) },
         dictionaryId: dictionary.id,
       };
-      await tx.dictionaryItem.update({
+      const before = await tx.dictionaryItem.findUniqueOrThrow({
+        where,
+        select: itemSelect,
+      });
+      const after = await tx.dictionaryItem.update({
         where,
         data: {
           label: body.label,
@@ -154,7 +191,18 @@ export class DictionariesService {
           isActive: body.isActive,
           color: body.color,
         },
+        select: itemSelect,
       });
+      await recordDictionaryAudit(
+        tx,
+        session,
+        { scope: 'tenant', code },
+        'item',
+        'update',
+        before,
+        after,
+        after.value,
+      );
     });
     return success(null);
   }
@@ -163,26 +211,76 @@ export class DictionariesService {
   async validateValues(
     tx: Prisma.TransactionClient,
     session: SessionContext,
-    code: string,
+    reference: DictionaryReference,
     values: string[],
     previousValues: string[] = [],
   ) {
-    const dictionary = await tx.dictionaryType.findUniqueOrThrow({
-      where: { tenantId_code: { tenantId: tenantId(session), code } },
-      select: {
-        isActive: true,
-        items: { select: { value: true, isActive: true } },
-      },
-    });
-    if (new Set(values).size !== values.length) invalid('字典值不能重复');
-    for (const value of values) {
-      const item = dictionary.items.find((entry) => entry.value === value);
-      if (
-        !item ||
-        ((!dictionary.isActive || !item.isActive) &&
-          !previousValues.includes(value))
-      )
-        invalid('字典选项不存在或已停用');
-    }
+    const select = {
+      isActive: true,
+      items: { select: { value: true, isActive: true } },
+    } as const;
+    const dictionary =
+      reference.scope === 'platform'
+        ? await tx.platformDictionaryType.findUniqueOrThrow({
+            where: { code: reference.code },
+            select,
+          })
+        : await tx.dictionaryType.findUniqueOrThrow({
+            where: {
+              tenantId_code: {
+                tenantId: tenantId(session),
+                code: reference.code,
+              },
+            },
+            select,
+          });
+    assertDictionaryValues(dictionary, values, previousValues);
+  }
+
+  async history(
+    session: SessionContext,
+    reference: DictionaryReference,
+    query: PaginationQueryDto,
+  ) {
+    const tenant = reference.scope === 'tenant' ? tenantId(session) : null;
+    if (tenant !== null)
+      await this.prisma.dictionaryType.findUniqueOrThrow({
+        where: { tenantId_code: { tenantId: tenant, code: reference.code } },
+        select: { id: true },
+      });
+    else
+      await this.prisma.platformDictionaryType.findUniqueOrThrow({
+        where: { code: reference.code },
+        select: { id: true },
+      });
+    const where = {
+      scope: reference.scope,
+      tenantId: tenant,
+      dictionaryCode: reference.code,
+    };
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.dictionaryAudit.findMany({
+        where,
+        ...pagination(query),
+        orderBy: { id: 'desc' },
+        select: {
+          id: true,
+          actorId: true,
+          actorName: true,
+          entityType: true,
+          targetValue: true,
+          action: true,
+          before: true,
+          after: true,
+          createdAt: true,
+        },
+      }),
+      this.prisma.dictionaryAudit.count({ where }),
+    ]);
+    return {
+      success: true as const,
+      data: json(rows) as unknown as DictionaryAuditDto[],
+      total,
+    };
   }
 }

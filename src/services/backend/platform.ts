@@ -89,7 +89,7 @@ export async function createTenant(
   });
 }
 
-/** 修改租户名称与状态 PATCH /api/platform/tenants/${param0} */
+/** 修改租户名称、行业与状态 PATCH /api/platform/tenants/${param0} */
 export async function updateTenant(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: BackendAPI.updateTenantParams,

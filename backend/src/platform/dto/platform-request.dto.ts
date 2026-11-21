@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -17,7 +17,11 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { AccountDto } from '../../common/dto/account.dto.js';
-import { DatabaseIdConstraint, Trim } from '../../common/dto/request.dto.js';
+import {
+  DatabaseIdConstraint,
+  Optional,
+  Trim,
+} from '../../common/dto/request.dto.js';
 
 class NameDto {
   @ApiProperty({ maxLength: 100 })
@@ -28,7 +32,19 @@ class NameDto {
   name!: string;
 }
 
-export class CreateTenantDto extends NameDto {
+class TenantDetailsDto extends NameDto {
+  @ApiPropertyOptional({
+    maxLength: 64,
+    description: '平台 industry 字典值，空字符串表示未填写；省略则保留现值',
+  })
+  @Optional()
+  @Trim()
+  @IsString()
+  @MaxLength(64)
+  industry?: string;
+}
+
+export class CreateTenantDto extends TenantDetailsDto {
   @ApiProperty({
     example: 'acme',
     pattern: '^[a-z0-9][a-z0-9-]{0,63}$',
@@ -49,7 +65,7 @@ export class CreateTenantDto extends NameDto {
   admin!: AccountDto;
 }
 
-export class UpdateTenantDto extends NameDto {
+export class UpdateTenantDto extends TenantDetailsDto {
   @ApiProperty()
   @IsBoolean()
   isActive!: boolean;

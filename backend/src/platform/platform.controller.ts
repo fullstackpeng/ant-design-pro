@@ -19,6 +19,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { RequireScope } from '../auth/access-scope.decorator.js';
+import { CurrentSession } from '../auth/current-session.decorator.js';
+import type { SessionContext } from '../auth/session-context.js';
 import {
   IdParamDto,
   PaginationQueryDto,
@@ -67,19 +69,26 @@ export class PlatformController {
   })
   @ApiBody({ type: CreateTenantDto })
   @ApiCreatedResponse({ type: TenantResponseDto })
-  createTenant(@Body() body: CreateTenantDto): Promise<TenantResponseDto> {
-    return this.platform.createTenant(body);
+  createTenant(
+    @CurrentSession() session: SessionContext,
+    @Body() body: CreateTenantDto,
+  ): Promise<TenantResponseDto> {
+    return this.platform.createTenant(session, body);
   }
 
   @Patch('tenants/:id')
-  @ApiOperation({ operationId: 'updateTenant', summary: '修改租户名称与状态' })
+  @ApiOperation({
+    operationId: 'updateTenant',
+    summary: '修改租户名称、行业与状态',
+  })
   @ApiBody({ type: UpdateTenantDto })
   @ApiOkResponse({ type: TenantResponseDto })
   updateTenant(
+    @CurrentSession() session: SessionContext,
     @Param() params: IdParamDto,
     @Body() body: UpdateTenantDto,
   ): Promise<TenantResponseDto> {
-    return this.platform.updateTenant(params.id, body);
+    return this.platform.updateTenant(session, params.id, body);
   }
 
   @Get('plans')
