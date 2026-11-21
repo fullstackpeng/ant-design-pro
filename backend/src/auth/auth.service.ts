@@ -2,6 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
 import type { LoginDto } from './dto/login.dto.js';
+import type { LoginTenantQueryDto } from './dto/login-tenant-request.dto.js';
 import { verifyPassword } from './password.js';
 import type { SessionContext } from './session-context.js';
 
@@ -60,6 +61,27 @@ export class AuthService {
       },
     });
     return { token, maxAge, remember: autoLogin === true };
+  }
+
+  async loginTenants(query: LoginTenantQueryDto) {
+    const keyword = query.keyword;
+    const data = await this.prisma.tenant.findMany({
+      where: {
+        isActive: true,
+        ...(keyword
+          ? {
+              OR: [
+                { code: { contains: keyword, mode: 'insensitive' as const } },
+                { name: { contains: keyword, mode: 'insensitive' as const } },
+              ],
+            }
+          : {}),
+      },
+      orderBy: { code: 'asc' },
+      take: query.limit,
+      select: { code: true, name: true },
+    });
+    return { success: true as const, data };
   }
 
   async currentUser(token: string | undefined): Promise<SessionContext> {

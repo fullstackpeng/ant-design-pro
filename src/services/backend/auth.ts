@@ -32,3 +32,20 @@ export async function logout(options?: RequestOptions) {
     ...(options || {}),
   });
 }
+
+/** 查询可用于登录的启用租户 GET /api/login/tenants */
+export async function listLoginTenants(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: BackendAPI.listLoginTenantsParams,
+  options?: RequestOptions
+) {
+  return request<BackendAPI.LoginTenantListResponseDto>("/api/login/tenants", {
+    method: "GET",
+    params: {
+      // limit has a default value: 20
+      limit: "20",
+      ...params,
+    },
+    ...(options || {}),
+  });
+}

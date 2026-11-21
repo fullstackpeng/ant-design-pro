@@ -6,12 +6,14 @@ import {
   HttpCode,
   Inject,
   Post,
+  Query,
   Req,
   Res,
 } from '@nestjs/common';
 import {
   ApiBody,
   ApiCookieAuth,
+  ApiExtraModels,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -23,6 +25,8 @@ import { AuthService } from './auth.service.js';
 import { CurrentSession } from './current-session.decorator.js';
 import { CurrentUserResponseDto } from './dto/auth-response.dto.js';
 import { LoginDto } from './dto/login.dto.js';
+import { LoginTenantQueryDto } from './dto/login-tenant-request.dto.js';
+import { LoginTenantListResponseDto } from './dto/login-tenant-response.dto.js';
 import { Public } from './public.decorator.js';
 import {
   SESSION_COOKIE,
@@ -62,6 +66,21 @@ export class AuthController {
       ...(session.remember ? { maxAge: session.maxAge } : {}),
     });
     return { success: true, data: null };
+  }
+
+  @Get('login/tenants')
+  @Public()
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    operationId: 'listLoginTenants',
+    summary: '查询可用于登录的启用租户',
+  })
+  @ApiExtraModels(LoginTenantQueryDto)
+  @ApiOkResponse({ type: LoginTenantListResponseDto })
+  loginTenants(
+    @Query() query: LoginTenantQueryDto,
+  ): Promise<LoginTenantListResponseDto> {
+    return this.auth.loginTenants(query);
   }
 
   @Get('currentUser')

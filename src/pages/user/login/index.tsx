@@ -6,6 +6,7 @@ import {
 import {
   LoginForm,
   ProFormCheckbox,
+  ProFormSelect,
   ProFormText,
 } from '@ant-design/pro-components';
 import {
@@ -21,7 +22,7 @@ import React, { startTransition, useState } from 'react';
 import { Footer } from '@/components';
 import { type LoginParams, login } from '@/services/auth';
 import { defaultSiteSettings } from '@/services/siteSettings';
-import { queryHello } from './service';
+import { queryHello, queryLoginTenants } from './service';
 
 /**
  * Validate redirect URL to prevent open redirect attacks.
@@ -233,23 +234,49 @@ const Login: React.FC = () => {
             />
 
             {loginError && <LoginMessage content={loginError} />}
-            <ProFormText
+            <ProFormSelect
               name="tenantCode"
+              showSearch
+              debounceTime={300}
+              request={async ({ keyWords }: { keyWords?: string }) => {
+                const platform = {
+                  value: 'platform',
+                  label: intl.formatMessage({
+                    id: 'pages.login.platformTenant',
+                    defaultMessage: '平台端',
+                  }),
+                };
+                try {
+                  const { data } = await queryLoginTenants({
+                    keyword: keyWords?.trim() || undefined,
+                    limit: 50,
+                  });
+                  return [
+                    platform,
+                    ...data.map((tenant) => ({
+                      value: tenant.code,
+                      label: `${tenant.name} (${tenant.code})`,
+                    })),
+                  ];
+                } catch {
+                  return [platform];
+                }
+              }}
               fieldProps={{
                 size: 'large',
                 prefix: <ApartmentOutlined />,
-                maxLength: 64,
+                optionFilterProp: 'label',
+                placeholder: intl.formatMessage({
+                  id: 'pages.login.tenantCode.placeholder',
+                  defaultMessage: '请选择或搜索租户编码',
+                }),
               }}
-              placeholder={intl.formatMessage({
-                id: 'pages.login.tenantCode.placeholder',
-                defaultMessage: '请输入租户编码',
-              })}
               rules={[
                 {
                   required: true,
                   message: intl.formatMessage({
                     id: 'pages.login.tenantCode.required',
-                    defaultMessage: '请输入租户编码',
+                    defaultMessage: '请选择租户编码',
                   }),
                 },
                 {

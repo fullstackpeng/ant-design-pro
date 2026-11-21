@@ -58,6 +58,7 @@ model Tenant {
   roles        TenantRole[]
   dictionaries DictionaryType[]
   dictionaryAudits DictionaryAudit[]
+  files        FileObject[]
 
   @@map("app_tenants")
 }
@@ -232,12 +233,14 @@ model DictionaryAudit {
 }
 
 model Plan {
-  id            BigInt         @id @default(autoincrement())
-  code          String         @unique @db.VarChar(64)
-  name          String         @db.VarChar(100)
-  maxMembers    Int            @map("max_members")
-  isActive      Boolean        @default(true) @map("is_active")
-  subscriptions Subscription[]
+  id             BigInt         @id @default(autoincrement())
+  code           String         @unique @db.VarChar(64)
+  name           String         @db.VarChar(100)
+  maxMembers     Int            @map("max_members")
+  maxStorageMb   Int            @default(5120) @map("max_storage_mb")
+  maxFileSizeMb  Int            @default(100) @map("max_file_size_mb")
+  isActive       Boolean        @default(true) @map("is_active")
+  subscriptions  Subscription[]
 
   @@map("app_plans")
 }
@@ -358,4 +361,48 @@ model TaskAudit {
 
   @@index([taskId, id])
   @@map("app_task_audits")
+}
+
+model StorageProvider {
+  id               BigInt       @id @default(autoincrement())
+  code             String       @unique @db.VarChar(64)
+  name             String       @db.VarChar(100)
+  protocol         String       @db.VarChar(32)
+  config           Json
+  // AES-256-GCM envelope. Secrets are never returned by the API.
+  secrets          String       @db.Text
+  secretKeys       String[]     @map("secret_keys")
+  secretKeyVersion Int          @default(1) @map("secret_key_version")
+  isDefault        Boolean      @default(false) @map("is_default")
+  isActive         Boolean      @default(true) @map("is_active")
+  revision         Int          @default(0)
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  files            FileObject[]
+
+  @@index([isDefault])
+  @@map("app_storage_providers")
+}
+
+model FileObject {
+  id             BigInt          @id @default(autoincrement())
+  tenantId       BigInt?         @map("tenant_id")
+  providerId     BigInt          @map("provider_id")
+  protocol       String          @db.VarChar(32)
+  objectKey      String          @map("object_key") @db.VarChar(512)
+  originalName   String          @map("original_name") @db.VarChar(255)
+  mimeType       String          @map("mime_type") @db.VarChar(150)
+  size           BigInt
+  checksum       String?         @db.VarChar(128)
+  visibility     String          @default("private") @db.VarChar(20)
+  uploadedBy     BigInt          @map("uploaded_by")
+  uploadedByName String          @map("uploaded_by_name") @db.VarChar(100)
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  tenant         Tenant?         @relation(fields: [tenantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  provider       StorageProvider @relation(fields: [providerId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@unique([providerId, objectKey])
+  @@index([tenantId, createdAt])
+  @@index([providerId])
+  @@map("app_files")
 }

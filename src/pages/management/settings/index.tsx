@@ -1,15 +1,17 @@
+import { UploadOutlined } from '@ant-design/icons';
 import {
   type ActionType,
   PageContainer,
   type ProColumns,
   ProForm,
+  ProFormDependency,
   type ProFormInstance,
   ProFormSelect,
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
 import { getAllLocales, getLocale, useModel } from '@umijs/max';
-import { Alert } from 'antd';
+import { Alert, App, Button, Upload } from 'antd';
 import React, { useRef, useState } from 'react';
 import {
   applySiteLocale,
@@ -22,10 +24,14 @@ import {
   listSiteSettingsHistory,
   type SettingsAudit,
   updateSiteSettings,
+  uploadSiteAsset,
 } from './service';
+
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
 export default function Settings() {
   const { t, run, load, report, pending } = useManagement();
+  const { message } = App.useApp();
   const { setInitialState } = useModel('@@initialState');
   const form = useRef<
     ProFormInstance<BackendAPI.PublicSiteSettingsDto> | undefined
@@ -44,6 +50,45 @@ export default function Settings() {
   const languageNames = new Intl.DisplayNames([getLocale()], {
     type: 'language',
   });
+  const imageUpload = (field: 'logo' | 'loginBackground', label: string) => (
+    <Upload
+      showUploadList={false}
+      maxCount={1}
+      accept="image/png,image/jpeg,image/gif,image/webp,image/bmp"
+      disabled={pending}
+      beforeUpload={(file) => {
+        if (!file.type.startsWith('image/') || file.type === 'image/svg+xml') {
+          message.error(
+            t('imageOnly', '仅支持 PNG、JPEG、GIF、WebP 等位图格式'),
+          );
+          return Upload.LIST_IGNORE;
+        }
+        if (file.size > MAX_IMAGE_BYTES) {
+          message.error(t('imageTooLarge', '图片不能超过 10 MB'));
+          return Upload.LIST_IGNORE;
+        }
+        return true;
+      }}
+      customRequest={({ file, onSuccess, onError }) => {
+        run(
+          async () => {
+            const result = await uploadSiteAsset(file as File);
+            form.current?.setFieldsValue(
+              field === 'logo'
+                ? { logo: result.data.url }
+                : { loginBackground: result.data.url },
+            );
+          },
+          () => undefined,
+        ).then((ok) => {
+          if (ok) onSuccess?.({});
+          else onError?.(new Error('upload failed'));
+        });
+      }}
+    >
+      <Button icon={<UploadOutlined />}>{label}</Button>
+    </Upload>
+  );
   const columns: ProColumns<SettingsAudit>[] = [
     {
       title: t('changedAt', '修改时间'),
@@ -139,12 +184,43 @@ export default function Settings() {
           width="lg"
           rules={[{ max: 2048 }]}
         />
+        <div className="mb-4">
+          {imageUpload('logo', t('uploadLogo', '上传 Logo'))}
+        </div>
+        <ProFormDependency name={['logo']}>
+          {({ logo }) =>
+            logo ? (
+              <img
+                src={logo}
+                alt=""
+                style={{ maxHeight: 64, marginBottom: 24 }}
+              />
+            ) : null
+          }
+        </ProFormDependency>
         <ProFormText
           name="loginBackground"
           label={fields.loginBackground}
           width="lg"
           rules={[{ max: 2048 }]}
         />
+        <div className="mb-4">
+          {imageUpload(
+            'loginBackground',
+            t('uploadBackground', '上传登录背景'),
+          )}
+        </div>
+        <ProFormDependency name={['loginBackground']}>
+          {({ loginBackground }) =>
+            loginBackground ? (
+              <img
+                src={loginBackground}
+                alt=""
+                style={{ maxHeight: 120, marginBottom: 24 }}
+              />
+            ) : null
+          }
+        </ProFormDependency>
         <ProFormText
           name="footerText"
           label={fields.footerText}

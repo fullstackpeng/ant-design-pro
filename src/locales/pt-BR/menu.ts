@@ -3,6 +3,9 @@ export default {
   'menu.tenant-dictionaries': 'Dicionários',
   'menu.platform.settings': 'Configurações do sistema',
   'menu.platform.navigation': 'Gerenciar menus',
+  'menu.platform.storage-providers': 'Provedores de armazenamento',
+  'menu.platform.files': 'Arquivos',
+  'menu.files': 'Arquivos',
 
   'menu.platform.users': 'Usuários',
   'menu.tenant-roles': 'Funções',

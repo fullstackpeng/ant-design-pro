@@ -692,10 +692,38 @@ test('platform, tenant members and manual subscriptions', async (t) => {
       'DTO validation rejects wrong scalar types, invalid IDs and malformed nested accounts',
       async () => {
         for (const body of [
-          { code: 'typed', name: 'Typed', maxMembers: '10', isActive: true },
-          { code: 'typed', name: 'Typed', maxMembers: 1.5, isActive: true },
-          { code: 'typed', name: 'Typed', maxMembers: 10, isActive: 'false' },
-          { code: 'typed', name: 'Typed', maxMembers: 10, isActive: null },
+          {
+            code: 'typed',
+            name: 'Typed',
+            maxMembers: '10',
+            maxStorageMb: 100,
+            maxFileSizeMb: 10,
+            isActive: true,
+          },
+          {
+            code: 'typed',
+            name: 'Typed',
+            maxMembers: 1.5,
+            maxStorageMb: 100,
+            maxFileSizeMb: 10,
+            isActive: true,
+          },
+          {
+            code: 'typed',
+            name: 'Typed',
+            maxMembers: 10,
+            maxStorageMb: 100,
+            maxFileSizeMb: 10,
+            isActive: 'false',
+          },
+          {
+            code: 'typed',
+            name: 'Typed',
+            maxMembers: 10,
+            maxStorageMb: 100,
+            maxFileSizeMb: 10,
+            isActive: null,
+          },
         ]) {
           const response = await call(
             '/api/platform/plans',
@@ -787,7 +815,7 @@ test('platform, tenant members and manual subscriptions', async (t) => {
         });
         const featurePath = `/api/platform/tenants/${a.id}/features`;
         const original = await data(await call(featurePath, platform));
-        assert.equal(original.length, 9);
+        assert.equal(original.length, 10);
         const catalog = await data(
           await call('/api/platform/features', platform),
         );
@@ -1464,6 +1492,8 @@ test('platform, tenant members and manual subscriptions', async (t) => {
               code: 'invalid',
               name: 'Invalid',
               maxMembers: 0,
+              maxStorageMb: 100,
+              maxFileSizeMb: 10,
               isActive: true,
             })
           ).status,
@@ -1473,6 +1503,8 @@ test('platform, tenant members and manual subscriptions', async (t) => {
           code: 'small',
           name: 'Small',
           maxMembers: 3,
+          maxStorageMb: 100,
+          maxFileSizeMb: 10,
           isActive: true,
         });
         assert.equal(created.status, 201);
@@ -1670,6 +1702,8 @@ test('platform, tenant members and manual subscriptions', async (t) => {
             await call(`/api/platform/plans/${planId}`, platform, 'PATCH', {
               name: 'Small',
               maxMembers: 2,
+              maxStorageMb: 100,
+              maxFileSizeMb: 10,
               isActive: true,
             })
           ).status,
@@ -1771,6 +1805,8 @@ test('platform, tenant members and manual subscriptions', async (t) => {
             await call(`/api/platform/plans/${planId}`, platform, 'PATCH', {
               name: 'Small',
               maxMembers: 3,
+              maxStorageMb: 100,
+              maxFileSizeMb: 10,
               isActive: false,
             })
           ).status,

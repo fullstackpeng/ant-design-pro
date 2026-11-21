@@ -3,6 +3,9 @@ export default {
   'menu.tenant-dictionaries': '辞書管理',
   'menu.platform.settings': 'システム設定',
   'menu.platform.navigation': 'メニュー管理',
+  'menu.platform.storage-providers': 'ストレージプロバイダー',
+  'menu.platform.files': 'ファイル管理',
+  'menu.files': 'ファイル管理',
 
   'menu.platform.users': 'ユーザー管理',
   'menu.tenant-roles': 'ロール管理',

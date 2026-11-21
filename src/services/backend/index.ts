@@ -12,6 +12,8 @@ import * as settings from "./settings";
 import * as dictionaries from "./dictionaries";
 import * as platformDictionaries from "./platformDictionaries";
 import * as navigation from "./navigation";
+import * as storage from "./storage";
+import * as files from "./files";
 import * as scheduledTasks from "./scheduledTasks";
 export default {
   health,
@@ -24,5 +26,7 @@ export default {
   dictionaries,
   platformDictionaries,
   navigation,
+  storage,
+  files,
   scheduledTasks,
 };

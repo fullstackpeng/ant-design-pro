@@ -78,6 +78,30 @@ export class UpdatePlanDto extends NameDto {
   @Max(100000)
   maxMembers!: number;
 
+  @ApiProperty({
+    minimum: 1,
+    maximum: 10000000,
+    type: 'integer',
+    example: 5120,
+    description: '租户存储空间上限（MB）',
+  })
+  @IsInt()
+  @Min(1)
+  @Max(10000000)
+  maxStorageMb!: number;
+
+  @ApiProperty({
+    minimum: 1,
+    maximum: 512,
+    type: 'integer',
+    example: 100,
+    description: '单个文件大小上限（MB）',
+  })
+  @IsInt()
+  @Min(1)
+  @Max(512)
+  maxFileSizeMb!: number;
+
   @ApiProperty({ description: '是否允许新的人工分配，不影响已有订阅' })
   @IsBoolean()
   isActive!: boolean;

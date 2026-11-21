@@ -6,6 +6,10 @@ export class PlanDto {
   @ApiProperty() code!: string;
   @ApiProperty() name!: string;
   @ApiProperty({ type: 'integer' }) maxMembers!: number;
+  @ApiProperty({ type: 'integer', description: '存储空间上限（MB）' })
+  maxStorageMb!: number;
+  @ApiProperty({ type: 'integer', description: '单文件大小上限（MB）' })
+  maxFileSizeMb!: number;
   @ApiProperty() isActive!: boolean;
 }
 

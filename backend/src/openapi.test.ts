@@ -27,7 +27,7 @@ test('OpenAPI is complete, stable and can be served without a database connectio
         )
         .map(([, operation]) => operation),
     );
-    assert.equal(operations.length, 63);
+    assert.equal(operations.length, 81);
     const ids = operations.map((operation) => operation.operationId);
     assert.equal(new Set(ids).size, ids.length);
     const schemas = document.components?.schemas ?? {};
@@ -47,13 +47,15 @@ test('OpenAPI is complete, stable and can be served without a database connectio
     );
     for (const operation of operations) {
       assert(
-        Object.keys(operation.responses).some((status) =>
-          status.startsWith('2'),
-        ),
+        Object.keys(operation.responses).some((status) => /^[23]/.test(status)),
       );
       const body = operation.requestBody;
-      if (body && !('$ref' in body))
-        assert(body.content['application/json']?.schema);
+      if (body && !('$ref' in body)) {
+        const content = body.content as
+          | Record<string, { schema?: unknown }>
+          | undefined;
+        assert(Object.values(content ?? {}).some((entry) => entry.schema));
+      }
     }
     const params =
       document.paths['/api/platform/tenants/{id}'].patch?.parameters;

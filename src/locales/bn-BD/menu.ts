@@ -3,6 +3,9 @@ export default {
   'menu.tenant-dictionaries': 'অভিধান',
   'menu.platform.settings': 'সিস্টেম সেটিংস',
   'menu.platform.navigation': 'মেনু ব্যবস্থাপনা',
+  'menu.platform.storage-providers': 'স্টোরেজ প্রদানকারী',
+  'menu.platform.files': 'ফাইল',
+  'menu.files': 'ফাইল',
 
   'menu.platform.users': 'ব্যবহারকারী',
   'menu.tenant-roles': 'ভূমিকা',

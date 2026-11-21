@@ -3,6 +3,9 @@ export default {
   'menu.tenant-dictionaries': 'فرهنگ داده',
   'menu.platform.settings': 'تنظیمات سیستم',
   'menu.platform.navigation': 'مدیریت منو',
+  'menu.platform.storage-providers': 'ارائه‌دهندگان ذخیره‌سازی',
+  'menu.platform.files': 'فایل‌ها',
+  'menu.files': 'فایل‌ها',
 
   'menu.platform.users': 'مدیریت کاربران',
   'menu.tenant-roles': 'مدیریت نقش‌ها',

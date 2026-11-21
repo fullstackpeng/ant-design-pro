@@ -1,3 +1,4 @@
+import * as files from '@/services/backend/files';
 import * as settings from '@/services/backend/settings';
 
 export type SiteSettings = BackendAPI.SiteSettingsDto;
@@ -9,3 +10,5 @@ export const updateSiteSettings = (body: BackendAPI.UpdateSiteSettingsDto) =>
 export const listSiteSettingsHistory = (
   params: BackendAPI.listSiteSettingsHistoryParams,
 ) => settings.listSiteSettingsHistory(params, { skipErrorHandler: true });
+export const uploadSiteAsset = (file: File) =>
+  files.uploadSiteAsset({}, file, { skipErrorHandler: true });

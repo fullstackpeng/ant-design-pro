@@ -3,6 +3,9 @@ export default {
   'menu.tenant-dictionaries': 'Kamus',
   'menu.platform.settings': 'Pengaturan sistem',
   'menu.platform.navigation': 'Pengelolaan menu',
+  'menu.platform.storage-providers': 'Penyedia penyimpanan',
+  'menu.platform.files': 'File',
+  'menu.files': 'File',
 
   'menu.platform.users': 'Pengguna',
   'menu.tenant-roles': 'Peran',

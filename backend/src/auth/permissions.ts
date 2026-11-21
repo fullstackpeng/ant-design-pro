@@ -31,6 +31,16 @@ export const permissionCatalog: PermissionDefinition[] = [
         ]
       : [],
   ),
+  ...[
+    ['create', '上传文件'],
+    ['delete', '删除文件'],
+  ].map(([action, name]) => ({
+    code: `files:${action}`,
+    name,
+    featureCode: 'files',
+    defaultMemberAccess: false,
+    requires: ['files:read'],
+  })),
   {
     code: 'members:create',
     name: '新增成员',

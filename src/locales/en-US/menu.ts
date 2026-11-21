@@ -11,6 +11,9 @@ export default {
   'menu.platform.plans': 'Plans',
   'menu.platform.scheduled-tasks': 'Scheduled tasks',
   'menu.platform.navigation': 'Menu management',
+  'menu.platform.storage-providers': 'Storage providers',
+  'menu.platform.files': 'Files',
+  'menu.files': 'Files',
   'menu.tenant-members': 'Tenant members',
 
   'menu.welcome': 'Welcome',

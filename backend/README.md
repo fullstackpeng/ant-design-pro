@@ -154,6 +154,22 @@ await transaction(prisma, async (tx) => {
 
 新增引用字段时必须同步接入前端组件、稳定值存储、后端校验和历史展示。字典管理中的单选、多选预览仅用于检查效果，不保存业务数据。当前不提供树形、继承、批量导入或多语言标签。
 
+## 文件管理与存储服务商
+
+平台管理页 `/platform/storage-providers` 维护多个对象存储服务商，全局只有一个默认服务商；租户文件页 `/files` 和平台文件页 `/platform/files` 共用默认服务商。当前仅实现 S3 兼容协议，服务端中转上传。
+
+- 服务商接口位于 `/api/platform/storage`：`GET protocols` 返回协议字段元数据，`GET/POST providers`、`PATCH providers/:id`、`POST providers/:id/default`、`POST providers/:id/test`。前端根据元数据动态渲染表单，新增协议只需在后端新增驱动并注册。
+- 密钥使用 `STORAGE_SECRET_KEY`（32 字节 base64）以 AES-256-GCM 加密保存；接口只返回已配置的字段名，不返回密钥值。更新时密钥字段留空表示保持原值。未配置有效密钥时拒绝保存服务商。
+- 默认服务商由数据库部分唯一索引保证唯一；首个服务商自动成为默认。停用默认服务商前必须先切换默认；已有文件的服务商不能修改连接配置。
+- 自建 S3（MinIO、SeaweedFS 等）通常必须开启 Path Style；使用 `localhost` 时优先改为 `127.0.0.1`，避免虚拟主机寻址或 IPv6 解析问题。测试连接失败时先确认 Endpoint 可访问、Bucket 已创建。
+- 文件接口：租户 `/api/tenant/files`（列表、`GET usage`、上传、下载、删除，受 `files` 功能及 `files:read/create/delete` 权限控制）；平台 `/api/platform/files` 可查看并管理全部租户及平台文件，支持按文件名和租户搜索。
+- 上传采用服务端中转，单文件硬上限 512MB；租户还受套餐 `maxFileSizeMb`、`maxStorageMb` 限制。文件类型使用内置允许列表，对象键由后端按 UTC 日期统一生成（`tenants/<id>/YYYY/MM/DD/<uuid>` 或 `platform/YYYY/MM/DD/<uuid>`），该规则位于协议无关层，对所有存储协议一致生效，不采用客户端文件路径。
+- 下载返回 5 分钟有效的签名地址。删除先删除存储对象，再删除数据库记录；对象删除失败时保留记录并返回 502。
+- 系统配置的 Logo 和登录背景可直接上传位图（≤10 MB，不支持 SVG）。`POST /api/platform/files/site-assets` 将文件标记为 `visibility=public` 并返回稳定地址 `/api/site-assets/<id>`；公开路由每次请求 302 到短时签名地址，Bucket 仍保持私有。该路由只允许访问平台所属的 public 文件，租户文件和其他平台文件一律 404。
+- `files` 功能在迁移中默认开通给现有租户；新租户通过“分配功能”开通。租户管理员默认拥有全部文件权限，普通成员默认只有查看权限。
+
+扩展新协议：在 `backend/src/storage/protocols/` 增加驱动定义，实现 `StorageProtocolDefinition`（字段元数据、校验、`StorageDriver`），然后在 `storage-protocol.registry.ts` 注册。前端表单和权限校验无需改动。
+
 ## 启动与现有功能
 
 NestJS 12 + Prisma 7 + PostgreSQL，使用 Node.js 22.12 或更高的受支持 LTS 版本。前端使用 `npm run dev` 关闭 Mock，开发代理将 `/api/` 转发到本服务的 `3000` 端口。

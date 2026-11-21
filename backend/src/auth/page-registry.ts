@@ -66,6 +66,18 @@ export const registeredPages: RegisteredPage[] = [
     'platform',
   ),
   page('platform-users', '/platform/users', '用户管理', 'platform'),
+  page(
+    'platform-storage-providers',
+    '/platform/storage-providers',
+    '存储服务商',
+    'platform',
+  ),
+  page('platform-files', '/platform/files', '文件管理', 'platform'),
+  page('files', '/files', '文件管理', 'tenant', {
+    featureCode: 'files',
+    permissionCode: 'files:read',
+    defaultMemberAccess: true,
+  }),
   page('tenant-roles', '/tenant/roles', '角色管理', 'tenant', {
     featureCode: 'members',
     minRole: 'admin',

@@ -22,6 +22,14 @@ export default function Plans() {
     { title: t('name', '名称'), dataIndex: 'name' },
     { title: t('maxMembers', '启用成员数上限'), dataIndex: 'maxMembers' },
     {
+      title: t('maxStorageMb', '存储空间上限 (MB)'),
+      dataIndex: 'maxStorageMb',
+    },
+    {
+      title: t('maxFileSizeMb', '单文件上限 (MB)'),
+      dataIndex: 'maxFileSizeMb',
+    },
+    {
       title: t('allowAssignment', '允许分配'),
       dataIndex: 'isActive',
       render: (_, row) => (
@@ -69,7 +77,14 @@ export default function Plans() {
           onOpenChange={(open) => {
             if (!open) setEditing(undefined);
           }}
-          initialValues={editing ?? { maxMembers: 10, isActive: true }}
+          initialValues={
+            editing ?? {
+              maxMembers: 10,
+              maxStorageMb: 5120,
+              maxFileSizeMb: 100,
+              isActive: true,
+            }
+          }
           onFinish={(values) =>
             run(
               () =>
@@ -77,6 +92,8 @@ export default function Plans() {
                   ? updatePlan(editing.id, {
                       name: values.name,
                       maxMembers: values.maxMembers,
+                      maxStorageMb: values.maxStorageMb,
+                      maxFileSizeMb: values.maxFileSizeMb,
                       isActive: values.isActive,
                     })
                   : createPlan(values),
@@ -106,6 +123,22 @@ export default function Plans() {
             label={t('maxMembers', '启用成员数上限')}
             min={1}
             max={100000}
+            fieldProps={{ precision: 0 }}
+            rules={[{ required: true }]}
+          />
+          <ProFormDigit
+            name="maxStorageMb"
+            label={t('maxStorageMb', '存储空间上限 (MB)')}
+            min={1}
+            max={10000000}
+            fieldProps={{ precision: 0 }}
+            rules={[{ required: true }]}
+          />
+          <ProFormDigit
+            name="maxFileSizeMb"
+            label={t('maxFileSizeMb', '单文件上限 (MB)')}
+            min={1}
+            max={512}
             fieldProps={{ precision: 0 }}
             rules={[{ required: true }]}
           />

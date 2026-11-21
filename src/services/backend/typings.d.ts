@@ -84,6 +84,10 @@ declare namespace BackendAPI {
   type CreatePlanDto = {
     name: string;
     maxMembers: number;
+    /** 租户存储空间上限（MB） */
+    maxStorageMb: number;
+    /** 单个文件大小上限（MB） */
+    maxFileSizeMb: number;
     /** 是否允许新的人工分配，不影响已有订阅 */
     isActive: boolean;
     code: string;
@@ -96,6 +100,17 @@ declare namespace BackendAPI {
   type CreateRoleDto = {
     name: string;
     permissions: string[];
+  };
+
+  type CreateStorageProviderDto = {
+    code: string;
+    name: string;
+    protocol: string;
+    /** 协议定义的非敏感配置 */
+    config: Record<string, any>;
+    /** 协议定义的密钥字段，写入后加密保存 */
+    secrets: Record<string, any>;
+    isActive?: boolean;
   };
 
   type CreateTaskDto = {
@@ -156,8 +171,18 @@ declare namespace BackendAPI {
     data: CurrentUserDto;
   };
 
+  type deleteFileParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
   type deleteMenuParams = {
     code: string;
+  };
+
+  type deletePlatformFileParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
   };
 
   type deleteRoleParams = {
@@ -244,6 +269,16 @@ declare namespace BackendAPI {
     data: string;
   };
 
+  type downloadFileParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type downloadPlatformFileParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
   type EmptyResponseDto = {
     success: true;
     data: null;
@@ -267,12 +302,66 @@ declare namespace BackendAPI {
     data: FeatureDto[];
   };
 
+  type FileDownloadDto = {
+    url: string;
+    expiresInSeconds: number;
+  };
+
+  type FileDownloadResponseDto = {
+    success: true;
+    data: FileDownloadDto;
+  };
+
+  type FileDto = {
+    id: string;
+    originalName: string;
+    mimeType: string;
+    /** 字节数，以字符串传输 */
+    size: string;
+    providerName: string;
+    /** 平台文件为 null */
+    tenantCode?: string | null;
+    tenantName?: string | null;
+    uploadedByName: string;
+    createdAt: string;
+  };
+
+  type FileListResponseDto = {
+    success: true;
+    data: FileDto[];
+    total: number;
+  };
+
+  type FileQueryDto = {
+    current?: number;
+    pageSize?: number;
+    /** 文件名，支持包含匹配 */
+    keyword?: string;
+  };
+
+  type FileUsageDto = {
+    usedBytes: string;
+    quotaBytes: string;
+    maxFileSizeBytes: string;
+    planName?: string | null;
+  };
+
+  type FileUsageResponseDto = {
+    success: true;
+    data: FileUsageDto;
+  };
+
   type getDictionaryParams = {
     code: string;
   };
 
   type getPlatformDictionaryParams = {
     code: string;
+  };
+
+  type getSiteAssetParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
   };
 
   type getTaskRunParams = {
@@ -310,6 +399,19 @@ declare namespace BackendAPI {
     pageSize?: number;
   };
 
+  type listFilesParams = {
+    current?: number;
+    pageSize?: number;
+    /** 文件名，支持包含匹配 */
+    keyword?: string;
+  };
+
+  type listLoginTenantsParams = {
+    /** 租户名称或编码，支持包含匹配 */
+    keyword?: string;
+    limit?: number;
+  };
+
   type listMembersParams = {
     current?: number;
     pageSize?: number;
@@ -330,6 +432,15 @@ declare namespace BackendAPI {
     code: string;
     current?: number;
     pageSize?: number;
+  };
+
+  type listPlatformFilesParams = {
+    current?: number;
+    pageSize?: number;
+    /** 文件名，支持包含匹配 */
+    keyword?: string;
+    /** 租户编码或名称，支持包含匹配 */
+    tenant?: string;
   };
 
   type listScheduledTasksParams = {
@@ -381,6 +492,22 @@ declare namespace BackendAPI {
     /** 勾选后保存 7 天，否则使用浏览器会话 Cookie */
     autoLogin?: boolean;
     type?: "account";
+  };
+
+  type LoginTenantDto = {
+    code: string;
+    name: string;
+  };
+
+  type LoginTenantListResponseDto = {
+    success: true;
+    data: LoginTenantDto[];
+  };
+
+  type LoginTenantQueryDto = {
+    /** 租户名称或编码，支持包含匹配 */
+    keyword?: string;
+    limit?: number;
   };
 
   type MemberDto = {
@@ -463,6 +590,10 @@ declare namespace BackendAPI {
     code: string;
     name: string;
     maxMembers: number;
+    /** 存储空间上限（MB） */
+    maxStorageMb: number;
+    /** 单文件大小上限（MB） */
+    maxFileSizeMb: number;
     isActive: boolean;
   };
 
@@ -513,6 +644,15 @@ declare namespace BackendAPI {
     success: true;
     data: PlatformDictionaryDto[];
     total: number;
+  };
+
+  type PlatformFileQueryDto = {
+    current?: number;
+    pageSize?: number;
+    /** 文件名，支持包含匹配 */
+    keyword?: string;
+    /** 租户编码或名称，支持包含匹配 */
+    tenant?: string;
   };
 
   type PlatformUserDto = {
@@ -645,9 +785,25 @@ declare namespace BackendAPI {
     updatedAt: string;
   };
 
+  type setDefaultStorageProviderParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
   type setScheduledTaskEnabledParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
+  };
+
+  type SiteAssetDto = {
+    id: string;
+    /** 可写入系统配置的稳定公开地址 */
+    url: string;
+  };
+
+  type SiteAssetResponseDto = {
+    success: true;
+    data: SiteAssetDto;
   };
 
   type SiteSettingsAuditDto = {
@@ -686,6 +842,46 @@ declare namespace BackendAPI {
   type SiteSettingsResponseDto = {
     success: true;
     data: SiteSettingsDto;
+  };
+
+  type StorageFieldDto = {
+    key: string;
+    label: string;
+    type: "text" | "password" | "boolean" | "number" | "select";
+    required?: boolean;
+    placeholder?: string;
+    default?: string | number | boolean;
+    options?: { label?: string; value?: string }[];
+  };
+
+  type StorageProtocolDto = {
+    protocol: string;
+    label: string;
+    configFields: StorageFieldDto[];
+    secretFields: StorageFieldDto[];
+  };
+
+  type StorageProtocolListResponseDto = {
+    success: true;
+    data: StorageProtocolDto[];
+  };
+
+  type StorageProviderDto = {
+    id: string;
+    code: string;
+    name: string;
+    protocol: string;
+    config: Record<string, any>;
+    /** 已配置的密钥字段名，不包含密钥值 */
+    secretKeys: string[];
+    isDefault: boolean;
+    isActive: boolean;
+    revision: number;
+  };
+
+  type StorageProviderListResponseDto = {
+    success: true;
+    data: StorageProviderDto[];
   };
 
   type SubscriptionDto = {
@@ -842,6 +1038,11 @@ declare namespace BackendAPI {
     data: TenantDto;
   };
 
+  type testStorageProviderParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
   type triggerScheduledTaskParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
@@ -901,6 +1102,10 @@ declare namespace BackendAPI {
   type UpdatePlanDto = {
     name: string;
     maxMembers: number;
+    /** 租户存储空间上限（MB） */
+    maxStorageMb: number;
+    /** 单个文件大小上限（MB） */
+    maxFileSizeMb: number;
     /** 是否允许新的人工分配，不影响已有订阅 */
     isActive: boolean;
   };
@@ -967,6 +1172,20 @@ declare namespace BackendAPI {
       | "bn-BD";
     /** 读取时的版本，避免覆盖其他管理员的修改 */
     revision: number;
+  };
+
+  type UpdateStorageProviderDto = {
+    name: string;
+    config: Record<string, any>;
+    /** 省略或留空表示保持现有密钥 */
+    secrets?: Record<string, any>;
+    isActive: boolean;
+    revision: number;
+  };
+
+  type updateStorageProviderParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
   };
 
   type UpdateTaskDto = {

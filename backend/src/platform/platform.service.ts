@@ -128,6 +128,8 @@ export class PlatformService {
           code: body.code,
           name: body.name,
           maxMembers: body.maxMembers,
+          maxStorageMb: body.maxStorageMb,
+          maxFileSizeMb: body.maxFileSizeMb,
           isActive: body.isActive,
         },
       }),
@@ -137,6 +139,7 @@ export class PlatformService {
   async updatePlan(plan: string, body: UpdatePlanDto) {
     const planId = id(plan);
     const limit = body.maxMembers;
+    const storageLimit = BigInt(body.maxStorageMb) * 1024n * 1024n;
     const name = body.name;
     const isActive = body.isActive;
     return success(
@@ -154,10 +157,25 @@ export class PlatformService {
               success: false,
               errorMessage: '已有租户的启用成员数超过新上限',
             });
+          const storage = await tx.fileObject.aggregate({
+            _sum: { size: true },
+            where: { tenantId: subscription.tenantId },
+          });
+          if ((storage._sum.size ?? 0n) > storageLimit)
+            throw new ConflictException({
+              success: false,
+              errorMessage: '已有租户的存储用量超过新上限',
+            });
         }
         return tx.plan.update({
           where: { id: planId },
-          data: { name, maxMembers: limit, isActive },
+          data: {
+            name,
+            maxMembers: limit,
+            maxStorageMb: body.maxStorageMb,
+            maxFileSizeMb: body.maxFileSizeMb,
+            isActive,
+          },
         });
       }),
     );

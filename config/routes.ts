@@ -140,6 +140,18 @@ export default [
         access: 'canPlatform',
         component: './management/navigation',
       },
+      {
+        path: '/platform/storage-providers',
+        name: 'storage-providers',
+        access: 'canPlatform',
+        component: './management/storage-providers',
+      },
+      {
+        path: '/platform/files',
+        name: 'files',
+        access: 'canPlatform',
+        component: './management/platform-files',
+      },
     ],
   },
   {
@@ -160,6 +172,12 @@ export default [
     icon: 'team',
     access: 'canManageMembers',
     component: './management/members',
+  },
+  {
+    path: '/files',
+    name: 'files',
+    icon: 'folder',
+    component: './management/files',
   },
   {
     path: '/dashboard',

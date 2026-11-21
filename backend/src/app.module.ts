@@ -7,10 +7,12 @@ import { Public } from './auth/public.decorator.js';
 import { HttpExceptionFilter } from './common/http-exception.filter.js';
 import { createValidationPipe } from './common/validation.pipe.js';
 import { DictionariesModule } from './dictionaries/dictionaries.module.js';
+import { FilesModule } from './files/files.module.js';
 import { NavigationModule } from './navigation/navigation.module.js';
 import { PlatformModule } from './platform/platform.module.js';
 import { QueueModule } from './queue/queue.module.js';
 import { ScheduledTasksModule } from './scheduled-tasks/scheduled-tasks.module.js';
+import { StorageModule } from './storage/storage.module.js';
 import { TenantsModule } from './tenants/tenants.module.js';
 
 @Controller('api')
@@ -32,6 +34,8 @@ class AppController {
     PlatformModule,
     NavigationModule,
     DictionariesModule,
+    StorageModule,
+    FilesModule,
     QueueModule,
     ScheduledTasksModule,
   ],

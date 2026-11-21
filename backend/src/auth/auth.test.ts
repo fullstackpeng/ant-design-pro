@@ -318,6 +318,65 @@ test('real PostgreSQL authentication lifecycle', async (t) => {
     );
 
     await t.test(
+      'public tenant lookup returns only active tenants and minimal fields',
+      async () => {
+        const response = await fetch(`${baseUrl}/api/login/tenants`);
+        assert.equal(response.status, 200);
+        assert.equal(response.headers.get('cache-control'), 'no-store');
+        const body = (await response.json()) as {
+          success: boolean;
+          data: { code: string; name: string }[];
+        };
+        assert.equal(body.success, true);
+        assert.deepEqual(
+          body.data.map((tenant) => tenant.code),
+          ['tenant-a', 'tenant-b'],
+        );
+        assert.deepEqual(Object.keys(body.data[0]).sort(), ['code', 'name']);
+
+        const filtered = (await (
+          await fetch(`${baseUrl}/api/login/tenants?keyword=tenant-b`)
+        ).json()) as typeof body;
+        assert.deepEqual(filtered.data, [
+          { code: 'tenant-b', name: '示例企业 B' },
+        ]);
+
+        const byName = (await (
+          await fetch(
+            `${baseUrl}/api/login/tenants?keyword=${encodeURIComponent('示例企业 B')}`,
+          )
+        ).json()) as typeof body;
+        assert.deepEqual(byName.data, [
+          { code: 'tenant-b', name: '示例企业 B' },
+        ]);
+
+        const tenant = await prisma.tenant.findUniqueOrThrow({
+          where: { code: 'tenant-b' },
+        });
+        try {
+          await prisma.tenant.update({
+            where: { id: tenant.id },
+            data: { isActive: false },
+          });
+          const disabled = (await (
+            await fetch(`${baseUrl}/api/login/tenants?keyword=tenant-b`)
+          ).json()) as typeof body;
+          assert.deepEqual(disabled.data, []);
+        } finally {
+          await prisma.tenant.update({
+            where: { id: tenant.id },
+            data: { isActive: true },
+          });
+        }
+
+        assert.equal(
+          (await fetch(`${baseUrl}/api/login/tenants?limit=51`)).status,
+          400,
+        );
+      },
+    );
+
+    await t.test(
       'rejects malformed input, unsupported login types and incorrect credentials',
       async () => {
         for (const body of [

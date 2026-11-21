@@ -3,6 +3,9 @@ export default {
   'menu.tenant-dictionaries': '字典管理',
   'menu.platform.settings': '系統設定',
   'menu.platform.navigation': '選單管理',
+  'menu.platform.storage-providers': '儲存服務商',
+  'menu.platform.files': '檔案管理',
+  'menu.files': '檔案管理',
 
   'menu.platform.users': '使用者管理',
   'menu.tenant-roles': '角色管理',

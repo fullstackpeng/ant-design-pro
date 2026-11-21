@@ -11,6 +11,9 @@ export default {
   'menu.platform.plans': '套餐管理',
   'menu.platform.scheduled-tasks': '定时任务',
   'menu.platform.navigation': '菜单管理',
+  'menu.platform.storage-providers': '存储服务商',
+  'menu.platform.files': '文件管理',
+  'menu.files': '文件管理',
   'menu.tenant-members': '租户成员',
 
   'menu.welcome': '欢迎',
