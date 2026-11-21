@@ -78,6 +78,7 @@ export default [
     path: '/websocket',
     name: 'websocket',
     icon: 'api',
+    access: 'canPlatform',
     component: './websocket',
   },
   {
@@ -142,9 +143,19 @@ export default [
       },
       {
         path: '/platform/navigation',
+        redirect: '/platform/navigation/platform',
+      },
+      {
+        path: '/platform/navigation/platform',
         name: 'navigation',
         access: 'canPlatform',
         component: './management/navigation',
+      },
+      {
+        path: '/platform/navigation/tenant',
+        name: 'navigation-tenant',
+        access: 'canPlatform',
+        component: './management/navigation/tenant',
       },
       {
         path: '/platform/storage-providers',
@@ -157,6 +168,28 @@ export default [
         name: 'files',
         access: 'canPlatform',
         component: './management/platform-files',
+      },
+      {
+        path: '/platform/mqtt',
+        redirect: '/platform/mqtt-config',
+      },
+      {
+        path: '/platform/mqtt-config',
+        name: 'mqtt',
+        access: 'canPlatform',
+        component: './management/platform-mqtt',
+      },
+      {
+        path: '/platform/mqtt-test',
+        name: 'mqtt-test',
+        access: 'canPlatform',
+        component: './management/mqtt-test',
+      },
+      {
+        path: '/platform/mqtt-messages',
+        name: 'mqtt-messages',
+        access: 'canPlatform',
+        component: './management/mqtt-messages',
       },
     ],
   },
@@ -184,6 +217,22 @@ export default [
     name: 'files',
     icon: 'folder',
     component: './management/files',
+  },
+  {
+    path: '/tenant/mqtt',
+    redirect: '/tenant/mqtt-config',
+  },
+  {
+    path: '/tenant/mqtt-config',
+    name: 'tenant-mqtt',
+    icon: 'api',
+    component: './management/tenant-mqtt',
+  },
+  {
+    path: '/tenant/mqtt-test',
+    name: 'tenant-mqtt-test',
+    icon: 'api',
+    component: './management/mqtt-test/tenant',
   },
   {
     path: '/dashboard',

@@ -45,7 +45,7 @@ function page(
 // Authorization is code-owned; editable menus only organize navigation.
 export const registeredPages: RegisteredPage[] = [
   page('welcome', '/welcome', '首页', 'authenticated'),
-  page('websocket-test', '/websocket', 'WebSocket 测试', 'authenticated'),
+  page('websocket-test', '/websocket', 'WebSocket 测试', 'platform'),
   page('account-center', '/account/center', '个人中心', 'authenticated', {
     showInMenu: false,
   }),
@@ -74,6 +74,24 @@ export const registeredPages: RegisteredPage[] = [
     'platform',
   ),
   page('platform-files', '/platform/files', '文件管理', 'platform'),
+  page('platform-mqtt', '/platform/mqtt-config', 'MQTT 配置', 'platform'),
+  page('platform-mqtt-test', '/platform/mqtt-test', 'MQTT 测试', 'platform'),
+  page(
+    'platform-mqtt-messages',
+    '/platform/mqtt-messages',
+    'MQTT 消息',
+    'platform',
+  ),
+  page('tenant-mqtt', '/tenant/mqtt-config', 'MQTT 配置', 'tenant', {
+    featureCode: 'mqtt',
+    minRole: 'admin',
+    permissionCode: 'mqtt:read',
+  }),
+  page('tenant-mqtt-test', '/tenant/mqtt-test', 'MQTT 测试', 'tenant', {
+    featureCode: 'mqtt',
+    minRole: 'admin',
+    permissionCode: 'mqtt:test',
+  }),
   page('files', '/files', '文件管理', 'tenant', {
     featureCode: 'files',
     permissionCode: 'files:read',
@@ -89,7 +107,18 @@ export const registeredPages: RegisteredPage[] = [
     permissionCode: 'dictionaries:read',
   }),
   page('platform-settings', '/platform/settings', '系统配置', 'platform'),
-  page('platform-navigation', '/platform/navigation', '菜单管理', 'platform'),
+  page(
+    'platform-navigation',
+    '/platform/navigation/platform',
+    '平台菜单',
+    'platform',
+  ),
+  page(
+    'platform-navigation-tenant',
+    '/platform/navigation/tenant',
+    '租户菜单',
+    'platform',
+  ),
   page('admin-sub-page', '/admin/sub-page', '管理示例', 'tenant', {
     featureCode: 'admin-demo',
     minRole: 'admin',

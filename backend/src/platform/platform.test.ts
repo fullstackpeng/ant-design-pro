@@ -817,7 +817,7 @@ test('platform, tenant members and manual subscriptions', async (t) => {
         });
         const featurePath = `/api/platform/tenants/${a.id}/features`;
         const original = await data(await call(featurePath, platform));
-        assert.equal(original.length, 10);
+        assert.equal(original.length, 11);
         const catalog = await data(
           await call('/api/platform/features', platform),
         );
@@ -831,12 +831,21 @@ test('platform, tenant members and manual subscriptions', async (t) => {
         const platformNav = await data(
           await call('/api/current/navigation', platform),
         );
-        assert(platformNav.allowedPaths.includes('/platform/navigation'));
+        assert(
+          platformNav.allowedPaths.includes('/platform/navigation/platform'),
+        );
         assert.equal(
           platformNav.menus.find(
             (menu: { code: string }) => menu.code === 'platform-navigation',
           ).name,
-          '菜单管理',
+          '平台菜单',
+        );
+        assert.equal(
+          platformNav.menus.find(
+            (menu: { code: string }) =>
+              menu.code === 'platform-navigation-tenant',
+          ).name,
+          '租户菜单',
         );
         assert(!platformNav.allowedPaths.includes('/tenant/members'));
         const adminNav = await data(
@@ -1372,12 +1381,23 @@ test('platform, tenant members and manual subscriptions', async (t) => {
         });
         assert.equal(user.isPlatformAdmin, false);
         owner = await login('acme', 'acme-owner');
-        assert.equal((await call('/api/tenant/members', owner)).status, 403);
+        assert.equal((await call('/api/tenant/members', owner)).status, 200);
         const initialNav = await data(
           await call('/api/current/navigation', owner),
         );
         assert(initialNav.allowedPaths.includes('/welcome'));
-        assert(!initialNav.allowedPaths.includes('/tenant/members'));
+        assert(initialNav.allowedPaths.includes('/tenant/members'));
+        assert.deepEqual(
+          (
+            await data(
+              await call(
+                `/api/platform/tenants/${tenantId}/features`,
+                platform,
+              ),
+            )
+          ).sort(),
+          ['files', 'members', 'mqtt'],
+        );
         assert.equal(
           (
             await call(

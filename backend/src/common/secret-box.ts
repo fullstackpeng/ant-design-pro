@@ -1,15 +1,16 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 import { InternalServerErrorException } from '@nestjs/common';
 
-const KEY_ENV = 'STORAGE_SECRET_KEY';
+const KEY_ENV = 'SECRET_ENCRYPTION_KEY';
+const LEGACY_KEY_ENV = 'STORAGE_SECRET_KEY';
 const VERSION = 'v1';
 
 function masterKey(): Buffer {
-  const raw = process.env[KEY_ENV];
+  const raw = process.env[KEY_ENV] || process.env[LEGACY_KEY_ENV];
   if (!raw)
     throw new InternalServerErrorException({
       success: false,
-      errorMessage: `未配置 ${KEY_ENV}，无法保存存储服务商密钥`,
+      errorMessage: `未配置 ${KEY_ENV}（或 STORAGE_SECRET_KEY），无法保存密钥`,
     });
   const key = Buffer.from(raw, 'base64');
   if (key.length !== 32)
@@ -39,7 +40,7 @@ export function decryptSecrets(envelope: string): Record<string, unknown> {
   if (version !== VERSION || !ivText || !tagText || !dataText)
     throw new InternalServerErrorException({
       success: false,
-      errorMessage: '存储服务商密钥格式无效，请联系平台管理员',
+      errorMessage: '服务密钥格式无效，请联系平台管理员',
     });
   try {
     const decipher = createDecipheriv(
@@ -60,7 +61,7 @@ export function decryptSecrets(envelope: string): Record<string, unknown> {
     if (error instanceof InternalServerErrorException) throw error;
     throw new InternalServerErrorException({
       success: false,
-      errorMessage: '存储服务商密钥解密失败，请检查 STORAGE_SECRET_KEY',
+      errorMessage: '服务密钥解密失败，请检查 SECRET_ENCRYPTION_KEY',
     });
   }
 }

@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
+import { decryptSecrets, encryptSecrets } from '../common/secret-box.js';
 import { id, success } from '../common/validation.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { transaction } from '../database/transaction.js';
@@ -14,7 +15,6 @@ import type {
 } from './dto/storage-provider-request.dto.js';
 import { StorageProtocolRegistry } from './protocols/storage-protocol.registry.js';
 import type { StorageDriver } from './protocols/storage-protocol.types.js';
-import { decryptSecrets, encryptSecrets } from './storage-credentials.js';
 
 function stableJson(value: unknown): string {
   const object = value as Record<string, unknown>;

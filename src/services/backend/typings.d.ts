@@ -32,6 +32,11 @@ declare namespace BackendAPI {
     id: string;
   };
 
+  type cleanupMqttMessagesParams = {
+    /** 仅清理该租户，省略表示全部 */
+    tenantId?: string;
+  };
+
   type CreateDictionaryDto = {
     name: string;
     remark: string;
@@ -138,6 +143,23 @@ declare namespace BackendAPI {
     admin: AccountDto;
   };
 
+  type CreateTenantMqttBrokerDto = {
+    name: string;
+    host: string;
+    port: number;
+    useTls: boolean;
+    protocolVersion: "3.1.1" | "5";
+    username?: string;
+    password?: string;
+    clientIdPrefix?: string;
+    subscribeFilter?: string;
+    keepaliveSeconds?: number;
+    cleanStart?: boolean;
+    sessionExpirySeconds?: number;
+    defaultQos?: 0 | 1 | 2;
+    isActive?: boolean;
+  };
+
   type CreateUserDto = {
     username: string;
     name: string;
@@ -185,12 +207,22 @@ declare namespace BackendAPI {
     id: string;
   };
 
+  type deletePlatformMqttBrokerParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
   type deleteRoleParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
   };
 
   type deleteScheduledTaskParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type deleteTenantMqttBrokerParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
   };
@@ -295,6 +327,11 @@ declare namespace BackendAPI {
   type FeatureDto = {
     code: string;
     name: string;
+    description: string;
+    category: "base" | "samples";
+    sortOrder: number;
+    isDemo: boolean;
+    defaultGranted: boolean;
   };
 
   type FeatureListResponseDto = {
@@ -415,6 +452,16 @@ declare namespace BackendAPI {
   type listMembersParams = {
     current?: number;
     pageSize?: number;
+  };
+
+  type listMqttMessagesParams = {
+    current?: number;
+    pageSize?: number;
+    /** 租户 ID */
+    tenantId?: string;
+    /** Topic 包含匹配 */
+    topic?: string;
+    direction?: "inbound" | "outbound";
   };
 
   type listPlansParams = {
@@ -558,6 +605,92 @@ declare namespace BackendAPI {
     data: MenuDto[];
   };
 
+  type MqttCleanupResponseDto = {
+    success: true;
+    data: MqttCleanupResultDto;
+  };
+
+  type MqttCleanupResultDto = {
+    deleted: number;
+  };
+
+  type MqttCredentialMetadataDto = {
+    tenantId: string;
+    username: string;
+    roleName: string;
+    status: string;
+    lastError: string;
+    provisionedAt?: string;
+    platform: MqttPlatformInfoDto;
+    topicPrefix: string;
+  };
+
+  type MqttCredentialMetadataResponseDto = {
+    success: true;
+    data: MqttCredentialMetadataDto | null;
+  };
+
+  type MqttMessageDto = {
+    id: string;
+    tenantId: string;
+    tenantCode: string;
+    tenantName: string;
+    brokerType: string;
+    brokerId: string;
+    topic: string;
+    payload: string;
+    payloadEncoding: string;
+    qos: number;
+    retain: boolean;
+    direction: string;
+    createdAt: string;
+  };
+
+  type MqttMessageListResponseDto = {
+    success: true;
+    data: MqttMessageDto[];
+    total: number;
+  };
+
+  type MqttMessageQueryDto = {
+    current?: number;
+    pageSize?: number;
+    /** 租户 ID */
+    tenantId?: string;
+    /** Topic 包含匹配 */
+    topic?: string;
+    direction?: "inbound" | "outbound";
+  };
+
+  type MqttPlatformBrokerDto = {
+    id: number;
+    name: string;
+    host: string;
+    port: number;
+    useTls: boolean;
+    defaultProtocol: "3.1.1" | "5";
+    adminUsername: string;
+    hasAdminPassword: boolean;
+    bridgeUsername: string;
+    hasBridgePassword: boolean;
+    responseTopic: string;
+    commandTimeoutMs: number;
+    isEnabled: boolean;
+    revision: number;
+  };
+
+  type MqttPlatformBrokerResponseDto = {
+    success: true;
+    data: MqttPlatformBrokerDto | null;
+  };
+
+  type MqttPlatformInfoDto = {
+    host: string;
+    port: number;
+    useTls: boolean;
+    protocols: string[];
+  };
+
   type NavigationDto = {
     menus: MenuDto[];
     allowedPaths: string[];
@@ -577,7 +710,18 @@ declare namespace BackendAPI {
   type PermissionDto = {
     code: string;
     name: string;
+    description: string;
     featureCode: string;
+    featureName: string;
+    featureDescription: string;
+    category: "base" | "samples";
+    sortOrder: number;
+    isDemo: boolean;
+    kind: "page" | "action";
+    group: "read" | "create" | "update" | "delete" | "manage";
+    risk: "normal" | "destructive";
+    defaultMemberAccess: boolean;
+    requires: string[];
   };
 
   type PermissionListResponseDto = {
@@ -655,6 +799,26 @@ declare namespace BackendAPI {
     tenant?: string;
   };
 
+  type PlatformTenantMqttListResponseDto = {
+    success: true;
+    data: PlatformTenantMqttRowDto[];
+  };
+
+  type PlatformTenantMqttRowDto = {
+    tenantId: string;
+    tenantCode: string;
+    tenantName: string;
+    status: string;
+    username: string;
+    lastError: string;
+    provisionedAt?: string;
+  };
+
+  type PlatformTenantParamDto = {
+    /** 租户 ID，64 位正整数字符串 */
+    tenantId: string;
+  };
+
   type PlatformUserDto = {
     id: string;
     username: string;
@@ -662,6 +826,11 @@ declare namespace BackendAPI {
     isActive: boolean;
     isPlatformAdmin: boolean;
     memberships: UserMembershipDto[];
+  };
+
+  type provisionMqttTenantCredentialParams = {
+    /** 租户 ID，64 位正整数字符串 */
+    tenantId: string;
   };
 
   type PublicSiteSettingsDto = {
@@ -718,6 +887,26 @@ declare namespace BackendAPI {
     id: string;
   };
 
+  type RevealedMqttCredentialDto = {
+    username: string;
+    password: string;
+    host: string;
+    port: number;
+    useTls: boolean;
+    protocols: string[];
+    topicPrefix: string;
+  };
+
+  type RevealedMqttCredentialResponseDto = {
+    success: true;
+    data: RevealedMqttCredentialDto;
+  };
+
+  type revealMqttTenantCredentialParams = {
+    /** 租户 ID，64 位正整数字符串 */
+    tenantId: string;
+  };
+
   type RevisionDto = {
     revision: number;
   };
@@ -731,6 +920,11 @@ declare namespace BackendAPI {
   type RoleListResponseDto = {
     success: true;
     data: RoleDto[];
+  };
+
+  type rotateMqttTenantCredentialParams = {
+    /** 租户 ID，64 位正整数字符串 */
+    tenantId: string;
   };
 
   type RunIdDto = {
@@ -785,7 +979,17 @@ declare namespace BackendAPI {
     updatedAt: string;
   };
 
+  type setDefaultPlatformMqttBrokerParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
   type setDefaultStorageProviderParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type setDefaultTenantMqttBrokerParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
   };
@@ -1026,6 +1230,34 @@ declare namespace BackendAPI {
     total: number;
   };
 
+  type TenantMqttBrokerDto = {
+    id: string;
+    tenantId: string;
+    tenantCode?: string;
+    tenantName?: string;
+    name: string;
+    host: string;
+    port: number;
+    useTls: boolean;
+    protocolVersion: "3.1.1" | "5";
+    username: string;
+    hasPassword: boolean;
+    clientIdPrefix: string;
+    subscribeFilter: string;
+    keepaliveSeconds: number;
+    cleanStart: boolean;
+    sessionExpirySeconds: number;
+    defaultQos: number;
+    isDefault: boolean;
+    isActive: boolean;
+    revision: number;
+  };
+
+  type TenantMqttBrokerListResponseDto = {
+    success: true;
+    data: TenantMqttBrokerDto[];
+  };
+
   type TenantQueryDto = {
     current?: number;
     pageSize?: number;
@@ -1038,7 +1270,17 @@ declare namespace BackendAPI {
     data: TenantDto;
   };
 
+  type testPlatformMqttBrokerParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
   type testStorageProviderParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type testTenantMqttBrokerParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
   };
@@ -1099,6 +1341,25 @@ declare namespace BackendAPI {
     code: string;
   };
 
+  type UpdateMqttPlatformBrokerDto = {
+    name: string;
+    host: string;
+    port: number;
+    useTls: boolean;
+    defaultProtocol: "3.1.1" | "5";
+    adminUsername: string;
+    /** 留空表示保持现有管理密码 */
+    adminPassword?: string;
+    bridgeUsername: string;
+    /** 留空表示保持现有 Bridge 密码 */
+    bridgePassword?: string;
+    responseTopic: string;
+    commandTimeoutMs: number;
+    isEnabled: boolean;
+    /** 首次创建时传 0 */
+    revision: number;
+  };
+
   type UpdatePlanDto = {
     name: string;
     maxMembers: number;
@@ -1138,6 +1399,11 @@ declare namespace BackendAPI {
 
   type updatePlatformDictionaryParams = {
     code: string;
+  };
+
+  type updatePlatformMqttBrokerParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
   };
 
   type UpdateRoleDto = {
@@ -1211,6 +1477,30 @@ declare namespace BackendAPI {
     isActive: boolean;
   };
 
+  type UpdateTenantMqttBrokerDto = {
+    name: string;
+    host: string;
+    port: number;
+    useTls: boolean;
+    protocolVersion: "3.1.1" | "5";
+    username?: string;
+    password?: string;
+    clientIdPrefix?: string;
+    subscribeFilter?: string;
+    keepaliveSeconds?: number;
+    cleanStart?: boolean;
+    sessionExpirySeconds?: number;
+    defaultQos?: 0 | 1 | 2;
+    isActive?: boolean;
+    /** 读取到的版本号 */
+    revision: number;
+  };
+
+  type updateTenantMqttBrokerParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
   type updateTenantParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
@@ -1243,5 +1533,10 @@ declare namespace BackendAPI {
     current?: number;
     pageSize?: number;
     keyword?: string;
+  };
+
+  type VerifyMqttCredentialDto = {
+    /** 当前登录用户密码，用于二次校验 */
+    password: string;
   };
 }

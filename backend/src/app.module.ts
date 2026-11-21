@@ -8,6 +8,7 @@ import { HttpExceptionFilter } from './common/http-exception.filter.js';
 import { createValidationPipe } from './common/validation.pipe.js';
 import { DictionariesModule } from './dictionaries/dictionaries.module.js';
 import { FilesModule } from './files/files.module.js';
+import { MqttModule } from './mqtt/mqtt.module.js';
 import { NavigationModule } from './navigation/navigation.module.js';
 import { PlatformModule } from './platform/platform.module.js';
 import { QueueModule } from './queue/queue.module.js';
@@ -37,6 +38,7 @@ class AppController {
     DictionariesModule,
     StorageModule,
     FilesModule,
+    MqttModule,
     QueueModule,
     RealtimeModule,
     ScheduledTasksModule,

@@ -170,6 +170,21 @@ await transaction(prisma, async (tx) => {
 
 扩展新协议：在 `backend/src/storage/protocols/` 增加驱动定义，实现 `StorageProtocolDefinition`（字段元数据、校验、`StorageDriver`），然后在 `storage-protocol.registry.ts` 注册。前端表单和权限校验无需改动。
 
+## MQTT 多租户接入
+
+平台维护唯一的 MQTT Broker 配置（Mosquitto + Dynamic Security），租户可以查看平台提供的凭据，也可以维护自己的内部 Broker。浏览器不直连 Broker，统一通过 `/api/ws` 桥接。
+
+- 平台配置：`/platform/mqtt-config`（旧地址 `/platform/mqtt` 自动重定向），接口 `/api/platform/mqtt/broker`（单例，固定 `id=1`）。管理账号只用于 Dynamic Security，Bridge 账号用于后端订阅/发布。租户配置页为 `/tenant/mqtt-config`。
+- 平台初始化：先 `POST /broker/test`，再 `POST /broker/provision-bridge` 创建 `platform_bridge_role` 和 Bridge 账号，最后 `POST /broker/reconnect`。
+- 租户开通：创建租户后自动写入 `pending` 凭据，由后台轮询通过 Dynamic Security 创建角色和用户；平台页可手动“开通/重试”。角色 ACL 仅允许 `tenants/<tenantCode>/#` 的发布、接收、订阅和取消订阅。
+- 凭据查看：租户管理员和平台管理员必须重新输入当前登录密码。失败 5 次/15 分钟后返回 429；查看与轮换均写审计，响应 `Cache-Control: no-store`。
+- 租户自有 Broker：租户维护，平台可查看、编辑、停用和删除；密码加密保存，列表不返回明文。
+- 消息：入站消息先落 `app_mqtt_messages`，提交成功后才 ack；出站写入 `app_mqtt_outbox` 并重试。浏览器测试页经 WebSocket 实时展示；平台端 `/platform/mqtt-messages` 可查询并支持按租户或全部清理。
+- 发布结果：`mqtt.published` 的 `sent=false` 表示消息已进入 outbox 但当前未送达 Broker，恢复连接后会重试；发布主题不允许包含 `+` 或 `#`。`GET /api/platform/mqtt/broker/status` 查看 Bridge 连接状态，`POST /api/platform/mqtt/outbox/process` 可立即重试待发送消息。
+- 主题规范：平台 Broker 只允许 `tenants/<tenantCode>/#`；平台 Bridge 使用 `tenants/#`。消息保留为永久，清理动作写审计。
+- 环境：`SECRET_ENCRYPTION_KEY`（32 字节 base64）优先，未设置时回退到 `STORAGE_SECRET_KEY`。`MQTT_PROVISION_POLL_MS`、`MQTT_OUTBOX_POLL_MS` 可调整轮询间隔，设为 0 可关闭。
+- 本地 Mosquitto 需启用 Dynamic Security 插件；`custom.conf` 示例：`listener 1883 0.0.0.0`、`plugin .../mosquitto_dynamic_security.dll`、`plugin_opt_config_file .../dynamic-security.json`。平台配置中的管理账号必须具备 Dynamic Security 管理权限。
+
 ## WebSocket 测试通道
 
 平台和租户登录用户都可以连接 `/api/ws` 进行联调。前端页面为 `/websocket`，也可用 wscat、Postman 等工具直接测试。
@@ -212,7 +227,7 @@ npm start
 动态菜单与租户功能：
 
 - 菜单目录保存在 `app_menus`，功能目录保存在 `app_features`，租户授权保存在 `app_tenant_features`。租户自定义角色保存在 `app_tenant_roles`，成员可通过 `app_member_roles` 关联多个本租户角色；数据库复合外键阻止跨租户分配。
-- 平台的 `/platform/navigation` 使用树形表格，支持新增目录、选择已注册页面、调整父目录、名称、国际化键、图标、排序和显示状态，以及删除无子菜单的入口。首页及内置平台菜单不能停用、删除或调整层级。空目录不显示在导航中。个人页面保留代码路由与访问权限，只通过头像下拉进入，不可添加到侧边栏。
+- 菜单管理拆分为两个页面：`/platform/navigation/platform` 维护平台及公共菜单，`/platform/navigation/tenant` 维护租户端菜单。均使用树形表格，支持新增目录、选择已注册页面、调整父目录、名称、国际化键、图标、排序和显示状态，以及删除无子菜单的入口。平台及内置菜单不能停用、删除或调整层级。空目录不显示在导航中。个人页面保留代码路由与访问权限，只通过头像下拉进入，不可添加到侧边栏。
 - 页面注册表在 `src/auth/page-registry.ts`，固定每个页面的路径、所属端、功能模块和最低角色。新增业务页面需发布代码并登记注册表，菜单管理只能选择已登记页面，不能填写任意组件或路径。`npm run test:routes` 在项目根目录验证注册表与实际页面路由一致，同时覆盖 Umi 包装器下的嵌套路由匹配。
 - 同一页面只保留一个菜单入口；需要换位置可直接编辑父目录，删除入口后也可重新添加。目录仅组织导航，可包含多个模块的页面，展示取决于当前用户有权访问的子菜单。父目录必须属于同一端，不能将菜单移入自身、后代目录或页面节点；并发移动通过串行化事务防止生成循环。
 - 平台在租户管理的“分配功能”中勾选模块。新建租户默认只有公共首页和个人页面；升级迁移会为已有租户保留原有模块。示例租户首次创建时开通全部示例模块，重复 seed 不会恢复已撤销的授权。

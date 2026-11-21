@@ -12,7 +12,19 @@ export class RoleListResponseDto extends SuccessDto {
 export class PermissionDto {
   @ApiProperty() code!: string;
   @ApiProperty() name!: string;
+  @ApiProperty() description!: string;
   @ApiProperty() featureCode!: string;
+  @ApiProperty() featureName!: string;
+  @ApiProperty() featureDescription!: string;
+  @ApiProperty({ enum: ['base', 'samples'] }) category!: string;
+  @ApiProperty({ type: 'integer' }) sortOrder!: number;
+  @ApiProperty() isDemo!: boolean;
+  @ApiProperty({ enum: ['page', 'action'] }) kind!: string;
+  @ApiProperty({ enum: ['read', 'create', 'update', 'delete', 'manage'] })
+  group!: string;
+  @ApiProperty({ enum: ['normal', 'destructive'] }) risk!: string;
+  @ApiProperty() defaultMemberAccess!: boolean;
+  @ApiProperty({ type: [String] }) requires!: string[];
 }
 export class PermissionListResponseDto extends SuccessDto {
   @ApiProperty({ type: [PermissionDto] }) data!: PermissionDto[];

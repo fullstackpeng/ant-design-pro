@@ -31,6 +31,7 @@ interface Props {
   menus: BackendAPI.MenuDto[];
   pages: BackendAPI.RegisteredPageDto[];
   features: BackendAPI.FeatureDto[];
+  fixedScope?: 'platform' | 'tenant';
   onSaved: () => Promise<void>;
   onClose: () => void;
 }
@@ -47,6 +48,7 @@ export default function MenuEditor({
   menus,
   pages,
   features,
+  fixedScope,
   onSaved,
   onClose,
 }: Props) {
@@ -79,7 +81,7 @@ export default function MenuEditor({
             }
           : {
               kind: 'directory',
-              scope: parent?.scope ?? 'tenant',
+              scope: fixedScope ?? parent?.scope ?? 'tenant',
               parentCode: parentCode ?? '__root__',
               icon: '',
               sortOrder: 0,
@@ -128,7 +130,8 @@ export default function MenuEditor({
           const selected = pages.find((page) => page.code === pageCode);
           const effectiveScope =
             menu?.scope ??
-            (kind === 'page' ? selected?.scope : scope) ??
+            (kind === 'page' ? selected?.scope : (fixedScope ?? scope)) ??
+            fixedScope ??
             'tenant';
           const parentOptions = menuRows(
             menus.filter(
@@ -148,7 +151,7 @@ export default function MenuEditor({
             }));
           return (
             <>
-              {kind === 'directory' && !menu && (
+              {kind === 'directory' && !menu && !fixedScope && (
                 <ProFormSelect
                   name="scope"
                   label={t('menuScope', '所属端')}

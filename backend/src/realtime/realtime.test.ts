@@ -161,6 +161,29 @@ test('authenticated realtime test channel', async (t) => {
       }
     });
 
+    await t.test(
+      'buffers frames sent before authentication completes',
+      async () => {
+        const socket = await openSocket(wsUrl, { Cookie: tenantA });
+        const frames: Frame[] = [];
+        socket.on('message', (data) => {
+          frames.push(JSON.parse(String(data)) as Frame);
+        });
+        try {
+          socket.send(JSON.stringify({ type: 'ping' }));
+          const deadline = Date.now() + 3000;
+          while (frames.length < 2 && Date.now() < deadline)
+            await new Promise((resolveWait) => setTimeout(resolveWait, 50));
+          assert.deepEqual(
+            frames.map((frame) => frame.type),
+            ['welcome', 'pong'],
+          );
+        } finally {
+          socket.close();
+        }
+      },
+    );
+
     await t.test('broadcasts only within the same tenant', async () => {
       const a = await openSocket(wsUrl, { Cookie: tenantA });
       assert.equal((await nextFrame(a)).type, 'welcome');

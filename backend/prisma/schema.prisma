@@ -59,15 +59,23 @@ model Tenant {
   dictionaries DictionaryType[]
   dictionaryAudits DictionaryAudit[]
   files        FileObject[]
+  mqttCredentials TenantMqttCredential[]
+  mqttBrokers  TenantMqttBroker[]
+  mqttMessages MqttMessage[]
 
   @@map("app_tenants")
 }
 
 model Feature {
-  code     String          @id @db.VarChar(64)
-  name     String          @db.VarChar(100)
-  tenants  TenantFeature[]
-  menus    Menu[]
+  code           String          @id @db.VarChar(64)
+  name           String          @db.VarChar(100)
+  description    String          @default("") @db.VarChar(500)
+  category       String          @default("base") @db.VarChar(32)
+  sortOrder      Int             @default(0) @map("sort_order")
+  isDemo         Boolean         @default(false) @map("is_demo")
+  defaultGranted Boolean         @default(false) @map("default_granted")
+  tenants        TenantFeature[]
+  menus          Menu[]
 
   @@map("app_features")
 }
@@ -382,6 +390,135 @@ model StorageProvider {
 
   @@index([isDefault])
   @@map("app_storage_providers")
+}
+
+model MqttPlatformBroker {
+  id               Int      @id @default(1)
+  name             String   @db.VarChar(100)
+  host             String   @db.VarChar(255)
+  port             Int
+  useTls           Boolean  @default(false) @map("use_tls")
+  defaultProtocol  String   @default("3.1.1") @map("default_protocol") @db.VarChar(10)
+  adminUsername    String   @map("admin_username") @db.VarChar(150)
+  adminPassword    String   @map("admin_password") @db.Text
+  bridgeUsername   String   @map("bridge_username") @db.VarChar(150)
+  bridgePassword   String   @map("bridge_password") @db.Text
+  responseTopic    String   @default("$CONTROL/dynamic-security/v1/response") @map("response_topic") @db.VarChar(200)
+  commandTimeoutMs Int      @default(10000) @map("command_timeout_ms")
+  isEnabled        Boolean  @default(true) @map("is_enabled")
+  revision         Int      @default(0)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("app_mqtt_platform_brokers")
+}
+
+model TenantMqttCredential {
+  id               BigInt    @id @default(autoincrement())
+  tenantId         BigInt    @map("tenant_id")
+  platformBrokerId Int       @default(1) @map("platform_broker_id")
+  username         String    @db.VarChar(150)
+  password         String    @db.Text
+  roleName         String    @map("role_name") @db.VarChar(150)
+  status           String    @default("pending") @db.VarChar(20)
+  lastError        String    @default("") @map("last_error") @db.VarChar(2000)
+  attempts         Int       @default(0)
+  nextAttemptAt    DateTime  @default(now()) @map("next_attempt_at") @db.Timestamptz(6)
+  provisionedAt    DateTime? @map("provisioned_at") @db.Timestamptz(6)
+  revision         Int       @default(0)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant           Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([tenantId, platformBrokerId])
+  @@index([status, nextAttemptAt])
+  @@map("app_tenant_mqtt_credentials")
+}
+
+model TenantMqttBroker {
+  id                   BigInt   @id @default(autoincrement())
+  tenantId             BigInt   @map("tenant_id")
+  name                 String   @db.VarChar(100)
+  host                 String   @db.VarChar(255)
+  port                 Int
+  useTls               Boolean  @default(false) @map("use_tls")
+  protocolVersion      String   @default("3.1.1") @map("protocol_version") @db.VarChar(10)
+  username             String   @default("") @db.VarChar(150)
+  password             String   @default("") @db.Text
+  clientIdPrefix       String   @default("") @map("client_id_prefix") @db.VarChar(100)
+  subscribeFilter      String   @default("#") @map("subscribe_filter") @db.VarChar(512)
+  keepaliveSeconds     Int      @default(60) @map("keepalive_seconds")
+  cleanStart           Boolean  @default(false) @map("clean_start")
+  sessionExpirySeconds Int      @default(86400) @map("session_expiry_seconds")
+  defaultQos           Int      @default(1) @map("default_qos")
+  isDefault            Boolean  @default(false) @map("is_default")
+  isActive             Boolean  @default(true) @map("is_active")
+  revision             Int      @default(0)
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([tenantId, name])
+  @@index([tenantId, isDefault])
+  @@map("app_tenant_mqtt_brokers")
+}
+
+model MqttMessage {
+  id              BigInt   @id @default(autoincrement())
+  tenantId        BigInt   @map("tenant_id")
+  brokerType      String   @map("broker_type") @db.VarChar(20)
+  brokerId        BigInt   @map("broker_id")
+  topic           String   @db.VarChar(512)
+  payload         String   @db.Text
+  payloadEncoding String   @default("utf8") @map("payload_encoding") @db.VarChar(10)
+  qos             Int      @default(0)
+  retain          Boolean  @default(false)
+  direction       String   @db.VarChar(20)
+  idempotencyKey  String   @map("idempotency_key") @db.VarChar(255)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([idempotencyKey])
+  @@index([tenantId, id])
+  @@index([brokerType, brokerId, id])
+  @@index([createdAt])
+  @@map("app_mqtt_messages")
+}
+
+model MqttOutbox {
+  id              BigInt   @id @default(autoincrement())
+  tenantId        BigInt   @map("tenant_id")
+  brokerType      String   @map("broker_type") @db.VarChar(20)
+  brokerId        BigInt   @map("broker_id")
+  topic           String   @db.VarChar(512)
+  payload         String   @db.Text
+  payloadEncoding String   @default("utf8") @map("payload_encoding") @db.VarChar(10)
+  qos             Int      @default(1)
+  retain          Boolean  @default(false)
+  status          String   @default("pending") @db.VarChar(20)
+  attempts        Int      @default(0)
+  lastError       String   @default("") @map("last_error") @db.VarChar(2000)
+  nextAttemptAt   DateTime @default(now()) @map("next_attempt_at") @db.Timestamptz(6)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status, nextAttemptAt])
+  @@map("app_mqtt_outbox")
+}
+
+model MqttSecretAudit {
+  id           BigInt   @id @default(autoincrement())
+  actorId      BigInt   @map("actor_id")
+  actorName    String   @map("actor_name") @db.VarChar(100)
+  tenantId     BigInt?  @map("tenant_id")
+  credentialId BigInt?  @map("credential_id")
+  action       String   @db.VarChar(30)
+  success      Boolean
+  ip           String   @default("") @db.VarChar(64)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([actorId, action, createdAt])
+  @@map("app_mqtt_secret_audits")
 }
 
 model FileObject {

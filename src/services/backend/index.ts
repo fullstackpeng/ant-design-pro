@@ -11,6 +11,7 @@ import * as users from "./users";
 import * as settings from "./settings";
 import * as dictionaries from "./dictionaries";
 import * as platformDictionaries from "./platformDictionaries";
+import * as mqtt from "./mqtt";
 import * as navigation from "./navigation";
 import * as storage from "./storage";
 import * as files from "./files";
@@ -25,6 +26,7 @@ export default {
   settings,
   dictionaries,
   platformDictionaries,
+  mqtt,
   navigation,
   storage,
   files,

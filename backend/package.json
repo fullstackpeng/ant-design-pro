@@ -13,7 +13,7 @@
     "test:queue": "npm run build && node --env-file-if-exists=.env --test dist/queue/queue.test.js",
     "test:tasks": "npm run build && node --env-file-if-exists=.env --test dist/scheduled-tasks/scheduled-tasks.test.js",
     "db:init": "npm run db:deploy && npm run db:seed",
-    "test": "npm run build && node --env-file-if-exists=.env --test dist/auth/auth.test.js dist/platform/platform.test.js dist/openapi.test.js dist/auth/permissions.test.js dist/dictionaries/dictionaries.test.js dist/files/files.test.js dist/realtime/realtime.test.js dist/queue/queue.test.js dist/scheduled-tasks/scheduled-tasks.test.js",
+    "test": "npm run build && node --env-file-if-exists=.env --test dist/auth/auth.test.js dist/platform/platform.test.js dist/openapi.test.js dist/auth/permissions.test.js dist/dictionaries/dictionaries.test.js dist/files/files.test.js dist/mqtt/mqtt.test.js dist/realtime/realtime.test.js dist/queue/queue.test.js dist/scheduled-tasks/scheduled-tasks.test.js",
     "test:permissions": "npm run build && node --test dist/auth/permissions.test.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -40,6 +40,7 @@
     "cookie-parser": "^1.4.7",
     "cron-parser": "5.10.6",
     "dotenv": "^18.0.10",
+    "mqtt": "^5.16.1",
     "pg": "^8.23.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
@@ -51,6 +52,7 @@
     "@types/node": "^22.0.0",
     "@types/pg": "^8.23.1",
     "@types/ws": "^8.18.2",
+    "aedes": "^1.2.0",
     "prisma": "^7.10.1",
     "typescript": "^6.0.3"
   }

@@ -25,13 +25,46 @@ export class RolesService {
   }
 
   async catalog(session: SessionContext) {
-    const features = await this.prisma.tenantFeature.findMany({
+    const tenantFeatures = await this.prisma.tenantFeature.findMany({
       where: { tenantId: tenantId(session) },
+      include: {
+        feature: {
+          select: {
+            code: true,
+            name: true,
+            description: true,
+            category: true,
+            sortOrder: true,
+            isDemo: true,
+          },
+        },
+      },
     });
+    const features = new Map(
+      tenantFeatures.map((row) => [row.feature.code, row.feature]),
+    );
     return success(
-      availablePermissions(features.map((feature) => feature.featureCode)).map(
-        ({ code, name, featureCode }) => ({ code, name, featureCode }),
-      ),
+      availablePermissions([...features.keys()])
+        .map((permission) => {
+          const feature = features.get(permission.featureCode);
+          if (!feature) return null;
+          return {
+            ...permission,
+            featureName: feature.name,
+            featureDescription: feature.description,
+            category: feature.category,
+            sortOrder: feature.sortOrder,
+            isDemo: feature.isDemo,
+          };
+        })
+        .filter((permission) => permission !== null)
+        .sort(
+          (a, b) =>
+            a.category.localeCompare(b.category) ||
+            a.sortOrder - b.sortOrder ||
+            a.featureCode.localeCompare(b.featureCode) ||
+            a.code.localeCompare(b.code),
+        ),
     );
   }
 

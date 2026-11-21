@@ -1,15 +1,4 @@
 export function isSystemMenu(menu: { code: string; scope: string }) {
-  return (
-    menu.scope === 'authenticated' ||
-    [
-      'platform',
-      'platform-tenants',
-      'platform-plans',
-      'platform-navigation',
-      'platform-users',
-      'platform-settings',
-      'platform-storage-providers',
-      'platform-files',
-    ].includes(menu.code)
-  );
+  // Platform and shared authenticated navigation are code-owned.
+  return menu.scope === 'authenticated' || menu.scope === 'platform';
 }

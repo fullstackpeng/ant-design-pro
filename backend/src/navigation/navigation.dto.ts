@@ -21,6 +21,11 @@ import { SuccessDto } from '../common/dto/response.dto.js';
 export class FeatureDto {
   @ApiProperty() code!: string;
   @ApiProperty() name!: string;
+  @ApiProperty() description!: string;
+  @ApiProperty({ enum: ['base', 'samples'] }) category!: string;
+  @ApiProperty({ type: 'integer' }) sortOrder!: number;
+  @ApiProperty() isDemo!: boolean;
+  @ApiProperty() defaultGranted!: boolean;
 }
 
 export class MenuDto {
@@ -138,7 +143,9 @@ export class CreateMenuDto extends UpdateMenuDto {
   pageCode?: string;
 }
 
-export class RegisteredPageDto extends FeatureDto {
+export class RegisteredPageDto {
+  @ApiProperty() code!: string;
+  @ApiProperty() name!: string;
   @ApiProperty() path!: string;
   @ApiProperty({ enum: ['authenticated', 'platform', 'tenant'] })
   scope!: string;

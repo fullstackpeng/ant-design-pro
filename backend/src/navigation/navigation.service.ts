@@ -68,7 +68,9 @@ export class NavigationService {
   }
 
   features() {
-    return this.prisma.feature.findMany({ orderBy: { code: 'asc' } });
+    return this.prisma.feature.findMany({
+      orderBy: [{ category: 'asc' }, { sortOrder: 'asc' }, { code: 'asc' }],
+    });
   }
   async menus() {
     const rows = await this.prisma.menu.findMany({

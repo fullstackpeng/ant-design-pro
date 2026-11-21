@@ -15,6 +15,7 @@ import { prepareAccount, resolveAccount } from '../database/accounts.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { transaction } from '../database/transaction.js';
 import { DictionariesService } from '../dictionaries/dictionaries.service.js';
+import { MqttCredentialsService } from '../mqtt/mqtt-credentials.service.js';
 import type {
   AssignPlanDto,
   CreatePlanDto,
@@ -30,6 +31,8 @@ export class PlatformService {
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(DictionariesService)
     private readonly dictionaries: DictionariesService,
+    @Inject(MqttCredentialsService)
+    private readonly mqttCredentials: MqttCredentialsService,
   ) {}
 
   async tenants(query: TenantQueryDto) {
@@ -57,25 +60,35 @@ export class PlatformService {
     const tenantCode = body.code;
     const name = body.name;
     const account = await prepareAccount(body.admin);
-    return success(
-      await transaction(this.prisma, async (tx) => {
-        if (body.industry)
-          await this.dictionaries.validateValues(
-            tx,
-            session,
-            tenantIndustryDictionary,
-            [body.industry],
-          );
-        const user = await resolveAccount(tx, account);
-        const tenant = await tx.tenant.create({
-          data: { code: tenantCode, name, industry: body.industry ?? '' },
-        });
-        await tx.tenantMembership.create({
-          data: { tenantId: tenant.id, userId: user.id, role: 'admin' },
-        });
-        return tenant;
-      }),
-    );
+    const tenant = await transaction(this.prisma, async (tx) => {
+      if (body.industry)
+        await this.dictionaries.validateValues(
+          tx,
+          session,
+          tenantIndustryDictionary,
+          [body.industry],
+        );
+      const user = await resolveAccount(tx, account);
+      const created = await tx.tenant.create({
+        data: { code: tenantCode, name, industry: body.industry ?? '' },
+      });
+      await tx.tenantMembership.create({
+        data: { tenantId: created.id, userId: user.id, role: 'admin' },
+      });
+      // Default feature bundle for new tenants; sample modules stay opt-in.
+      await tx.tenantFeature.createMany({
+        data: ['members', 'files', 'mqtt'].map((featureCode) => ({
+          tenantId: created.id,
+          featureCode,
+        })),
+        skipDuplicates: true,
+      });
+      return created;
+    });
+    // Credential creation only writes a pending row; provisioning retries in
+    // the background so an unavailable Broker cannot block tenant creation.
+    await this.mqttCredentials.ensureForTenant(tenant.id, tenant.code);
+    return success(tenant);
   }
 
   async updateTenant(

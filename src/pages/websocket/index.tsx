@@ -125,7 +125,7 @@ export default function WebSocketTest() {
           '使用当前登录会话连接 /api/ws。浏览器自动携带 Cookie；其他工具可通过 Cookie 或 Authorization: Bearer <session> 鉴权。',
       })}
     >
-      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+      <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
         <Card>
           <Space wrap>
             <Badge status={badge.status} text={badge.label} />
