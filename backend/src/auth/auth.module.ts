@@ -10,5 +10,6 @@ import { SessionGuard } from './session.guard.js';
   imports: [DatabaseModule, AuthorizationModule],
   controllers: [AuthController],
   providers: [AuthService, { provide: APP_GUARD, useClass: SessionGuard }],
+  exports: [AuthService],
 })
 export class AuthModule {}

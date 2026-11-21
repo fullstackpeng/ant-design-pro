@@ -170,6 +170,28 @@ await transaction(prisma, async (tx) => {
 
 扩展新协议：在 `backend/src/storage/protocols/` 增加驱动定义，实现 `StorageProtocolDefinition`（字段元数据、校验、`StorageDriver`），然后在 `storage-protocol.registry.ts` 注册。前端表单和权限校验无需改动。
 
+## WebSocket 测试通道
+
+平台和租户登录用户都可以连接 `/api/ws` 进行联调。前端页面为 `/websocket`，也可用 wscat、Postman 等工具直接测试。
+
+- 鉴权：浏览器自动携带 `antd_session` Cookie；其他工具可发送 `Cookie: antd_session=<token>` 或 `Authorization: Bearer <token>`。无效会话在握手后以关闭码 `4401` 断开。
+- 前端开发代理已开启 `ws: true`，页面连接 `ws://localhost:8000/api/ws`；直接连接后端使用 `ws://127.0.0.1:3000/api/ws`。生产反向代理需允许 WebSocket Upgrade。
+- 客户端消息为 JSON：`{"type":"ping"}`、`{"type":"echo","text":"hello"}`、`{"type":"broadcast","text":"hello"}`。文本最多 2000 字符，单帧上限 64KB。
+- 服务端消息：`welcome`（连接后立即返回用户与租户）、`pong`、`echo`、`broadcast`、`error`。`broadcast` 只在同一租户内可见，平台会话属于独立的平台范围。
+- 该通道用于联调演示，连接表保存在进程内存中，**仅适用于单实例**；多实例部署需要共享广播层（如 PostgreSQL `LISTEN/NOTIFY` 或 Redis）。
+
+获取 Bearer token 并连接示例：
+
+```bash
+# 登录并从响应头提取会话 token
+curl -i -H 'Content-Type: application/json' \
+  -d '{"tenantCode":"tenant-a","username":"admin","password":"ant.design"}' \
+  http://127.0.0.1:3000/api/login/account
+
+npx wscat -c ws://127.0.0.1:3000/api/ws -H 'Authorization: Bearer <token>'
+> {"type":"echo","text":"hello"}
+```
+
 ## 启动与现有功能
 
 NestJS 12 + Prisma 7 + PostgreSQL，使用 Node.js 22.12 或更高的受支持 LTS 版本。前端使用 `npm run dev` 关闭 Mock，开发代理将 `/api/` 转发到本服务的 `3000` 端口。

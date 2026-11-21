@@ -18,6 +18,7 @@ export default {
   'menu.tenant-members': 'Tenant members',
 
   'menu.welcome': 'ようこそ',
+  'menu.websocket': 'WebSocket テスト',
   'menu.more-blocks': 'その他のブロック',
   'menu.home': 'ホーム',
   'menu.admin': '管理者',

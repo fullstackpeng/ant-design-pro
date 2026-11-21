@@ -1,4 +1,5 @@
 import {
+  ApiOutlined,
   AppstoreOutlined, BarChartOutlined, BookOutlined, CheckCircleOutlined, CloseCircleOutlined, CreditCardOutlined,
   CrownOutlined, DashboardOutlined, DesktopOutlined, FormOutlined, HomeOutlined,
   IdcardOutlined, MenuOutlined, MonitorOutlined, OrderedListOutlined,
@@ -20,7 +21,7 @@ const icons: Record<string, React.ReactNode> = {
   appstore: <AppstoreOutlined />, unorderedList: <UnorderedListOutlined />,
   creditCard: <CreditCardOutlined />, idcard: <IdcardOutlined />, checkCircle: <CheckCircleOutlined />,
   closeCircle: <CloseCircleOutlined />, user: <UserOutlined />, userAdd: <UserAddOutlined />,
-  robot: <RobotOutlined />, book: <BookOutlined />,
+  robot: <RobotOutlined />, book: <BookOutlined />, api: <ApiOutlined />,
 };
 
 export interface NavigationMenu {

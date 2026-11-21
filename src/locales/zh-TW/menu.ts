@@ -18,6 +18,7 @@ export default {
   'menu.tenant-members': '租户成员',
 
   'menu.welcome': '歡迎',
+  'menu.websocket': 'WebSocket 測試',
   'menu.more-blocks': '更多區塊',
   'menu.home': '首頁',
   'menu.admin': '权限',

@@ -18,6 +18,7 @@ export default {
   'menu.tenant-members': 'Tenant members',
 
   'menu.welcome': 'خوش آمدید',
+  'menu.websocket': 'تست WebSocket',
   'menu.more-blocks': 'بلوک های بیشتر',
   'menu.home': 'خانه',
   'menu.admin': 'مدیر',

@@ -8,6 +8,7 @@ import { test } from 'node:test';
 import { promisify } from 'node:util';
 import { Controller, Get, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { WsAdapter } from '@nestjs/platform-ws';
 import cookieParser from 'cookie-parser';
 import { Pool } from 'pg';
 import { AppModule } from '../app.module.js';
@@ -44,6 +45,7 @@ test('real PostgreSQL authentication lifecycle', async (t) => {
       logger: false,
       abortOnError: false,
     });
+    app.useWebSocketAdapter(new WsAdapter(app));
     app.use(cookieParser());
     await app.listen(0, '127.0.0.1');
     baseUrl = await app.getUrl();

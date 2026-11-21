@@ -45,6 +45,7 @@ function page(
 // Authorization is code-owned; editable menus only organize navigation.
 export const registeredPages: RegisteredPage[] = [
   page('welcome', '/welcome', '首页', 'authenticated'),
+  page('websocket-test', '/websocket', 'WebSocket 测试', 'authenticated'),
   page('account-center', '/account/center', '个人中心', 'authenticated', {
     showInMenu: false,
   }),

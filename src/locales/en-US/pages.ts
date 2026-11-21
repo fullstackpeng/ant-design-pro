@@ -20,6 +20,9 @@ export default {
   'pages.login.phoneLogin.getVerificationCode': 'Get Code',
   'pages.getCaptchaSecondText': 'sec(s)',
   'pages.login.rememberMe': 'Remember me',
+  'pages.websocket.title': 'WebSocket test',
+  'pages.websocket.help':
+    'Connect to /api/ws with the current session. Browsers send the session cookie automatically; external tools can use the cookie header or Authorization: Bearer <session>.',
   'pages.login.forgotPassword': 'Forgot Password ?',
   'pages.login.submit': 'Login',
   'pages.login.loginWith': 'Login with :',

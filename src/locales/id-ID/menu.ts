@@ -18,6 +18,7 @@ export default {
   'menu.tenant-members': 'Tenant members',
 
   'menu.welcome': 'Selamat Datang',
+  'menu.websocket': 'Uji WebSocket',
   'menu.more-blocks': 'Blocks Lainnya',
   'menu.home': 'Halaman Awal',
   'menu.admin': 'Admin',

@@ -11,6 +11,7 @@ import { FilesModule } from './files/files.module.js';
 import { NavigationModule } from './navigation/navigation.module.js';
 import { PlatformModule } from './platform/platform.module.js';
 import { QueueModule } from './queue/queue.module.js';
+import { RealtimeModule } from './realtime/realtime.module.js';
 import { ScheduledTasksModule } from './scheduled-tasks/scheduled-tasks.module.js';
 import { StorageModule } from './storage/storage.module.js';
 import { TenantsModule } from './tenants/tenants.module.js';
@@ -37,6 +38,7 @@ class AppController {
     StorageModule,
     FilesModule,
     QueueModule,
+    RealtimeModule,
     ScheduledTasksModule,
   ],
   controllers: [AppController],

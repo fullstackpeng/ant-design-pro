@@ -20,6 +20,9 @@ export default {
   'pages.login.phoneLogin.getVerificationCode': '获取验证码',
   'pages.getCaptchaSecondText': '秒后重新获取',
   'pages.login.rememberMe': '自动登录',
+  'pages.websocket.title': 'WebSocket 测试',
+  'pages.websocket.help':
+    '使用当前登录会话连接 /api/ws。浏览器自动携带 Cookie；其他工具可通过 Cookie 或 Authorization: Bearer <session> 鉴权。',
   'pages.login.forgotPassword': '忘记密码 ?',
   'pages.login.submit': '登录',
   'pages.login.loginWith': '其他登录方式 :',

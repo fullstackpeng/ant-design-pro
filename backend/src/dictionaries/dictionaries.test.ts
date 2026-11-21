@@ -5,6 +5,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { test } from 'node:test';
 import { NestFactory } from '@nestjs/core';
+import { WsAdapter } from '@nestjs/platform-ws';
 import cookieParser from 'cookie-parser';
 import { Pool } from 'pg';
 import { AppModule } from '../app.module.js';
@@ -132,6 +133,7 @@ test('tenant dictionaries: isolation, permissions, immutable values and history'
       logger: false,
       abortOnError: false,
     });
+    app.useWebSocketAdapter(new WsAdapter(app));
     app.use(cookieParser());
     await app.listen(0, '127.0.0.1');
     base = await app.getUrl();

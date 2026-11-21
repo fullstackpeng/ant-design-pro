@@ -18,6 +18,7 @@ export default {
   'menu.tenant-members': 'Tenant members',
 
   'menu.welcome': 'Welcome',
+  'menu.websocket': 'Teste de WebSocket',
   'menu.more-blocks': 'More Blocks',
   'menu.home': 'Início',
   'menu.admin': 'Admin',

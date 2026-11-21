@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { test } from 'node:test';
 import { setTimeout } from 'node:timers/promises';
 import { NestFactory } from '@nestjs/core';
+import { WsAdapter } from '@nestjs/platform-ws';
 import cookieParser from 'cookie-parser';
 import { Pool } from 'pg';
 import { AppModule } from '../app.module.js';
@@ -213,6 +214,7 @@ test('platform scheduled tasks: authorization, isolation, execution and recovery
     logger: false,
     abortOnError: false,
   });
+  api.useWebSocketAdapter(new WsAdapter(api));
   api.use(cookieParser());
   await api.listen(0, '127.0.0.1');
   base = await api.getUrl();

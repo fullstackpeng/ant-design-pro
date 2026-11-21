@@ -75,6 +75,12 @@ export default [
     component: './Welcome',
   },
   {
+    path: '/websocket',
+    name: 'websocket',
+    icon: 'api',
+    component: './websocket',
+  },
+  {
     path: '/admin',
     name: 'admin',
     icon: 'crown',

@@ -18,6 +18,7 @@ export default {
   'menu.tenant-members': 'Tenant members',
 
   'menu.welcome': 'স্বাগতম',
+  'menu.websocket': 'WebSocket পরীক্ষা',
   'menu.more-blocks': 'আরও ব্লক',
   'menu.home': 'নীড়',
   'menu.admin': 'অ্যাডমিন',

@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { test } from 'node:test';
 import { NestFactory } from '@nestjs/core';
+import { WsAdapter } from '@nestjs/platform-ws';
 import type { SchemaObject } from '@nestjs/swagger';
 import { AppModule } from './app.module.js';
 import { createOpenApiDocument, setupOpenApi } from './openapi.js';
@@ -72,6 +73,7 @@ test('OpenAPI is complete, stable and can be served without a database connectio
     assert(!JSON.stringify(document).includes('tokenHash'));
     assert(!JSON.stringify(document).includes('postgresql://'));
     setupOpenApi(app);
+    app.useWebSocketAdapter(new WsAdapter(app));
     await app.listen(0, '127.0.0.1');
     const base = await app.getUrl();
     const json = await fetch(`${base}/api/openapi.json`);
