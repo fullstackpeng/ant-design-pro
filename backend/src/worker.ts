@@ -1,0 +1,34 @@
+import 'reflect-metadata';
+import { NestFactory } from '@nestjs/core';
+import { QueueProbeWorker } from './queue/queue-probe.worker.js';
+import { WorkerModule } from './queue/worker.module.js';
+import { TaskRuntimeService } from './scheduled-tasks/task-runtime.service.js';
+
+async function bootstrap() {
+  const app = await NestFactory.createApplicationContext(WorkerModule, {
+    abortOnError: false,
+  });
+  app.enableShutdownHooks();
+  try {
+    const worker = app.get(QueueProbeWorker).create();
+    await worker.waitUntilReady();
+    void worker.run().catch(async (error: Error) => {
+      console.error(error.message);
+      process.exitCode = 1;
+      await app.close();
+    });
+    await app.get(TaskRuntimeService).start((error) => {
+      console.error(error.message);
+      process.exitCode = 1;
+      void app.close();
+    });
+  } catch (error) {
+    await app.close();
+    throw error;
+  }
+}
+
+void bootstrap().catch((error: Error) => {
+  console.error(error.message);
+  process.exitCode = 1;
+});

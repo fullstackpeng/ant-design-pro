@@ -1,5 +1,115 @@
 # 本地后端
 
+## BullMQ + PostgreSQL 队列基础设施
+
+后端使用固定版本 BullMQ 6.7.8 的 PostgreSQL 后端，不连接 Redis，不需要安装 Redis 服务或客户端。要求 PostgreSQL 13+，建议 14+。`QueueModule` / `QueueService` 参考现有 `DatabaseModule` 的 Provider 组织方式；所有 Queue、Worker 和 QueueEvents 均通过 `withBackend(createPostgresBackend)` 显式绑定 PostgreSQL。
+
+队列基础设施提供连接、显式迁移、独立 Worker、连通性探针和真实数据库测试。平台动态任务模块在其上提供配置管理、内部任务执行及业务执行日志；HTTP 执行器和脚本沙箱留待后续接入。
+
+配置参考 `.env.example`：
+
+| 配置 | 默认值及含义 |
+| --- | --- |
+| `QUEUE_DATABASE_URL` | 留空时复用 `DATABASE_URL`；可指向独立队列数据库 |
+| `QUEUE_SCHEMA` | `bullmq`，独立命名空间，禁止使用 `public`、业务 schema 或 `pg_*` |
+| `QUEUE_POOL_SIZE` | 每个 Queue / Worker / QueueEvents 实例的查询池上限，默认 5，范围 1–50 |
+| `QUEUE_WORKER_CONCURRENCY` | 每个 Worker 的并发数，默认 2，范围 1–100 |
+
+Prisma URL 的 `schema` 参数会从队列连接 URL 中移除，队列命名空间只由 `QUEUE_SCHEMA` 决定。BullMQ 直接通过 `pg` 管理队列数据，不经过 Prisma；不要将其内部表引入业务 Prisma 模型。业务模型仍走现有 Prisma migrations。
+
+在后端目录执行：
+
+```bash
+# 首次部署及升级 BullMQ 时显式应用其自带迁移（会先编译）
+npm run queue:migrate
+# 独立终端运行 Worker（会先编译，不监听 HTTP 端口）
+npm run worker
+# 另一终端投递无副作用的 ping，等待 Worker 返回结果，15 秒后超时
+npm run queue:probe
+# 真实 PostgreSQL 集成测试，创建并清理随机 queue_test_* schema
+npm run test:queue
+```
+
+生产环境先 `npm ci` 和 `npm run build`，通过环境变量注入连接信息，再执行 `npm run queue:migrate:prod`，最后启动 `npm run worker:prod`。迁移账号需要相应 DDL 权限；运行账号只需运行所需权限。迁移由部署步骤统一执行，API 和 Worker 启动不自动迁移；Worker 发现 schema 未初始化会启动失败。BullMQ 不支持 schema 降级，升级前应备份并检查其兼容性说明。
+
+API 的 `AppModule` 导入队列模块，但仅构建 Provider 不会连接数据库或启动 Worker，因此 OpenAPI 导出保持离线。独立 `WorkerModule` 同时处理 `queue-probe` 探针、平台任务调度及执行队列。业务模块按需导入 `QueueModule`，在 Provider 初始化阶段创建并复用队列/Worker，禁止每个请求都新建实例。例如：
+
+```ts
+const queue = queues.createQueue<{ executionId: string }>('platform-tasks');
+await queue.add('execute', { executionId });
+// 独立 Worker 侧注册预定义处理器；先验证就绪再启动消费。
+const worker = queues.createWorker<{ executionId: string }>(
+  'platform-tasks', async (job) => execute(job.data.executionId),
+);
+await worker.waitUntilReady();
+void worker.run().catch(handleFatalWorkerError);
+```
+
+`createWorker()` 使用 `autorun: false`，调用方负责就绪检查、启动及致命错误处理；进程启用 Nest shutdown hooks 后，`QueueService` 在关闭时先等待正在执行的任务，再释放队列和事件连接。业务处理器必须实现超时/取消，部署终止宽限期要覆盖任务退出时间。默认任务最多执行 3 次（包含首次），指数退避从 1 秒开始；成功记录保留至多 1 天/1000 条，失败记录至多 7 天/5000 条，按 BullMQ 完成/失败时的清理机制执行。这些是短期队列记录，不能代替后续业务执行日志和审计。
+
+查询池以每个 backend 实例计数，Worker 和 QueueEvents 还会使用专用 `LISTEN` 连接；容量规划需同时统计 Prisma、多进程、副本和队列实例。连接应支持会话级 `LISTEN/NOTIFY`，不要将其交给事务级连接池代理。每个 Worker 的并发配置不等于集群总并发；可按队列使用原生 `setGlobalConcurrency()`，任务/租户级限制留给业务层实现。
+
+本地验证 BullMQ 6.7.8 时观察到：多个 Worker 并发处理的任务全部完成，但部分 `QueueEvents` 完成通知未被等待方收到。`QueueService.waitForResult(queue, jobId, timeoutMs)` 因此按 100ms 间隔查询持久化终态，探针使用此方法，完成确认不依赖事件。它适用于少量诊断/短时等待；任务已删除会报错，等待超时不取消任务，也不能据此判定执行失败。事件可用于界面刷新提示，不能作为业务日志的唯一写入来源；后台批量作业不应给每个任务建立长时间轮询。
+
+同库不代表 Prisma 事务与 BullMQ 入队自动组成原子事务。平台任务通过持久化待执行记录和 Worker 对账实现可靠投递；其他业务仍需自行选择同步补偿或 outbox。任务按可能重复执行设计，涉及租户数据时显式携带并校验租户上下文。队列锁不能替代业务幂等。
+
+测试覆盖并发迁移、缺少迁移的启动失败、延迟任务在连接重建后的恢复、自动重试、双 Worker 竞争及队列总并发、Cron 更新/恢复/移除、Nest 关闭等待，以及独立探针命令。CI 使用独立 PostgreSQL 16 服务运行相同测试，无 Redis 服务。测试并不等同于生产负载压测或进程崩溃故障演练。
+
+## 平台动态定时任务
+
+入口为 `/platform/scheduled-tasks`，菜单及全部 `/api/platform/scheduled-tasks` 接口仅平台身份可用。租户管理员或成员不能查看任务及执行日志。前端沿用 `management/plans` 的 `ProTable + ModalForm` 和页面本地请求封装，客户端由 `npm run openapi` 生成。
+
+首次使用，在后端目录依次执行：
+
+```bash
+npm run db:deploy       # 应用任务模型和平台菜单迁移
+npm run queue:migrate  # 应用独立 bullmq schema 迁移
+npm start              # API，单独终端
+npm run worker         # 独立任务进程，另一终端
+```
+
+已有部署应用新迁移后重启 API/Worker 即可，无需 seed。Worker 启动时检查业务任务表与队列 schema；缺少迁移会失败退出。API 不启动队列消费者；Worker 每 5 秒对账一次，页面区分等待同步、已同步和同步错误。
+
+任务配置包括名称、内部处理器、5/6 字段 Cron、IANA 时区、作用范围、参数、启用状态、100–300000ms 超时、1–5 次执行上限和 1–10 的任务并发上限。新增默认停用。编辑、启停和删除使用 `revision` 乐观锁，冲突返回 409；创建、编辑、启停、删除、手动触发和重跑记录管理人及前后数据审计。
+
+预注册内部处理器：
+
+| 处理器 | 作用范围 | 参数及结果 |
+| --- | --- | --- |
+| `system.ping` | 全局或租户 | 可选 `message`（最多200字）、`delayMs`（0–5000）；可用于检查取消与超时，返回消息和租户身份 |
+| `tenant.dictionary-summary` | 指定/全部租户 | 参数 `{}`，要求租户已开通字典功能；所有 Prisma 查询显式限定目标租户，仅返回字典类型和选项数量 |
+
+`Executor` 接口及执行上下文位于 `scheduled-tasks/task.types.ts`，内部执行器只调用代码中预注册的处理器，拒绝任意类名、方法名或脚本。新增处理器必须同时声明允许范围、校验参数和遵守取消信号；不能构造虚假登录会话或通过请求头切换租户。
+
+执行规则：
+
+- 全局任务只执行一次，`tenantId = null`；指定租户在保存时验证目标存在（最多100个），停用/删除的目标在执行时跳过；全部租户在一次触发的数据库事务中固定当时启用的租户集合，后续新增租户参加下一次触发。目标独立记录、执行和重试。
+- 创建触发记录、配置快照及全部目标执行记录在同一业务事务内提交。它们也是待投递清单；Worker 按稳定的执行 ID 投递，即使提交后队列短暂不可用或进程退出，也能对账恢复。多个 Worker 使用同一队列 schema，调度采用任务 ID + 配置版本的 Scheduler ID；旧版本触发会在数据库层拦截。
+- 修改配置只影响后续触发；已经创建的执行保留原配置快照。禁用/删除会立即跳过未开始的记录，正在执行的尝试允许完成；若运行中尝试随后失败，其重试也会在入口被跳过。删除为逻辑删除，保留执行及审计。
+- 手动触发要求任务启用并携带当前版本。失败/超时记录可按当前配置重跑原目标，生成新记录并保留 `retryOf` 和原业务幂等键；目标必须仍在当前作用范围内。自动重试沿用原记录、原快照、原幂等键。成功记录不能从重跑接口再次执行。
+- 任务总并发由数据库事务控制，同一任务同一目标（含全局）始终串行。达到限制时将队列作业延迟，不消耗业务尝试次数；不同租户可在总并发范围内并行。
+- 每次尝试保存开始/结束时间、状态、耗时和错误；主记录耗时包含首次开始后的重试等待。业务执行日志不依赖 `QueueEvents`，也不随 BullMQ 短期历史清理而删除。界面可按名称、类型、状态查询并查看快照、结果和尝试详情。
+- 业务成功/失败以 `TaskRun` 为准。最终失败已经落库后，消费者会正常结束投递处理，因此 BullMQ 的作业完成数不等于业务成功数。
+- 执行租约每 5 秒续期，有效期 30 秒；过期记录标记中断并在次数上限内恢复。租约令牌校验阻止旧实例覆盖新结果。恢复后的业务仍可能重入，执行器必须使用上下文幂等键实现业务幂等；当前两个处理器均无写入副作用，不能将这一机制视为跨系统“恰好一次”。
+- 内部任务采用协作式超时：到期发送取消信号，等待处理器退出后记录超时并释放并发。不会用 `Promise.race` 丢弃仍在运行的工作；不可取消的阻塞代码应迁入后续隔离 Runner。数据库连接在 Nest 最后关闭阶段释放，让正在结束的 Worker 有机会提交日志。
+
+调度器按 BullMQ 的积压/恢复语义运行，不逐个补跑停机期间错过的全部 Cron 时点。全部租户和任务配置的对账不持有跨执行的数据库长事务；当前实现仍需按真实租户量做容量验证。
+
+主要接口：
+
+```text
+GET/POST     /api/platform/scheduled-tasks
+PATCH/DELETE /api/platform/scheduled-tasks/:id
+PATCH        /api/platform/scheduled-tasks/:id/enabled
+POST         /api/platform/scheduled-tasks/:id/trigger
+GET          /api/platform/scheduled-tasks/handlers
+GET          /api/platform/scheduled-tasks/runs
+GET          /api/platform/scheduled-tasks/runs/:id
+POST         /api/platform/scheduled-tasks/runs/:id/rerun
+```
+
+`npm run test:tasks` 使用随机隔离的业务与队列 schema，覆盖接口权限、租户隔离、DTO/Cron/时区、配置版本、快照、超时与普通失败重试、重跑来源和幂等键、重复投递、并发、禁用/删除、租约恢复、Worker 重启及动态 Cron 更新。完整 `npm test` 包含该组测试，CI 的 PostgreSQL 作业同时执行基础队列与任务验收。
+
 ## 租户字典
 
 租户管理页 `/tenant/dictionaries` 支持字典类型和字典项的新增、编辑、排序及启停。平台通过 `dictionaries` 功能模块控制开通；迁移仅自动为现有示例租户 `tenant-a`、`tenant-b` 开通，其他租户需在“分配功能”中启用。新建示例租户的 seed 会沿用现有全模块开通规则，重复 seed 不会恢复撤销的授权。

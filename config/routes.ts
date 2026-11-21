@@ -122,6 +122,12 @@ export default [
         component: './management/plans',
       },
       {
+        path: '/platform/scheduled-tasks',
+        name: 'scheduled-tasks',
+        access: 'canPlatform',
+        component: './management/scheduled-tasks',
+      },
+      {
         path: '/platform/dictionaries',
         name: 'dictionaries',
         icon: 'book',

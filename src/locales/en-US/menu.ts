@@ -9,6 +9,7 @@ export default {
   'menu.platform': 'Platform',
   'menu.platform.tenants': 'Tenants',
   'menu.platform.plans': 'Plans',
+  'menu.platform.scheduled-tasks': 'Scheduled tasks',
   'menu.platform.navigation': 'Menu management',
   'menu.tenant-members': 'Tenant members',
 

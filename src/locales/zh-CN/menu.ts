@@ -9,6 +9,7 @@ export default {
   'menu.platform': '平台管理',
   'menu.platform.tenants': '租户管理',
   'menu.platform.plans': '套餐管理',
+  'menu.platform.scheduled-tasks': '定时任务',
   'menu.platform.navigation': '菜单管理',
   'menu.tenant-members': '租户成员',
 

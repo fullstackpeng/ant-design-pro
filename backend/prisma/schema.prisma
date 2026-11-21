@@ -254,3 +254,108 @@ model Subscription {
   @@index([planId])
   @@map("app_subscriptions")
 }
+
+model ScheduledTask {
+  id              BigInt   @id @default(autoincrement())
+  name            String   @db.VarChar(100)
+  type            String   @default("internal") @db.VarChar(20)
+  handler         String   @db.VarChar(100)
+  cron            String   @db.VarChar(100)
+  timezone        String   @db.VarChar(64)
+  scope           String   @db.VarChar(20)
+  tenantIds       String[] @map("tenant_ids")
+  params          Json
+  enabled         Boolean  @default(false)
+  timeoutMs       Int      @map("timeout_ms")
+  maxAttempts     Int      @map("max_attempts")
+  concurrency     Int      @default(1)
+  revision        Int      @default(1)
+  syncedRevision  Int      @default(0) @map("synced_revision")
+  syncError       String   @default("") @map("sync_error") @db.VarChar(2000)
+  syncToken       String?  @map("sync_token")
+  syncUntil       DateTime? @map("sync_until") @db.Timestamptz(6)
+  executionFence  Int      @default(0) @map("execution_fence")
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  dispatches      TaskDispatch[]
+  runs            TaskRun[]
+  audits          TaskAudit[]
+
+  @@map("app_scheduled_tasks")
+}
+
+model TaskDispatch {
+  id         String   @id
+  taskId     BigInt   @map("task_id")
+  source     String   @db.VarChar(20)
+  snapshot   Json
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  task       ScheduledTask @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  runs       TaskRun[]
+
+  @@index([taskId, createdAt])
+  @@map("app_task_dispatches")
+}
+
+model TaskRun {
+  id             String   @id
+  taskId         BigInt   @map("task_id")
+  dispatchId     String   @map("dispatch_id")
+  targetKey      String   @map("target_key")
+  tenantId       BigInt?  @map("tenant_id")
+  taskName       String   @map("task_name") @db.VarChar(100)
+  type           String   @db.VarChar(20)
+  source         String   @db.VarChar(20)
+  snapshot       Json
+  idempotencyKey String   @map("idempotency_key")
+  retryOf        String?  @map("retry_of")
+  status         String   @default("queued") @db.VarChar(20)
+  attemptsMade   Int      @default(0) @map("attempts_made")
+  leaseToken     String?  @map("lease_token")
+  leaseUntil     DateTime? @map("lease_until") @db.Timestamptz(6)
+  startedAt      DateTime? @map("started_at") @db.Timestamptz(6)
+  finishedAt     DateTime? @map("finished_at") @db.Timestamptz(6)
+  durationMs     Int?     @map("duration_ms")
+  error          String   @default("") @db.VarChar(2000)
+  result         Json?
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  task           ScheduledTask @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  dispatch       TaskDispatch @relation(fields: [dispatchId], references: [id], onDelete: Restrict)
+  attempts       TaskAttempt[]
+
+  @@unique([dispatchId, targetKey])
+  @@index([status, createdAt])
+  @@index([taskId, status, leaseUntil])
+  @@map("app_task_runs")
+}
+
+model TaskAttempt {
+  id          String   @id
+  runId       String   @map("run_id")
+  number      Int
+  status      String   @db.VarChar(20)
+  startedAt   DateTime @map("started_at") @db.Timestamptz(6)
+  finishedAt  DateTime? @map("finished_at") @db.Timestamptz(6)
+  durationMs  Int?     @map("duration_ms")
+  error       String   @default("") @db.VarChar(2000)
+  run         TaskRun @relation(fields: [runId], references: [id], onDelete: Restrict)
+
+  @@unique([runId, number])
+  @@map("app_task_attempts")
+}
+
+model TaskAudit {
+  id        BigInt   @id @default(autoincrement())
+  taskId    BigInt   @map("task_id")
+  actorId   BigInt   @map("actor_id")
+  actorName String   @map("actor_name") @db.VarChar(100)
+  action    String   @db.VarChar(20)
+  before    Json
+  after     Json
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  task      ScheduledTask @relation(fields: [taskId], references: [id], onDelete: Restrict)
+
+  @@index([taskId, id])
+  @@map("app_task_audits")
+}

@@ -18,11 +18,23 @@ export default defineConfig({
     },
   ],
   resolve: {
+    dedupe: ['react', 'react-dom', 'antd'],
     alias: {
       '@': join(__dirname, 'src'),
       '@root': join(__dirname),
       '@@': join(__dirname, 'src', '.umi'),
     },
+  },
+  optimizeDeps: {
+    // Keep the shared App context and ProComponents on one React instance.
+    include: [
+      'react',
+      'react-dom',
+      'react/jsx-runtime',
+      'antd',
+      'antd/locale/zh_CN',
+      '@ant-design/pro-components',
+    ],
   },
   test: {
     browser: {

@@ -54,6 +54,12 @@ export const registeredPages: RegisteredPage[] = [
   page('platform-tenants', '/platform/tenants', '租户管理', 'platform'),
   page('platform-plans', '/platform/plans', '套餐管理', 'platform'),
   page(
+    'platform-scheduled-tasks',
+    '/platform/scheduled-tasks',
+    '定时任务',
+    'platform',
+  ),
+  page(
     'platform-dictionaries',
     '/platform/dictionaries',
     '平台字典',

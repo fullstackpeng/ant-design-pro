@@ -98,6 +98,21 @@ declare namespace BackendAPI {
     permissions: string[];
   };
 
+  type CreateTaskDto = {
+    name: string;
+    type: "internal";
+    handler: string;
+    cron: string;
+    timezone: string;
+    scope: "global" | "selected" | "all";
+    tenantIds: string[];
+    params: Record<string, any>;
+    enabled: boolean;
+    timeoutMs: number;
+    maxAttempts: number;
+    concurrency: number;
+  };
+
   type CreateTenantDto = {
     name: string;
     /** 平台 industry 字典值，空字符串表示未填写；省略则保留现值 */
@@ -146,6 +161,11 @@ declare namespace BackendAPI {
   };
 
   type deleteRoleParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type deleteScheduledTaskParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
   };
@@ -219,6 +239,11 @@ declare namespace BackendAPI {
     keyword?: string;
   };
 
+  type DispatchResponseDto = {
+    success: true;
+    data: string;
+  };
+
   type EmptyResponseDto = {
     success: true;
     data: null;
@@ -248,6 +273,15 @@ declare namespace BackendAPI {
 
   type getPlatformDictionaryParams = {
     code: string;
+  };
+
+  type getTaskRunParams = {
+    id: string;
+  };
+
+  type HandlerListResponseDto = {
+    success: true;
+    data: TaskHandlerDto[];
   };
 
   type HelloDto = {
@@ -298,9 +332,32 @@ declare namespace BackendAPI {
     pageSize?: number;
   };
 
+  type listScheduledTasksParams = {
+    current?: number;
+    pageSize?: number;
+    name?: string;
+    type?: "internal";
+  };
+
   type listSiteSettingsHistoryParams = {
     current?: number;
     pageSize?: number;
+  };
+
+  type listTaskRunsParams = {
+    current?: number;
+    pageSize?: number;
+    name?: string;
+    type?: "internal";
+    status?:
+      | "queued"
+      | "running"
+      | "retrying"
+      | "succeeded"
+      | "failed"
+      | "timed_out"
+      | "skipped";
+    taskId?: string;
   };
 
   type listTenantsParams = {
@@ -508,6 +565,10 @@ declare namespace BackendAPI {
     id: string;
   };
 
+  type rerunTaskParams = {
+    id: string;
+  };
+
   type ResetPasswordDto = {
     password: string;
   };
@@ -515,6 +576,10 @@ declare namespace BackendAPI {
   type resetUserPasswordParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
+  };
+
+  type RevisionDto = {
+    revision: number;
   };
 
   type RoleDto = {
@@ -526,6 +591,63 @@ declare namespace BackendAPI {
   type RoleListResponseDto = {
     success: true;
     data: RoleDto[];
+  };
+
+  type RunIdDto = {
+    id: string;
+  };
+
+  type RunListResponseDto = {
+    success: true;
+    data: TaskRunDto[];
+    total: number;
+  };
+
+  type RunQueryDto = {
+    current?: number;
+    pageSize?: number;
+    name?: string;
+    type?: "internal";
+    status?:
+      | "queued"
+      | "running"
+      | "retrying"
+      | "succeeded"
+      | "failed"
+      | "timed_out"
+      | "skipped";
+    taskId?: string;
+  };
+
+  type RunResponseDto = {
+    success: true;
+    data: TaskRunDto;
+  };
+
+  type ScheduledTaskDto = {
+    id: string;
+    name: string;
+    type: "internal";
+    handler: string;
+    cron: string;
+    timezone: string;
+    scope: "global" | "selected" | "all";
+    tenantIds: string[];
+    params: Record<string, any>;
+    enabled: boolean;
+    timeoutMs: number;
+    maxAttempts: number;
+    concurrency: number;
+    revision: number;
+    syncedRevision: number;
+    syncError: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+
+  type setScheduledTaskEnabledParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
   };
 
   type SiteSettingsAuditDto = {
@@ -598,6 +720,74 @@ declare namespace BackendAPI {
     plan: PlanDto;
   };
 
+  type TaskAttemptDto = {
+    id: string;
+    number: number;
+    status: string;
+    startedAt: string;
+    finishedAt: string | null;
+    durationMs: number | null;
+    error: string;
+  };
+
+  type TaskEnabledDto = {
+    revision: number;
+    enabled: boolean;
+  };
+
+  type TaskHandlerDto = {
+    code: string;
+    name: string;
+    scopes: string[];
+    feature: string | null;
+  };
+
+  type TaskListResponseDto = {
+    success: true;
+    data: ScheduledTaskDto[];
+    total: number;
+  };
+
+  type TaskQueryDto = {
+    current?: number;
+    pageSize?: number;
+    name?: string;
+    type?: "internal";
+  };
+
+  type TaskResponseDto = {
+    success: true;
+    data: ScheduledTaskDto;
+  };
+
+  type TaskRunDto = {
+    id: string;
+    taskId: string;
+    taskName: string;
+    type: string;
+    source: string;
+    tenantId: string | null;
+    retryOf: string | null;
+    status:
+      | "queued"
+      | "running"
+      | "retrying"
+      | "succeeded"
+      | "failed"
+      | "timed_out"
+      | "skipped";
+    attemptsMade: number;
+    createdAt: string;
+    startedAt: string | null;
+    finishedAt: string | null;
+    durationMs: number | null;
+    error: string;
+    result: Record<string, any> | null;
+    snapshot: Record<string, any>;
+    idempotencyKey: string;
+    attempts: TaskAttemptDto[];
+  };
+
   type TenantDto = {
     id: string;
     code: string;
@@ -650,6 +840,11 @@ declare namespace BackendAPI {
   type TenantResponseDto = {
     success: true;
     data: TenantDto;
+  };
+
+  type triggerScheduledTaskParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
   };
 
   type UpdateDictionaryDto = {
@@ -750,6 +945,11 @@ declare namespace BackendAPI {
     id: string;
   };
 
+  type updateScheduledTaskParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
   type UpdateSiteSettingsDto = {
     title: string;
     logo: string;
@@ -766,6 +966,22 @@ declare namespace BackendAPI {
       | "ja-JP"
       | "bn-BD";
     /** 读取时的版本，避免覆盖其他管理员的修改 */
+    revision: number;
+  };
+
+  type UpdateTaskDto = {
+    name: string;
+    type: "internal";
+    handler: string;
+    cron: string;
+    timezone: string;
+    scope: "global" | "selected" | "all";
+    tenantIds: string[];
+    params: Record<string, any>;
+    enabled: boolean;
+    timeoutMs: number;
+    maxAttempts: number;
+    concurrency: number;
     revision: number;
   };
 

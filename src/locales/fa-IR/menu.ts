@@ -11,6 +11,7 @@ export default {
   'menu.platform': 'Platform',
   'menu.platform.tenants': 'Tenants',
   'menu.platform.plans': 'Plans',
+  'menu.platform.scheduled-tasks': 'Scheduled tasks',
   'menu.tenant-members': 'Tenant members',
 
   'menu.welcome': 'خوش آمدید',

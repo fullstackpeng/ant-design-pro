@@ -9,6 +9,8 @@ import { createValidationPipe } from './common/validation.pipe.js';
 import { DictionariesModule } from './dictionaries/dictionaries.module.js';
 import { NavigationModule } from './navigation/navigation.module.js';
 import { PlatformModule } from './platform/platform.module.js';
+import { QueueModule } from './queue/queue.module.js';
+import { ScheduledTasksModule } from './scheduled-tasks/scheduled-tasks.module.js';
 import { TenantsModule } from './tenants/tenants.module.js';
 
 @Controller('api')
@@ -30,6 +32,8 @@ class AppController {
     PlatformModule,
     NavigationModule,
     DictionariesModule,
+    QueueModule,
+    ScheduledTasksModule,
   ],
   controllers: [AppController],
   providers: [
