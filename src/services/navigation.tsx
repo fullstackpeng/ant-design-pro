@@ -1,17 +1,20 @@
 import {
   ApiOutlined,
-  AppstoreOutlined, BarChartOutlined, BookOutlined, CheckCircleOutlined, CloseCircleOutlined, CreditCardOutlined,
-  CrownOutlined, DashboardOutlined, DesktopOutlined, FormOutlined, HomeOutlined,
-  IdcardOutlined, MenuOutlined, MonitorOutlined, OrderedListOutlined,
-  ProfileOutlined, ProjectOutlined, ReadOutlined, RobotOutlined, SettingOutlined, TableOutlined,
-  TeamOutlined, UnorderedListOutlined, UserAddOutlined, UserOutlined,
+  AppstoreOutlined, BarChartOutlined, BookOutlined, CheckCircleOutlined, ClockCircleOutlined,
+  CloseCircleOutlined, CloudOutlined, CreditCardOutlined, CrownOutlined,
+  DashboardOutlined, DesktopOutlined, FolderOutlined, FormOutlined, HomeOutlined,
+  IdcardOutlined, InboxOutlined, MailOutlined, MenuOutlined, MonitorOutlined,
+  NotificationOutlined, OrderedListOutlined, ProfileOutlined, ProjectOutlined, ReadOutlined,
+  RobotOutlined, SettingOutlined, TableOutlined, TeamOutlined, UnorderedListOutlined,
+  UserAddOutlined, UserOutlined,
 } from '@ant-design/icons';
 import React from 'react';
 import * as navigation from './backend/navigation';
 
 export const currentNavigation = () => navigation.currentNavigation({ skipErrorHandler: true });
 
-// Resolve persisted icon codes through a local whitelist.
+// Resolve persisted icon codes through a local whitelist. Keep in sync with
+// app_menus.icon; unknown codes render no icon (see CLAUDE.md menu icons rule).
 const icons: Record<string, React.ReactNode> = {
   home: <HomeOutlined />, dashboard: <DashboardOutlined />, team: <TeamOutlined />,
   setting: <SettingOutlined />, menu: <MenuOutlined />, crown: <CrownOutlined />,
@@ -22,6 +25,9 @@ const icons: Record<string, React.ReactNode> = {
   creditCard: <CreditCardOutlined />, idcard: <IdcardOutlined />, checkCircle: <CheckCircleOutlined />,
   closeCircle: <CloseCircleOutlined />, user: <UserOutlined />, userAdd: <UserAddOutlined />,
   robot: <RobotOutlined />, book: <BookOutlined />, api: <ApiOutlined />,
+  mail: <MailOutlined />, inbox: <InboxOutlined />,
+  notification: <NotificationOutlined />, clockCircle: <ClockCircleOutlined />,
+  cloud: <CloudOutlined />, folder: <FolderOutlined />,
 };
 
 export interface NavigationMenu {

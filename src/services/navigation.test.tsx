@@ -62,4 +62,15 @@ describe('remote menu rendering', () => {
     const result = menuTree([{ ...menu('home', null, 0), name: 'Custom home', icon: '<script>' }]);
     expect(result[0]).toMatchObject({ name: 'Custom home', path: '/home', icon: undefined });
   });
+
+  it('resolves message-center icons stored in the database', () => {
+    const result = menuTree([
+      { ...menu('message-center', null, 50, 'directory'), icon: 'mail' },
+      { ...menu('inbox', 'message-center', 10), icon: 'inbox' },
+      { ...menu('notifications', 'message-center', 20), icon: 'notification' },
+    ]);
+    expect(result[0].icon).toBeDefined();
+    expect(result[0].children?.[0].icon).toBeDefined();
+    expect(result[0].children?.[1].icon).toBeDefined();
+  });
 });
