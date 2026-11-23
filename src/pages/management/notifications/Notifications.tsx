@@ -199,7 +199,8 @@ export default function Notifications({ scope }: { scope: NotificationScope }) {
       dataIndex: 'publishAt',
       width: 180,
       search: false,
-      render: (_, row) => row.publishAt ?? '-',
+      render: (_, row) =>
+        row.publishAt ? dayjs(row.publishAt).format('YYYY-MM-DD HH:mm') : '-',
     },
     {
       title: t('creator', '创建人'),
@@ -212,6 +213,8 @@ export default function Notifications({ scope }: { scope: NotificationScope }) {
       dataIndex: 'createdAt',
       width: 180,
       search: false,
+      render: (_, row) =>
+        row.createdAt ? dayjs(row.createdAt).format('YYYY-MM-DD HH:mm') : '-',
     },
     {
       title: t('actions', '操作'),

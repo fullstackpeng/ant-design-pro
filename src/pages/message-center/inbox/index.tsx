@@ -8,6 +8,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { useIntl } from '@umijs/max';
 import { App, Button, Modal, Segmented, Space, Tag } from 'antd';
+import dayjs from 'dayjs';
 import React, { useMemo, useRef, useState } from 'react';
 import { sanitizeNotificationHtml } from '@/utils/sanitizeNotificationHtml';
 import {
@@ -107,13 +108,16 @@ export default function Inbox() {
       dataIndex: 'publishAt',
       width: 180,
       search: false,
-      render: (_, row) => row.publishAt ?? '-',
+      render: (_, row) =>
+        row.publishAt ? dayjs(row.publishAt).format('YYYY-MM-DD HH:mm') : '-',
     },
     {
       title: t('createdAt', '接收时间'),
       dataIndex: 'createdAt',
       width: 180,
       search: false,
+      render: (_, row) =>
+        row.createdAt ? dayjs(row.createdAt).format('YYYY-MM-DD HH:mm') : '-',
     },
     {
       title: t('actions', '操作'),
