@@ -1,6 +1,7 @@
 import { Controller, Get, Module } from '@nestjs/common';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { AccountModule } from './account/account.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { HelloResponseDto } from './auth/dto/auth-response.dto.js';
 import { Public } from './auth/public.decorator.js';
@@ -33,6 +34,7 @@ class AppController {
 @Module({
   imports: [
     AuthModule,
+    AccountModule,
     TenantsModule,
     PlatformModule,
     NavigationModule,

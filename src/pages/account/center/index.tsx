@@ -1,277 +1,142 @@
-import {
-  ClusterOutlined,
-  ContactsOutlined,
-  HomeOutlined,
-  PlusOutlined,
-} from '@ant-design/icons';
-import { GridContent } from '@ant-design/pro-components';
-import { useQuery } from '@tanstack/react-query';
-import {
-  Avatar,
-  Card,
-  Col,
-  Divider,
-  Flex,
-  Input,
-  type InputRef,
-  Row,
-  Tag,
-} from 'antd';
-import React, { useRef, useState } from 'react';
-import useStyles from './Center.style';
-import Applications from './components/Applications';
-import Articles from './components/Articles';
-import Projects from './components/Projects';
-import type { CurrentUser, TagType, tabKeyType } from './data.d';
-import { queryCurrent } from './service';
+import { PageContainer } from '@ant-design/pro-components';
+import { history, useModel } from '@umijs/max';
+import { Alert, Avatar, Button, Card, Descriptions, Space, Tag } from 'antd';
+import React from 'react';
+import { useAccountProfile } from '../useAccountProfile';
 
-const operationTabList = [
-  {
-    key: 'articles',
-    tab: (
-      <span>
-        文章{' '}
-        <span
-          style={{
-            fontSize: 14,
-          }}
-        >
-          (8)
-        </span>
-      </span>
-    ),
-  },
-  {
-    key: 'applications',
-    tab: (
-      <span>
-        应用{' '}
-        <span
-          style={{
-            fontSize: 14,
-          }}
-        >
-          (8)
-        </span>
-      </span>
-    ),
-  },
-  {
-    key: 'projects',
-    tab: (
-      <span>
-        项目{' '}
-        <span
-          style={{
-            fontSize: 14,
-          }}
-        >
-          (8)
-        </span>
-      </span>
-    ),
-  },
-];
-const TagList: React.FC<{
-  tags: CurrentUser['tags'];
-}> = ({ tags }) => {
-  const { styles } = useStyles();
-  const ref = useRef<InputRef | null>(null);
-  const [newTags, setNewTags] = useState<TagType[]>([]);
-  const [inputVisible, setInputVisible] = useState<boolean>(false);
-  const [inputValue, setInputValue] = useState<string>('');
-  const showInput = () => {
-    setInputVisible(true);
-    if (ref.current) {
-      ref.current?.focus();
-    }
-  };
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
-  };
-  const handleInputConfirm = () => {
-    let tempsTags = [...newTags];
-    if (
-      inputValue &&
-      tempsTags.filter((tag) => tag.label === inputValue).length === 0
-    ) {
-      tempsTags = [
-        ...tempsTags,
-        {
-          key: `new-${tempsTags.length}`,
-          label: inputValue,
-        },
-      ];
-    }
-    setNewTags(tempsTags);
-    setInputVisible(false);
-    setInputValue('');
-  };
+export default function Center() {
+  const { data: profile, isPending, isError, refetch, t } = useAccountProfile();
+  const { initialState } = useModel('@@initialState');
+  const allowedPaths = initialState?.navigation?.allowedPaths ?? [];
+  const tenant = profile?.tenant;
+  const disabled = t('disabled', '停用');
   return (
-    <div className={styles.tags}>
-      <div className={styles.tagsTitle}>标签</div>
-      <Flex wrap gap="small">
-        {(tags || []).concat(newTags).map((item) => (
-          <Tag key={item.key}>{item.label}</Tag>
-        ))}
-        {inputVisible && (
-          <Input
-            ref={ref}
-            size="small"
-            style={{
-              width: 78,
-            }}
-            value={inputValue}
-            onChange={handleInputChange}
-            onBlur={handleInputConfirm}
-            onPressEnter={handleInputConfirm}
-          />
-        )}
-        {!inputVisible && (
-          <Tag
-            onClick={showInput}
-            style={{
-              borderStyle: 'dashed',
-            }}
-          >
-            <PlusOutlined />
-          </Tag>
-        )}
-      </Flex>
-    </div>
-  );
-};
-const UserInfo: React.FC<{ user: Partial<CurrentUser> }> = ({ user }) => {
-  const { styles } = useStyles();
-  return (
-    <div className={styles.detail}>
-      <p>
-        <ContactsOutlined
-          style={{
-            marginRight: 8,
-          }}
+    <PageContainer title={t('center', '个人中心')}>
+      {isError ? (
+        <Alert
+          type="error"
+          showIcon
+          title={t('loadFailed', '个人资料加载失败')}
+          action={
+            <Button onClick={() => void refetch()}>{t('retry', '重试')}</Button>
+          }
         />
-        {user.title}
-      </p>
-      <p>
-        <ClusterOutlined
-          style={{
-            marginRight: 8,
-          }}
-        />
-        {user.group}
-      </p>
-      <p>
-        <HomeOutlined
-          style={{
-            marginRight: 8,
-          }}
-        />
-        {
-          (
-            user.geographic || {
-              province: {
-                label: '',
-              },
-            }
-          ).province.label
-        }
-        {
-          (
-            user.geographic || {
-              city: {
-                label: '',
-              },
-            }
-          ).city.label
-        }
-      </p>
-    </div>
-  );
-};
-
-const TabContent: React.FC<{ tabValue: tabKeyType }> = ({ tabValue }) => {
-  if (tabValue === 'projects') {
-    return <Projects />;
-  }
-  if (tabValue === 'applications') {
-    return <Applications />;
-  }
-  if (tabValue === 'articles') {
-    return <Articles />;
-  }
-  return null;
-};
-
-const Center: React.FC = () => {
-  const { styles } = useStyles();
-  const [tabKey, setTabKey] = useState<tabKeyType>('articles');
-
-  //  获取用户信息
-  const { data: currentUser, isLoading: loading } = useQuery({
-    queryKey: ['current-user'],
-    queryFn: () => queryCurrent().then((res) => res.data),
-  });
-
-  return (
-    <GridContent>
-      <Row gutter={24}>
-        <Col lg={7} md={24}>
-          <Card
-            variant="borderless"
-            style={{
-              marginBottom: 24,
-            }}
-            loading={loading}
-          >
-            {!loading && currentUser && (
-              <>
-                <div className={styles.avatarHolder}>
-                  <img alt="" src={currentUser.avatar} />
-                  <div className={styles.name}>{currentUser.name}</div>
-                  <div>{currentUser?.signature}</div>
-                </div>
-                <UserInfo user={currentUser} />
-                <Divider dashed />
-                <TagList tags={currentUser.tags || []} />
-                <Divider
-                  style={{
-                    marginTop: 16,
-                  }}
-                  dashed
-                />
-                <div className={styles.team}>
-                  <div className={styles.teamTitle}>团队</div>
-                  <Row gutter={36}>
-                    {currentUser.notice?.map((item) => (
-                      <Col key={item.id} lg={24} xl={12}>
-                        <a href={item.href}>
-                          <Avatar size="small" src={item.logo} />
-                          {item.member}
-                        </a>
-                      </Col>
-                    ))}
-                  </Row>
-                </div>
-              </>
+      ) : (
+        <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+          <Card loading={isPending}>
+            {profile && (
+              <div className="flex flex-col items-center gap-4 py-4">
+                <Avatar size={88} src={profile.avatar ?? undefined}>
+                  {profile.name.slice(0, 1)}
+                </Avatar>
+                <div className="text-xl font-semibold">{profile.name}</div>
+                <div>{profile.username}</div>
+                <Tag color="blue">
+                  {profile.isPlatformAdmin
+                    ? t('platformAdmin', '平台管理员')
+                    : tenant?.role === 'admin'
+                      ? t('tenantAdmin', '租户管理员')
+                      : t('member', '普通成员')}
+                </Tag>
+                <Button
+                  type="primary"
+                  onClick={() => history.push('/account/settings')}
+                >
+                  {t('editProfile', '编辑资料')}
+                </Button>
+              </div>
             )}
           </Card>
-        </Col>
-        <Col lg={17} md={24}>
-          <Card
-            className={styles.tabsCard}
-            variant="borderless"
-            tabList={operationTabList}
-            activeTabKey={tabKey}
-            onTabChange={(_tabKey: string) => {
-              setTabKey(_tabKey as tabKeyType);
-            }}
-          >
-            <TabContent tabValue={tabKey} />
-          </Card>
-        </Col>
-      </Row>
-    </GridContent>
+          <div className="flex flex-col gap-6">
+            <Card
+              title={t('currentIdentity', '当前登录身份')}
+              loading={isPending}
+            >
+              {profile &&
+                (tenant ? (
+                  <Descriptions
+                    column={1}
+                    items={[
+                      {
+                        key: 'tenant',
+                        label: t('tenant', '当前企业'),
+                        children: tenant.name,
+                      },
+                      {
+                        key: 'code',
+                        label: t('tenantCode', '企业编码'),
+                        children: tenant.code,
+                      },
+                      {
+                        key: 'department',
+                        label: t('department', '部门'),
+                        children: tenant.department
+                          ? `${tenant.department.path}${tenant.department.isActive ? '' : `（${disabled}）`}`
+                          : t('unassigned', '未分配'),
+                      },
+                      {
+                        key: 'positions',
+                        label: t('positions', '岗位'),
+                        children: tenant.positions.length ? (
+                          <Space wrap>
+                            {tenant.positions.map((position) => (
+                              <Tag key={position.id}>
+                                {position.name}
+                                {!position.isActive && `（${disabled}）`}
+                              </Tag>
+                            ))}
+                          </Space>
+                        ) : (
+                          t('unassigned', '未分配')
+                        ),
+                      },
+                      {
+                        key: 'roles',
+                        label: t('roles', '自定义角色'),
+                        children: tenant.roles.length ? (
+                          <Space wrap>
+                            {tenant.roles.map((role) => (
+                              <Tag key={role.id}>{role.name}</Tag>
+                            ))}
+                          </Space>
+                        ) : (
+                          t('noCustomRoles', '未分配自定义角色')
+                        ),
+                      },
+                    ]}
+                  />
+                ) : (
+                  <p>{t('platformContext', '当前以平台管理员身份登录。')}</p>
+                ))}
+              {tenant && (
+                <p className="mt-4 text-sm text-neutral-500">
+                  {t(
+                    'organizationReadOnly',
+                    '部门、岗位及角色由企业管理员或被授权人员维护。',
+                  )}
+                </p>
+              )}
+            </Card>
+            <Card title={t('quickLinks', '常用入口')}>
+              <Space wrap>
+                <Button onClick={() => history.push('/account/settings')}>
+                  {t('settings', '个人设置')}
+                </Button>
+                {allowedPaths.includes('/message-center/inbox') && (
+                  <Button onClick={() => history.push('/message-center/inbox')}>
+                    {t('messages', '我的消息')}
+                  </Button>
+                )}
+                {allowedPaths.includes('/files') && (
+                  <Button onClick={() => history.push('/files')}>
+                    {t('files', '文件管理')}
+                  </Button>
+                )}
+              </Space>
+            </Card>
+          </div>
+        </div>
+      )}
+    </PageContainer>
   );
-};
-export default Center;
+}

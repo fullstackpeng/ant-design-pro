@@ -1,3 +1,4 @@
+import account from './zh-CN/account';
 import component from './zh-CN/component';
 import globalHeader from './zh-CN/globalHeader';
 import management from './zh-CN/management';
@@ -9,6 +10,7 @@ import settingDrawer from './zh-CN/settingDrawer';
 import settings from './zh-CN/settings';
 
 export default {
+  ...account,
   ...management,
   'navBar.lang': '语言',
   'layout.user.link.help': '帮助',

@@ -1,114 +1,67 @@
-import { GridContent } from '@ant-design/pro-components';
-import { Menu } from 'antd';
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import { PageContainer } from '@ant-design/pro-components';
+import { Alert, Button, Card, Tabs } from 'antd';
+import React from 'react';
+import { useAccountProfile } from '../useAccountProfile';
 import BaseView from './components/base';
-import BindingView from './components/binding';
-import NotificationView from './components/notification';
 import SecurityView from './components/security';
-import useStyles from './style.style';
 
-type SettingsStateKeys = 'base' | 'security' | 'binding' | 'notification';
-type SettingsState = {
-  mode: 'inline' | 'horizontal';
-  selectKey: SettingsStateKeys;
-};
-
-const menuMap: Record<string, React.ReactNode> = {
-  base: '基本设置',
-  security: '安全设置',
-  binding: '账号绑定',
-  notification: '新消息通知',
-};
-const menuItems = Object.keys(menuMap).map((item) => ({
-  key: item,
-  label: menuMap[item],
-}));
-
-const SettingsContent: React.FC<{ selectKey: SettingsStateKeys }> = ({
-  selectKey,
-}) => {
-  switch (selectKey) {
-    case 'base':
-      return <BaseView />;
-    case 'security':
-      return <SecurityView />;
-    case 'binding':
-      return <BindingView />;
-    case 'notification':
-      return <NotificationView />;
-    default:
-      return null;
-  }
-};
-
-const Settings: React.FC = () => {
-  const { styles } = useStyles();
-  const [initConfig, setInitConfig] = useState<SettingsState>({
-    mode: 'inline',
-    selectKey: 'base',
-  });
-  const dom = useRef<HTMLDivElement>(null);
-
-  const resize = () => {
-    requestAnimationFrame(() => {
-      if (!dom.current) {
-        return;
-      }
-      let mode: 'inline' | 'horizontal' = 'inline';
-      const { offsetWidth } = dom.current;
-      if (dom.current.offsetWidth < 641 && offsetWidth > 400) {
-        mode = 'horizontal';
-      }
-      if (window.innerWidth < 768 && offsetWidth > 400) {
-        mode = 'horizontal';
-      }
-      setInitConfig((prev) => ({
-        ...prev,
-        mode: mode as SettingsState['mode'],
-      }));
-    });
-  };
-
-  const resizeRef = useRef(resize);
-  resizeRef.current = resize;
-
-  useLayoutEffect(() => {
-    const handler = () => resizeRef.current();
-    window.addEventListener('resize', handler);
-    handler();
-    return () => {
-      window.removeEventListener('resize', handler);
-    };
-  }, []);
+export default function Settings() {
+  const {
+    data: profile,
+    isPending,
+    isError,
+    refetch,
+    refresh,
+    report,
+    t,
+  } = useAccountProfile();
   return (
-    <GridContent>
-      <div
-        className={styles.main}
-        ref={(ref) => {
-          if (ref) {
-            dom.current = ref;
+    <PageContainer title={t('settings', '个人设置')}>
+      <Alert
+        className="mb-6"
+        type="info"
+        showIcon
+        title={t(
+          'globalAccountHint',
+          '基本资料与密码属于账号，在所有企业中共用。',
+        )}
+      />
+      {isError ? (
+        <Alert
+          type="error"
+          showIcon
+          title={t('loadFailed', '个人资料加载失败')}
+          action={
+            <Button onClick={() => void refetch()}>{t('retry', '重试')}</Button>
           }
-        }}
-      >
-        <div className={styles.leftMenu}>
-          <Menu
-            mode={initConfig.mode}
-            selectedKeys={[initConfig.selectKey]}
-            onClick={({ key }) => {
-              setInitConfig((prev) => ({
-                ...prev,
-                selectKey: key as SettingsStateKeys,
-              }));
-            }}
-            items={menuItems}
-          />
-        </div>
-        <div className={styles.right}>
-          <div className={styles.title}>{menuMap[initConfig.selectKey]}</div>
-          <SettingsContent selectKey={initConfig.selectKey} />
-        </div>
-      </div>
-    </GridContent>
+        />
+      ) : (
+        <Card loading={isPending}>
+          {profile && (
+            <Tabs
+              items={[
+                {
+                  key: 'base',
+                  label: t('basic', '基本资料'),
+                  children: (
+                    <BaseView
+                      profile={profile}
+                      refresh={refresh}
+                      report={report}
+                      t={t}
+                    />
+                  ),
+                },
+                {
+                  key: 'security',
+                  label: t('security', '安全设置'),
+                  children: <SecurityView report={report} t={t} />,
+                },
+              ]}
+            />
+          )}
+        </Card>
+      )}
+    </PageContainer>
   );
-};
-export default Settings;
+}

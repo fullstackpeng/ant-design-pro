@@ -18,6 +18,7 @@ model User {
   isActive        Boolean            @default(true) @map("is_active")
   memberships     TenantMembership[]
   sessions        Session[]
+  avatar          AccountAvatar?
   notificationTargets NotificationTargetMember[]
   notificationReads NotificationRead[]
 
@@ -397,9 +398,22 @@ model StorageProvider {
   createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
   files            FileObject[]
+  accountAvatars   AccountAvatar[]
 
   @@index([isDefault])
   @@map("app_storage_providers")
+}
+
+model AccountAvatar {
+  userId BigInt @id @map("user_id")
+  version String @unique @db.Uuid
+  providerId BigInt @map("provider_id")
+  objectKey String @map("object_key") @db.VarChar(512)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  provider StorageProvider @relation(fields: [providerId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@index([providerId])
+  @@map("app_account_avatars")
 }
 
 model MqttPlatformBroker {

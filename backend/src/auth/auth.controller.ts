@@ -29,17 +29,11 @@ import { LoginTenantQueryDto } from './dto/login-tenant-request.dto.js';
 import { LoginTenantListResponseDto } from './dto/login-tenant-response.dto.js';
 import { Public } from './public.decorator.js';
 import {
+  sessionCookieOptions as cookieOptions,
   SESSION_COOKIE,
   type SessionContext,
   sessionToken,
 } from './session-context.js';
-
-const cookieOptions = {
-  httpOnly: true,
-  sameSite: 'strict' as const,
-  secure: process.env.NODE_ENV === 'production',
-  path: '/api',
-};
 
 @Controller('api')
 @ApiTags('auth')

@@ -3,6 +3,7 @@ import type { Request } from 'express';
 export interface SessionContext {
   userid: string;
   name: string;
+  avatar?: string;
   access: 'admin' | 'user';
   isPlatformAdmin: boolean;
   tenant: { id: string; code: string; name: string } | null;
@@ -13,6 +14,13 @@ export interface SessionRequest extends Request {
 }
 
 export const SESSION_COOKIE = 'antd_session';
+
+export const sessionCookieOptions = {
+  httpOnly: true,
+  sameSite: 'strict' as const,
+  secure: process.env.NODE_ENV === 'production',
+  path: '/api',
+};
 
 export function sessionToken(request: Request): string | undefined {
   const token: unknown = request.cookies?.[SESSION_COOKIE];

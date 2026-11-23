@@ -1,3 +1,4 @@
+import account from './en-US/account';
 import component from './en-US/component';
 import globalHeader from './en-US/globalHeader';
 import management from './en-US/management';
@@ -9,6 +10,7 @@ import settingDrawer from './en-US/settingDrawer';
 import settings from './en-US/settings';
 
 export default {
+  ...account,
   ...management,
   'navBar.lang': 'Languages',
   'layout.user.link.help': 'Help',

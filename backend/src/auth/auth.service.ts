@@ -99,6 +99,7 @@ export class AuthService {
               name: true,
               isPlatformAdmin: true,
               isActive: true,
+              avatar: { select: { version: true } },
             },
           },
           membership: {
@@ -118,6 +119,9 @@ export class AuthService {
           return {
             userid: session.user.id.toString(),
             name: session.user.name,
+            ...(session.user.avatar
+              ? { avatar: `/api/account/avatar/${session.user.avatar.version}` }
+              : {}),
             access: 'user',
             isPlatformAdmin: true,
             tenant: null,
@@ -133,6 +137,9 @@ export class AuthService {
           return {
             userid: user.id.toString(),
             name: user.name,
+            ...(session.user.avatar
+              ? { avatar: `/api/account/avatar/${session.user.avatar.version}` }
+              : {}),
             access: role,
             isPlatformAdmin: false,
             tenant: {

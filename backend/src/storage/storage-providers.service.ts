@@ -113,7 +113,8 @@ export class StorageProvidersService {
       definition.validate(body.config, merged);
       if (
         stableJson(current.config) !== stableJson(body.config) &&
-        (await tx.fileObject.count({ where: { providerId } })) > 0
+        ((await tx.fileObject.count({ where: { providerId } })) > 0 ||
+          (await tx.accountAvatar.count({ where: { providerId } })) > 0)
       )
         throw new ConflictException({
           success: false,

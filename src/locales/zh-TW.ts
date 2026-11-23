@@ -1,3 +1,4 @@
+import account from './en-US/account';
 import management from './en-US/management';
 import component from './zh-TW/component';
 import globalHeader from './zh-TW/globalHeader';
@@ -8,6 +9,7 @@ import settingDrawer from './zh-TW/settingDrawer';
 import settings from './zh-TW/settings';
 
 export default {
+  ...account,
   ...management,
   'navBar.lang': '語言',
   'layout.user.link.help': '幫助',

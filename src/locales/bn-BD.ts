@@ -5,9 +5,11 @@ import network from './bn-BD/network';
 import pages from './bn-BD/pages';
 import settingDrawer from './bn-BD/settingDrawer';
 import settings from './bn-BD/settings';
+import account from './en-US/account';
 import management from './en-US/management';
 
 export default {
+  ...account,
   ...management,
   'navBar.lang': 'ভাষা',
   'layout.user.link.help': 'সহায়তা',

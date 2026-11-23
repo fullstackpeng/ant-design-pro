@@ -1,4 +1,24 @@
 declare namespace BackendAPI {
+  type AccountAvatarDto = {
+    url: string;
+  };
+
+  type AccountAvatarParamDto = {
+    version: string;
+  };
+
+  type AccountAvatarResponseDto = {
+    success: true;
+    data: AccountAvatarDto;
+  };
+
+  type AccountDepartmentDto = {
+    id: string;
+    name: string;
+    path: string;
+    isActive: boolean;
+  };
+
   type AccountDto = {
     /** 新建账号或添加已有账号；已有账号的密码不会被修改 */
     mode: "new" | "existing";
@@ -7,6 +27,41 @@ declare namespace BackendAPI {
     name?: string;
     /** mode=new 时必填；仅用于初始化新账号 */
     password?: string;
+  };
+
+  type AccountMembershipDto = {
+    id: string;
+    code: string;
+    name: string;
+    role: "admin" | "user";
+    department: AccountDepartmentDto | null;
+    positions: AccountPositionDto[];
+    roles: AccountRoleDto[];
+  };
+
+  type AccountPositionDto = {
+    id: string;
+    name: string;
+    isActive: boolean;
+  };
+
+  type AccountProfileDto = {
+    userId: string;
+    username: string;
+    name: string;
+    avatar: string | null;
+    isPlatformAdmin: boolean;
+    tenant: AccountMembershipDto | null;
+  };
+
+  type AccountProfileResponseDto = {
+    success: true;
+    data: AccountProfileDto;
+  };
+
+  type AccountRoleDto = {
+    id: string;
+    name: string;
   };
 
   type AssignFeaturesDto = {
@@ -30,6 +85,11 @@ declare namespace BackendAPI {
   type assignTenantFeaturesParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
+  };
+
+  type ChangeAccountPasswordDto = {
+    currentPassword: string;
+    newPassword: string;
   };
 
   type cleanupMqttMessagesParams = {
@@ -451,6 +511,10 @@ declare namespace BackendAPI {
   type FileUsageResponseDto = {
     success: true;
     data: FileUsageDto;
+  };
+
+  type getAccountAvatarParams = {
+    version: string;
   };
 
   type getDictionaryParams = {
@@ -1488,6 +1552,10 @@ declare namespace BackendAPI {
   type triggerScheduledTaskParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
+  };
+
+  type UpdateAccountProfileDto = {
+    name: string;
   };
 
   type UpdateDepartmentDto = {

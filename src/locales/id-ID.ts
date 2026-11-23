@@ -1,3 +1,4 @@
+import account from './en-US/account';
 import management from './en-US/management';
 import component from './id-ID/component';
 import globalHeader from './id-ID/globalHeader';
@@ -8,6 +9,7 @@ import settingDrawer from './id-ID/settingDrawer';
 import settings from './id-ID/settings';
 
 export default {
+  ...account,
   ...management,
   'navbar.lang': 'Bahasa',
   'layout.user.link.help': 'Bantuan',

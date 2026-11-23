@@ -1,3 +1,4 @@
+import account from './en-US/account';
 import management from './en-US/management';
 import component from './fa-IR/component';
 import globalHeader from './fa-IR/globalHeader';
@@ -8,6 +9,7 @@ import settingDrawer from './fa-IR/settingDrawer';
 import settings from './fa-IR/settings';
 
 export default {
+  ...account,
   ...management,
   'navBar.lang': 'زبان ها  ',
   'layout.user.link.help': 'کمک',

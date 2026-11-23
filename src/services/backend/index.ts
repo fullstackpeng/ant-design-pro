@@ -4,6 +4,8 @@
 // API 唯一标识：
 import * as health from "./health";
 import * as auth from "./auth";
+import * as account from "./account";
+import * as storage from "./storage";
 import * as departments from "./departments";
 import * as positions from "./positions";
 import * as members from "./members";
@@ -15,13 +17,14 @@ import * as dictionaries from "./dictionaries";
 import * as platformDictionaries from "./platformDictionaries";
 import * as mqtt from "./mqtt";
 import * as navigation from "./navigation";
-import * as storage from "./storage";
 import * as files from "./files";
 import * as notifications from "./notifications";
 import * as scheduledTasks from "./scheduledTasks";
 export default {
   health,
   auth,
+  account,
+  storage,
   departments,
   positions,
   members,
@@ -33,7 +36,6 @@ export default {
   platformDictionaries,
   mqtt,
   navigation,
-  storage,
   files,
   notifications,
   scheduledTasks,
