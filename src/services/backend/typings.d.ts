@@ -37,6 +37,14 @@ declare namespace BackendAPI {
     tenantId?: string;
   };
 
+  type CreateDepartmentDto = {
+    code: string;
+    name: string;
+    sortOrder: number;
+    isActive: boolean;
+    parentId?: string | null;
+  };
+
   type CreateDictionaryDto = {
     name: string;
     remark: string;
@@ -64,6 +72,8 @@ declare namespace BackendAPI {
     name?: string;
     /** mode=new 时必填；仅用于初始化新账号 */
     password?: string;
+    departmentId?: string | null;
+    positionIds?: string[];
     roleIds?: string[];
     role: "admin" | "user";
   };
@@ -114,6 +124,13 @@ declare namespace BackendAPI {
 
   type createPlatformDictionaryItemParams = {
     code: string;
+  };
+
+  type CreatePositionDto = {
+    code: string;
+    name: string;
+    sortOrder: number;
+    isActive: boolean;
   };
 
   type CreateRoleDto = {
@@ -207,6 +224,11 @@ declare namespace BackendAPI {
     data: CurrentUserDto;
   };
 
+  type deleteDepartmentParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
   type deleteFileParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
@@ -231,6 +253,11 @@ declare namespace BackendAPI {
     id: string;
   };
 
+  type deletePositionParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
   type deleteRoleParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
@@ -249,6 +276,20 @@ declare namespace BackendAPI {
   type deleteTenantNotificationParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
+  };
+
+  type DepartmentDto = {
+    id: string;
+    code: string;
+    name: string;
+    sortOrder: number;
+    isActive: boolean;
+    parentId: string | null;
+  };
+
+  type DepartmentListResponseDto = {
+    success: true;
+    data: DepartmentDto[];
   };
 
   type DictionaryAuditDto = {
@@ -505,6 +546,10 @@ declare namespace BackendAPI {
   type listMembersParams = {
     current?: number;
     pageSize?: number;
+    /** 部门 ID（包含下级），unassigned 表示未分配 */
+    departmentId?: string;
+    /** 岗位 ID，unassigned 表示未分配 */
+    positionId?: string;
   };
 
   type listMqttMessagesParams = {
@@ -625,6 +670,8 @@ declare namespace BackendAPI {
   };
 
   type MemberDto = {
+    department: DepartmentDto | null;
+    positions: PositionDto[];
     roles: RoleDto[];
     userId: string;
     role: "admin" | "user";
@@ -636,6 +683,25 @@ declare namespace BackendAPI {
     success: true;
     data: MemberDto[];
     total: number;
+  };
+
+  type MemberOrganizationOptionsDto = {
+    departments: DepartmentDto[];
+    positions: PositionDto[];
+  };
+
+  type MemberOrganizationOptionsResponseDto = {
+    success: true;
+    data: MemberOrganizationOptionsDto;
+  };
+
+  type MemberQueryDto = {
+    current?: number;
+    pageSize?: number;
+    /** 部门 ID（包含下级），unassigned 表示未分配 */
+    departmentId?: string;
+    /** 岗位 ID，unassigned 表示未分配 */
+    positionId?: string;
   };
 
   type MembershipCountDto = {
@@ -942,6 +1008,19 @@ declare namespace BackendAPI {
     isActive: boolean;
     isPlatformAdmin: boolean;
     memberships: UserMembershipDto[];
+  };
+
+  type PositionDto = {
+    id: string;
+    code: string;
+    name: string;
+    sortOrder: number;
+    isActive: boolean;
+  };
+
+  type PositionListResponseDto = {
+    success: true;
+    data: PositionDto[];
   };
 
   type provisionMqttTenantCredentialParams = {
@@ -1411,6 +1490,19 @@ declare namespace BackendAPI {
     id: string;
   };
 
+  type UpdateDepartmentDto = {
+    code: string;
+    name: string;
+    sortOrder: number;
+    isActive: boolean;
+    parentId?: string | null;
+  };
+
+  type updateDepartmentParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
   type UpdateDictionaryDto = {
     name: string;
     remark: string;
@@ -1435,6 +1527,8 @@ declare namespace BackendAPI {
   };
 
   type UpdateMemberDto = {
+    departmentId?: string | null;
+    positionIds?: string[];
     roleIds?: string[];
     role: "admin" | "user";
     isActive: boolean;
@@ -1528,6 +1622,18 @@ declare namespace BackendAPI {
   };
 
   type updatePlatformNotificationParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type UpdatePositionDto = {
+    code: string;
+    name: string;
+    sortOrder: number;
+    isActive: boolean;
+  };
+
+  type updatePositionParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
   };

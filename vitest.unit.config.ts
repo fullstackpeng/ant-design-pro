@@ -10,6 +10,7 @@ export default defineConfig({
       'src/services/navigation.test.tsx',
       'src/pages/management/navigation/tree.test.ts',
       'src/utils/sanitizeNotificationHtml.test.ts',
+      'src/utils/department-tree.test.ts',
     ],
   },
 });

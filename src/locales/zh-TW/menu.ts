@@ -1,4 +1,6 @@
 export default {
+  'menu.tenant-departments': '部門管理',
+  'menu.tenant-positions': '職務管理',
   'menu.platform.dictionaries': '平台字典',
   'menu.tenant-dictionaries': '字典管理',
   'menu.platform.settings': '系統設定',

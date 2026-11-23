@@ -130,6 +130,16 @@ export const registeredPages: RegisteredPage[] = [
     minRole: 'admin',
     permissionCode: 'admin-sub-page:view',
   }),
+  page('tenant-departments', '/tenant/departments', '部门管理', 'tenant', {
+    featureCode: 'members',
+    permissionCode: 'departments:read',
+    minRole: 'admin',
+  }),
+  page('tenant-positions', '/tenant/positions', '岗位管理', 'tenant', {
+    featureCode: 'members',
+    permissionCode: 'positions:read',
+    minRole: 'admin',
+  }),
   page('tenant-members', '/tenant/members', '成员管理', 'tenant', {
     featureCode: 'members',
     minRole: 'admin',

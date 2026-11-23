@@ -23,6 +23,7 @@ export async function listMembers(
       current: "1",
       // pageSize has a default value: 20
       pageSize: "20",
+
       ...params,
     },
     ...(options || {}),
@@ -75,6 +76,17 @@ export async function updateMember(
     data: body,
     ...(options || {}),
   });
+}
+
+/** 查询成员部门与岗位选项 GET /api/tenant/members/organization-options */
+export async function memberOrganizationOptions(options?: RequestOptions) {
+  return request<BackendAPI.MemberOrganizationOptionsResponseDto>(
+    "/api/tenant/members/organization-options",
+    {
+      method: "GET",
+      ...(options || {}),
+    }
+  );
 }
 
 /** 查询当前租户订阅与成员用量 GET /api/tenant/subscription */

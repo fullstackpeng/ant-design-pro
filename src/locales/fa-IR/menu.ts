@@ -1,4 +1,6 @@
 export default {
+  'menu.tenant-departments': 'Departments',
+  'menu.tenant-positions': 'Positions',
   'menu.platform.dictionaries': 'فرهنگ داده پلتفرم',
   'menu.tenant-dictionaries': 'فرهنگ داده',
   'menu.platform.settings': 'تنظیمات سیستم',

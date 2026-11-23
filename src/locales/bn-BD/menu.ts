@@ -1,4 +1,6 @@
 export default {
+  'menu.tenant-departments': 'Departments',
+  'menu.tenant-positions': 'Positions',
   'menu.platform.dictionaries': 'প্ল্যাটফর্ম অভিধান',
   'menu.tenant-dictionaries': 'অভিধান',
   'menu.platform.settings': 'সিস্টেম সেটিংস',

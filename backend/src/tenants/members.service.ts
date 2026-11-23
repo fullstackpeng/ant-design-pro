@@ -5,7 +5,6 @@ import {
   Injectable,
 } from '@nestjs/common';
 import type { SessionContext } from '../auth/session-context.js';
-import type { PaginationQueryDto } from '../common/dto/request.dto.js';
 import {
   id,
   json,
@@ -18,8 +17,10 @@ import { PrismaService } from '../database/prisma.service.js';
 import { transaction } from '../database/transaction.js';
 import type { Prisma } from '../generated/prisma/client.js';
 import { ensureMemberCapacity } from '../plans/entitlements.js';
+import { departmentSubtree } from './department-tree.js';
 import type {
   CreateMemberDto,
+  MemberQueryDto,
   UpdateMemberDto,
 } from './dto/member-request.dto.js';
 
@@ -27,14 +28,54 @@ import type {
 export class MembersService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
-  async list(session: SessionContext, query: PaginationQueryDto) {
-    const where = { tenantId: tenantId(session) };
+  async list(session: SessionContext, query: MemberQueryDto) {
+    const tenant = tenantId(session);
+    const where: Prisma.TenantMembershipWhereInput = { tenantId: tenant };
+    if (query.departmentId === 'unassigned') where.departmentId = null;
+    else if (query.departmentId) {
+      const root = id(query.departmentId);
+      await this.prisma.tenantDepartment.findUniqueOrThrow({
+        where: { tenantId_id: { tenantId: tenant, id: root } },
+      });
+      const departments = await this.prisma.tenantDepartment.findMany({
+        where: { tenantId: tenant },
+        select: { id: true, parentId: true },
+      });
+      where.departmentId = { in: departmentSubtree(departments, root) };
+    }
+    if (query.positionId === 'unassigned') where.positions = { none: {} };
+    else if (query.positionId)
+      where.positions = { some: { positionId: id(query.positionId) } };
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.tenantMembership.findMany({
         where,
         ...pagination(query),
         orderBy: { userId: 'asc' },
         select: {
+          department: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              parentId: true,
+              sortOrder: true,
+              isActive: true,
+            },
+          },
+          positions: {
+            select: {
+              position: {
+                select: {
+                  id: true,
+                  name: true,
+                  code: true,
+                  sortOrder: true,
+                  isActive: true,
+                },
+              },
+            },
+            orderBy: { positionId: 'asc' },
+          },
           roles: {
             select: {
               role: { select: { id: true, name: true, permissions: true } },
@@ -51,7 +92,11 @@ export class MembersService {
     return {
       success: true as const,
       data: json(
-        rows.map((row) => ({ ...row, roles: row.roles.map((r) => r.role) })),
+        rows.map((row) => ({
+          ...row,
+          roles: row.roles.map((r) => r.role),
+          positions: row.positions.map((p) => p.position),
+        })),
       ),
       total,
     };
@@ -76,6 +121,7 @@ export class MembersService {
         data: { tenantId: tenant, userId: user.id, role: memberRole },
       });
       await this.assignRoles(tx, tenant, user.id, body.roleIds);
+      await this.assignOrganization(tx, tenant, user.id, body);
     });
     return success(null);
   }
@@ -137,6 +183,7 @@ export class MembersService {
           data: { role: nextRole, isActive },
         });
         await this.assignRoles(tx, tenant, userId, body.roleIds);
+        await this.assignOrganization(tx, tenant, userId, body);
         if (!isActive)
           await tx.session.deleteMany({ where: { tenantId: tenant, userId } });
       }
@@ -165,6 +212,92 @@ export class MembersService {
     await tx.memberRole.createMany({
       data: ids.map((roleId) => ({ tenantId: tenant, userId, roleId })),
     });
+  }
+
+  async organizationOptions(session: SessionContext) {
+    const tenant = tenantId(session);
+    const [departments, positions] = await this.prisma.$transaction([
+      this.prisma.tenantDepartment.findMany({
+        where: { tenantId: tenant },
+        orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          parentId: true,
+          sortOrder: true,
+          isActive: true,
+        },
+      }),
+      this.prisma.tenantPosition.findMany({
+        where: { tenantId: tenant },
+        orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          sortOrder: true,
+          isActive: true,
+        },
+      }),
+    ]);
+    return success({ departments, positions });
+  }
+
+  private async assignOrganization(
+    tx: Prisma.TransactionClient,
+    tenant: bigint,
+    userId: bigint,
+    body: CreateMemberDto | UpdateMemberDto,
+  ) {
+    const member = { tenantId: tenant, userId };
+    if (body.departmentId !== undefined) {
+      const current = await tx.tenantMembership.findUniqueOrThrow({
+        where: { tenantId_userId: member },
+      });
+      const departmentId =
+        body.departmentId === null ? null : id(body.departmentId);
+      if (departmentId !== null) {
+        const department = await tx.tenantDepartment.findUnique({
+          where: { tenantId_id: { tenantId: tenant, id: departmentId } },
+        });
+        if (
+          !department ||
+          (!department.isActive && current.departmentId !== departmentId)
+        )
+          throw new ForbiddenException({
+            success: false,
+            errorMessage: '部门不存在、不属于当前租户或已停用',
+          });
+      }
+      await tx.tenantMembership.update({
+        where: { tenantId_userId: member },
+        data: { departmentId },
+      });
+    }
+    if (body.positionIds !== undefined) {
+      const ids = body.positionIds.map(id);
+      const positions = await tx.tenantPosition.findMany({
+        where: { tenantId: tenant, id: { in: ids } },
+      });
+      const current = await tx.memberPosition.findMany({
+        where: member,
+        select: { positionId: true },
+      });
+      const retained = new Set(current.map((row) => row.positionId));
+      if (
+        positions.length !== ids.length ||
+        positions.some((row) => !row.isActive && !retained.has(row.id))
+      )
+        throw new ForbiddenException({
+          success: false,
+          errorMessage: '岗位不存在、不属于当前租户或已停用',
+        });
+      await tx.memberPosition.deleteMany({ where: member });
+      await tx.memberPosition.createMany({
+        data: ids.map((positionId) => ({ ...member, positionId })),
+      });
+    }
   }
 
   async subscription(session: SessionContext) {

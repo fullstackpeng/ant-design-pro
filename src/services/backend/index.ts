@@ -4,6 +4,8 @@
 // API 唯一标识：
 import * as health from "./health";
 import * as auth from "./auth";
+import * as departments from "./departments";
+import * as positions from "./positions";
 import * as members from "./members";
 import * as roles from "./roles";
 import * as platform from "./platform";
@@ -20,6 +22,8 @@ import * as scheduledTasks from "./scheduledTasks";
 export default {
   health,
   auth,
+  departments,
+  positions,
   members,
   roles,
   platform,

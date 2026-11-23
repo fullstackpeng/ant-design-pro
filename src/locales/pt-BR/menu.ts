@@ -1,4 +1,6 @@
 export default {
+  'menu.tenant-departments': 'Departments',
+  'menu.tenant-positions': 'Positions',
   'menu.platform.dictionaries': 'Dicionários da plataforma',
   'menu.tenant-dictionaries': 'Dicionários',
   'menu.platform.settings': 'Configurações do sistema',

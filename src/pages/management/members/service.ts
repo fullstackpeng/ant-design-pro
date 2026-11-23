@@ -14,3 +14,6 @@ export const subscriptionInfo = () =>
   members.subscriptionInfo({ skipErrorHandler: true });
 
 export const listRoles = () => roles.listRoles({ skipErrorHandler: true });
+
+export const organizationOptions = () =>
+  members.memberOrganizationOptions({ skipErrorHandler: true });

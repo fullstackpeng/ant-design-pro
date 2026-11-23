@@ -213,6 +213,18 @@ export default [
     component: './management/dictionaries',
   },
   {
+    path: '/tenant/departments',
+    name: 'tenant-departments',
+    icon: 'team',
+    component: './management/departments',
+  },
+  {
+    path: '/tenant/positions',
+    name: 'tenant-positions',
+    icon: 'idcard',
+    component: './management/positions',
+  },
+  {
     path: '/tenant/members',
     name: 'tenant-members',
     icon: 'team',

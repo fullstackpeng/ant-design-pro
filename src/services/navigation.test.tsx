@@ -73,4 +73,11 @@ describe('remote menu rendering', () => {
     expect(result[0].children?.[0].icon).toBeDefined();
     expect(result[0].children?.[1].icon).toBeDefined();
   });
+  it('resolves organization menu icons stored in the database', () => {
+    const result = menuTree([
+      { ...menu('tenant-departments', null, 72), icon: 'team' },
+      { ...menu('tenant-positions', null, 73), icon: 'idcard' },
+    ]);
+    expect(result.every(item => item.icon !== undefined)).toBe(true);
+  });
 });

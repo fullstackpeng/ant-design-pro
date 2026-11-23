@@ -57,6 +57,8 @@ model Tenant {
   memberships  TenantMembership[]
   subscription Subscription?
   features     TenantFeature[]
+  departments  TenantDepartment[]
+  positions    TenantPosition[]
   roles        TenantRole[]
   dictionaries DictionaryType[]
   dictionaryAudits DictionaryAudit[]
@@ -125,9 +127,13 @@ model TenantMembership {
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   sessions Session[]
   roles    MemberRole[]
+  departmentId BigInt? @map("department_id")
+  department TenantDepartment? @relation(fields: [tenantId, departmentId], references: [tenantId, id], onDelete: Restrict, onUpdate: NoAction)
+  positions MemberPosition[]
 
   @@id([tenantId, userId])
   @@index([userId])
+  @@index([tenantId, departmentId])
   @@map("app_tenant_memberships")
 }
 
@@ -609,4 +615,50 @@ model NotificationRead {
   @@id([notificationId, userId])
   @@index([userId, readAt])
   @@map("app_notification_reads")
+}
+
+model TenantDepartment {
+  id BigInt @id @default(autoincrement())
+  tenantId BigInt @map("tenant_id")
+  code String @db.VarChar(64)
+  name String @db.VarChar(100)
+  parentId BigInt? @map("parent_id")
+  sortOrder Int @default(0) @map("sort_order")
+  isActive Boolean @default(true) @map("is_active")
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  parent TenantDepartment? @relation("DepartmentTree", fields: [tenantId, parentId], references: [tenantId, id], onDelete: Restrict, onUpdate: NoAction)
+  children TenantDepartment[] @relation("DepartmentTree")
+  members TenantMembership[]
+
+  @@unique([tenantId, code])
+  @@unique([tenantId, id])
+  @@index([tenantId, parentId])
+  @@map("app_tenant_departments")
+}
+
+model TenantPosition {
+  id BigInt @id @default(autoincrement())
+  tenantId BigInt @map("tenant_id")
+  code String @db.VarChar(64)
+  name String @db.VarChar(100)
+  sortOrder Int @default(0) @map("sort_order")
+  isActive Boolean @default(true) @map("is_active")
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  members MemberPosition[]
+
+  @@unique([tenantId, code])
+  @@unique([tenantId, id])
+  @@map("app_tenant_positions")
+}
+
+model MemberPosition {
+  tenantId BigInt @map("tenant_id")
+  userId BigInt @map("user_id")
+  positionId BigInt @map("position_id")
+  member TenantMembership @relation(fields: [tenantId, userId], references: [tenantId, userId], onDelete: Cascade, onUpdate: NoAction)
+  position TenantPosition @relation(fields: [tenantId, positionId], references: [tenantId, id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@id([tenantId, userId, positionId])
+  @@index([tenantId, positionId])
+  @@map("app_member_positions")
 }

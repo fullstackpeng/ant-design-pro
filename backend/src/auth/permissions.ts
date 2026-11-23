@@ -44,6 +44,23 @@ function action(
 
 // Page permissions live with their pages; action dependencies are declared here.
 export const permissionCatalog: PermissionDefinition[] = [
+  ...(['departments', 'positions'] as const).flatMap((entity) =>
+    (['create', 'update', 'delete'] as const).map((operation) => {
+      const name = entity === 'departments' ? '部门' : '岗位';
+      const verb = { create: '新增', update: '编辑', delete: '删除' }[
+        operation
+      ];
+      return action(
+        `${entity}:${operation}`,
+        `${verb}${name}`,
+        'members',
+        [`${entity}:read`],
+        operation,
+        `${verb}当前租户${name}`,
+        operation === 'delete' ? 'destructive' : 'normal',
+      );
+    }),
+  ),
   ...['create', 'update'].map((item) =>
     action(
       `dictionaries:${item}`,
@@ -119,7 +136,7 @@ export const permissionCatalog: PermissionDefinition[] = [
     'members',
     ['members:read'],
     'update',
-    '修改成员角色、启用状态和自定义角色',
+    '修改成员角色、启用状态、自定义角色、部门和岗位',
   ),
   action(
     'members:delete',

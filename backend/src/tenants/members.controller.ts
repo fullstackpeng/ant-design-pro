@@ -24,11 +24,16 @@ import { CurrentSession } from '../auth/current-session.decorator.js';
 import { RequireFeature } from '../auth/require-feature.decorator.js';
 import { RequirePermission } from '../auth/require-permission.decorator.js';
 import type { SessionContext } from '../auth/session-context.js';
-import { IdParamDto, PaginationQueryDto } from '../common/dto/request.dto.js';
+import { IdParamDto } from '../common/dto/request.dto.js';
 import { ApiErrors, EmptyResponseDto } from '../common/dto/response.dto.js';
-import { CreateMemberDto, UpdateMemberDto } from './dto/member-request.dto.js';
+import {
+  CreateMemberDto,
+  MemberQueryDto,
+  UpdateMemberDto,
+} from './dto/member-request.dto.js';
 import {
   MemberListResponseDto,
+  MemberOrganizationOptionsResponseDto,
   SubscriptionUsageResponseDto,
 } from './dto/member-response.dto.js';
 import { MembersService } from './members.service.js';
@@ -38,7 +43,7 @@ import { MembersService } from './members.service.js';
 @ApiTags('members')
 @ApiCookieAuth('session')
 @ApiErrors()
-@ApiExtraModels(IdParamDto, PaginationQueryDto)
+@ApiExtraModels(IdParamDto, MemberQueryDto)
 export class MembersController {
   constructor(
     @Inject(MembersService) private readonly members: MembersService,
@@ -52,9 +57,24 @@ export class MembersController {
   @ApiOkResponse({ type: MemberListResponseDto })
   list(
     @CurrentSession() session: SessionContext,
-    @Query() query: PaginationQueryDto,
+    @Query() query: MemberQueryDto,
   ): Promise<MemberListResponseDto> {
     return this.members.list(session, query);
+  }
+
+  @Get('members/organization-options')
+  @RequirePermission('members:read')
+  @RequireFeature('members')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    operationId: 'memberOrganizationOptions',
+    summary: '查询成员部门与岗位选项',
+  })
+  @ApiOkResponse({ type: MemberOrganizationOptionsResponseDto })
+  organizationOptions(
+    @CurrentSession() session: SessionContext,
+  ): Promise<MemberOrganizationOptionsResponseDto> {
+    return this.members.organizationOptions(session);
   }
 
   @Post('members')
