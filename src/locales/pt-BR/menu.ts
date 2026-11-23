@@ -87,4 +87,11 @@ export default {
   'menu.editor.flow': 'Flow Editor',
   'menu.editor.mind': 'Mind Editor',
   'menu.editor.koni': 'Koni Editor',
+  'menu.platform-notifications': 'Notificações',
+  'menu.platform.notifications': 'Notificações',
+  'menu.message-center': 'Central de Mensagens',
+  'menu.tenant-notifications': 'Gerenciar Notificações',
+  'menu.tenant.notifications': 'Gerenciar Notificações',
+  'menu.inbox': 'Minhas Mensagens',
+  'menu.message-center.inbox': 'Minhas Mensagens',
 };

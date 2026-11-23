@@ -44,6 +44,7 @@ import {
   FileDownloadResponseDto,
   FileListResponseDto,
   FileUsageResponseDto,
+  NotificationAssetResponseDto,
   SiteAssetResponseDto,
 } from './dto/file-response.dto.js';
 import { FILES_FEATURE, MAX_UPLOAD_BYTES } from './files.constants.js';
@@ -256,6 +257,87 @@ export class SiteAssetsController {
   ): Promise<void> {
     const url = await this.files.publicAssetUrl(params.id);
     response.setHeader('Cache-Control', 'public, max-age=60');
+    response.redirect(302, url);
+  }
+}
+
+@Controller('api/tenant/notifications/images')
+@RequireScope('tenant')
+@RequireFeature('notifications')
+@ApiTags('notifications')
+@ApiCookieAuth('session')
+@ApiErrors()
+export class TenantNotificationImagesController {
+  constructor(@Inject(FilesService) private readonly files: FilesService) {}
+
+  @Post()
+  @RequirePermission('notifications:create')
+  @UseFilters(UploadExceptionFilter)
+  @UseInterceptors(FileInterceptor('file', uploadOptions))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody(uploadBody)
+  @ApiOperation({
+    operationId: 'uploadTenantNotificationImage',
+    summary: '上传租户通知公告正文图片',
+  })
+  @ApiCreatedResponse({ type: NotificationAssetResponseDto })
+  upload(
+    @CurrentSession() session: SessionContext,
+    @UploadedFile() file?: DiskFile,
+  ): Promise<NotificationAssetResponseDto> {
+    return this.files.uploadNotificationAsset(session, file, false);
+  }
+}
+
+@Controller('api/platform/notifications/images')
+@RequireScope('platform')
+@ApiTags('notifications')
+@ApiCookieAuth('session')
+@ApiErrors()
+export class PlatformNotificationImagesController {
+  constructor(@Inject(FilesService) private readonly files: FilesService) {}
+
+  @Post()
+  @UseFilters(UploadExceptionFilter)
+  @UseInterceptors(FileInterceptor('file', uploadOptions))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody(uploadBody)
+  @ApiOperation({
+    operationId: 'uploadPlatformNotificationImage',
+    summary: '上传平台通知公告正文图片',
+  })
+  @ApiCreatedResponse({ type: NotificationAssetResponseDto })
+  upload(
+    @CurrentSession() session: SessionContext,
+    @UploadedFile() file?: DiskFile,
+  ): Promise<NotificationAssetResponseDto> {
+    return this.files.uploadNotificationAsset(session, file, true);
+  }
+}
+
+@Controller('api/notification-assets')
+// 图片由编辑器直接以 <img src> 加载，平台管理员和租户成员都需要读取；
+// 资源的租户归属由 FilesService.notificationAssetUrl 校验。
+@RequireScope('authenticated')
+@ApiTags('notifications')
+@ApiCookieAuth('session')
+@ApiErrors()
+export class NotificationAssetsController {
+  constructor(@Inject(FilesService) private readonly files: FilesService) {}
+
+  @Get(':id')
+  @Header('Cache-Control', 'private, max-age=60')
+  @ApiOperation({
+    operationId: 'getNotificationAsset',
+    summary: '通知正文图片：登录后重定向到短时签名地址',
+  })
+  @ApiFoundResponse({ description: '重定向到对象存储的短时签名地址' })
+  async get(
+    @CurrentSession() session: SessionContext,
+    @Param() params: IdParamDto,
+    @Res() response: Response,
+  ): Promise<void> {
+    const url = await this.files.notificationAssetUrl(session, params.id);
     response.redirect(302, url);
   }
 }

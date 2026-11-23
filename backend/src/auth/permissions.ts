@@ -130,6 +130,25 @@ export const permissionCatalog: PermissionDefinition[] = [
     '将成员移出租户',
     'destructive',
   ),
+  ...['create', 'update', 'delete'].map((item) =>
+    action(
+      `notifications:${item}`,
+      item === 'create'
+        ? '新建通知公告'
+        : item === 'update'
+          ? '编辑通知公告'
+          : '删除通知公告',
+      'notifications',
+      ['notifications:read'],
+      item === 'create' ? 'create' : item === 'update' ? 'update' : 'delete',
+      item === 'create'
+        ? '创建通知或公告并设置接收范围'
+        : item === 'update'
+          ? '修改通知或公告内容及接收范围'
+          : '删除当前租户发布的通知或公告',
+      item === 'delete' ? 'destructive' : 'normal',
+    ),
+  ),
 ];
 
 export function availablePermissions(featureCodes: string[]) {

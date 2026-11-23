@@ -15,6 +15,7 @@ import * as mqtt from "./mqtt";
 import * as navigation from "./navigation";
 import * as storage from "./storage";
 import * as files from "./files";
+import * as notifications from "./notifications";
 import * as scheduledTasks from "./scheduledTasks";
 export default {
   health,
@@ -30,5 +31,6 @@ export default {
   navigation,
   storage,
   files,
+  notifications,
   scheduledTasks,
 };

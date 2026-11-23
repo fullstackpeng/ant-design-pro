@@ -18,6 +18,8 @@ model User {
   isActive        Boolean            @default(true) @map("is_active")
   memberships     TenantMembership[]
   sessions        Session[]
+  notificationTargets NotificationTargetMember[]
+  notificationReads NotificationRead[]
 
   @@map("app_users")
 }
@@ -62,6 +64,8 @@ model Tenant {
   mqttCredentials TenantMqttCredential[]
   mqttBrokers  TenantMqttBroker[]
   mqttMessages MqttMessage[]
+  notifications Notification[]
+  notificationTargets NotificationTargetTenant[]
 
   @@map("app_tenants")
 }
@@ -542,4 +546,67 @@ model FileObject {
   @@index([tenantId, createdAt])
   @@index([providerId])
   @@map("app_files")
+}
+
+/// 通知公告主体。source=platform 的记录面向全部租户，tenantId 为 NULL；
+/// source=tenant 的记录归属单个租户，租户端只能读写本租户记录。
+model Notification {
+  id          BigInt    @id @default(autoincrement())
+  source      String    @db.VarChar(20)
+  tenantId    BigInt?   @map("tenant_id")
+  type        String    @db.VarChar(20)
+  title       String    @db.VarChar(100)
+  contentHtml String    @map("content_html") @db.Text
+  isActive    Boolean   @default(true) @map("is_active")
+  publishAt   DateTime? @map("publish_at") @db.Timestamptz(6)
+  expireAt    DateTime? @map("expire_at") @db.Timestamptz(6)
+  creatorId   BigInt    @map("creator_id")
+  creatorName String    @map("creator_name") @db.VarChar(100)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant      Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  targetTenants NotificationTargetTenant[]
+  targetMembers NotificationTargetMember[]
+  reads         NotificationRead[]
+
+  @@index([source, tenantId, createdAt])
+  @@index([tenantId, type, createdAt])
+  @@map("app_notifications")
+}
+
+/// 平台通知定向到指定租户。公告不使用该表，表示全部租户。
+model NotificationTargetTenant {
+  notificationId BigInt @map("notification_id")
+  tenantId       BigInt @map("tenant_id")
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([notificationId, tenantId])
+  @@index([tenantId])
+  @@map("app_notification_target_tenants")
+}
+
+/// 租户通知定向到指定成员。公告不使用该表，表示全部成员。
+model NotificationTargetMember {
+  notificationId BigInt @map("notification_id")
+  userId         BigInt @map("user_id")
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([notificationId, userId])
+  @@index([userId])
+  @@map("app_notification_target_members")
+}
+
+/// 每个用户对每条消息的已读状态。
+model NotificationRead {
+  notificationId BigInt   @map("notification_id")
+  userId         BigInt   @map("user_id")
+  readAt         DateTime @default(now()) @map("read_at") @db.Timestamptz(6)
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([notificationId, userId])
+  @@index([userId, readAt])
+  @@map("app_notification_reads")
 }

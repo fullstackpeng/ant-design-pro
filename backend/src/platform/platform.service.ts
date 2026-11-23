@@ -77,10 +77,12 @@ export class PlatformService {
       });
       // Default feature bundle for new tenants; sample modules stay opt-in.
       await tx.tenantFeature.createMany({
-        data: ['members', 'files', 'mqtt'].map((featureCode) => ({
-          tenantId: created.id,
-          featureCode,
-        })),
+        data: ['members', 'files', 'mqtt', 'notifications'].map(
+          (featureCode) => ({
+            tenantId: created.id,
+            featureCode,
+          }),
+        ),
         skipDuplicates: true,
       });
       return created;

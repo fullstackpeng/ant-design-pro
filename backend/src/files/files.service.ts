@@ -171,24 +171,73 @@ export class FilesService {
   }
 
   async uploadSiteAsset(session: SessionContext, file?: UploadedFile) {
+    this.assertBitmap(file, '站点图片');
+    const created = await this.save(session, file, null, 'public');
+    return success({
+      id: created.id.toString(),
+      url: `/api/site-assets/${created.id}`,
+    });
+  }
+
+  /** 编辑器图片：平台资产 tenantId=null，租户资产归属当前租户。 */
+  async uploadNotificationAsset(
+    session: SessionContext,
+    file: UploadedFile | undefined,
+    platform: boolean,
+  ) {
+    this.assertBitmap(file, '正文图片');
+    const created = await this.save(
+      session,
+      file,
+      platform ? null : tenantId(session),
+      'notification',
+    );
+    return success({
+      id: created.id.toString(),
+      url: `/api/notification-assets/${created.id}`,
+    });
+  }
+
+  async notificationAssetUrl(session: SessionContext, file: string) {
+    const row = await this.prisma.fileObject.findFirst({
+      where: {
+        id: id(file),
+        visibility: 'notification',
+        OR: [
+          { tenantId: null },
+          { tenantId: session.tenant ? tenantId(session) : null },
+        ],
+      },
+      select: { objectKey: true, providerId: true },
+    });
+    if (!row)
+      throw new NotFoundException({
+        success: false,
+        errorMessage: '图片不存在',
+      });
+    const provider = await this.providers.providerById(row.providerId);
+    return this.providers
+      .driver(provider)
+      .signDownload(row.objectKey, DOWNLOAD_URL_TTL_SECONDS);
+  }
+
+  private assertBitmap(
+    file: UploadedFile | undefined,
+    label: string,
+  ): asserts file is UploadedFile {
     if (
       !file?.mimetype.startsWith('image/') ||
       file.mimetype === 'image/svg+xml'
     )
       throw new BadRequestException({
         success: false,
-        errorMessage: '站点图片仅支持 PNG、JPEG、GIF、WebP 等位图格式',
+        errorMessage: `${label}仅支持 PNG、JPEG、GIF、WebP 等位图格式`,
       });
     if (file.size > MAX_SITE_ASSET_BYTES)
       throw new BadRequestException({
         success: false,
-        errorMessage: '站点图片不能超过 10 MB',
+        errorMessage: `${label}不能超过 10 MB`,
       });
-    const created = await this.save(session, file, null, 'public');
-    return success({
-      id: created.id.toString(),
-      url: `/api/site-assets/${created.id}`,
-    });
   }
 
   async publicAssetUrl(file: string) {
@@ -276,7 +325,7 @@ export class FilesService {
     session: SessionContext,
     file: UploadedFile | undefined,
     tenant: bigint | null,
-    visibility: 'private' | 'public',
+    visibility: 'private' | 'public' | 'notification',
   ) {
     if (!file)
       throw new BadRequestException({

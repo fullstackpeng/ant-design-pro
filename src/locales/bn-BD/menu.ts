@@ -85,4 +85,11 @@ export default {
   'menu.editor.flow': 'ফ্লো এডিটর',
   'menu.editor.mind': 'মাইন্ড এডিটর',
   'menu.editor.koni': 'কোনি সম্পাদক',
+  'menu.platform-notifications': 'বিজ্ঞাপন',
+  'menu.platform.notifications': 'বিজ্ঞাপন',
+  'menu.message-center': 'বার্তা কেন্দ্র',
+  'menu.tenant-notifications': 'বিজ্ঞাপন ব্যবস্থাপনা',
+  'menu.tenant.notifications': 'বিজ্ঞাপন ব্যবস্থাপনা',
+  'menu.inbox': 'আমার বার্তা',
+  'menu.message-center.inbox': 'আমার বার্তা',
 };

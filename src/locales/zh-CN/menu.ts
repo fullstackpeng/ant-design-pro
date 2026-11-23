@@ -85,4 +85,11 @@ export default {
   'menu.editor.mind': '脑图编辑器',
   'menu.editor.koni': '拓扑编辑器',
   'menu.chatbot': 'AI 助手',
+  'menu.platform-notifications': '通知公告',
+  'menu.platform.notifications': '通知公告',
+  'menu.message-center': '消息中心',
+  'menu.tenant-notifications': '通知公告管理',
+  'menu.tenant.notifications': '通知公告管理',
+  'menu.inbox': '我的消息',
+  'menu.message-center.inbox': '我的消息',
 };

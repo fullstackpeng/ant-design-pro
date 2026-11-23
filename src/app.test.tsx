@@ -53,6 +53,7 @@ vi.mock('@/components', () => ({
   ErrorBoundary: ({ children }: any) => children,
   Footer: () => null,
   LangDropdown: () => null,
+  NotificationBell: () => null,
   OfflineBanner: () => null,
   VersionDropdown: () => null,
 }));

@@ -68,6 +68,12 @@ export const registeredPages: RegisteredPage[] = [
   ),
   page('platform-users', '/platform/users', '用户管理', 'platform'),
   page(
+    'platform-notifications',
+    '/platform/notifications',
+    '通知公告',
+    'platform',
+  ),
+  page(
     'platform-storage-providers',
     '/platform/storage-providers',
     '存储服务商',
@@ -232,6 +238,22 @@ export const registeredPages: RegisteredPage[] = [
     permissionCode: 'chatbot:view',
     defaultMemberAccess: true,
   }),
+  page(
+    'tenant-notifications',
+    '/message-center/notifications',
+    '通知公告管理',
+    'tenant',
+    {
+      featureCode: 'notifications',
+      minRole: 'admin',
+      permissionCode: 'notifications:read',
+    },
+  ),
+  page('notifications-inbox', '/message-center/inbox', '我的消息', 'tenant', {
+    featureCode: 'notifications',
+    permissionCode: 'notifications:inbox:read',
+    defaultMemberAccess: true,
+  }),
 ];
 
 export const directoryPaths = [
@@ -244,4 +266,5 @@ export const directoryPaths = [
   '/profile',
   '/result',
   '/account',
+  '/message-center',
 ];

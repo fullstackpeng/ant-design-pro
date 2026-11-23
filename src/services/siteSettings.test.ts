@@ -12,13 +12,17 @@ beforeEach(() => {
   vi.resetModules();
   vi.clearAllMocks();
   preferences = new Map();
-  vi.stubGlobal('window', {
-    localStorage: {
-      getItem: (key: string) => preferences.get(key) ?? null,
-      setItem: (key: string, value: string) => preferences.set(key, value),
-      removeItem: (key: string) => preferences.delete(key),
-    },
-  });
+  const localStorage = {
+    getItem: (key: string) => preferences.get(key) ?? null,
+    setItem: (key: string, value: string) => preferences.set(key, value),
+    removeItem: (key: string) => preferences.delete(key),
+  };
+  if (typeof window === 'undefined') {
+    vi.stubGlobal('window', { localStorage });
+  } else {
+    // Browser mode cannot redefine `window`; stub only the storage it exposes.
+    vi.stubGlobal('localStorage', localStorage);
+  }
   changeLocale.mockImplementation((locale: string) =>
     preferences.set('umi_locale', locale),
   );

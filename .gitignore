@@ -9,6 +9,9 @@ _roadhog-api-doc
 # production
 /dist
 
+# self-hosted TinyMCE assets copied from node_modules
+/public/tinymce
+
 # misc
 .DS_Store
 npm-debug.log*

@@ -58,3 +58,17 @@ export class SiteAssetDto {
 export class SiteAssetResponseDto extends SuccessDto {
   @ApiProperty({ type: () => SiteAssetDto }) data!: SiteAssetDto;
 }
+
+export class NotificationAssetDto {
+  @ApiProperty({ type: String }) id!: string;
+  @ApiProperty({
+    example: '/api/notification-assets/1',
+    description: '可写入通知正文的稳定地址，需要登录会话访问',
+  })
+  url!: string;
+}
+
+export class NotificationAssetResponseDto extends SuccessDto {
+  @ApiProperty({ type: () => NotificationAssetDto })
+  data!: NotificationAssetDto;
+}

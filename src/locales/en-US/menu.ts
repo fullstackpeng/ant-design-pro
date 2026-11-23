@@ -85,4 +85,11 @@ export default {
   'menu.editor.mind': 'Mind Editor',
   'menu.editor.koni': 'Koni Editor',
   'menu.chatbot': 'AI Assistant',
+  'menu.platform-notifications': 'Notifications',
+  'menu.platform.notifications': 'Notifications',
+  'menu.message-center': 'Message Center',
+  'menu.tenant-notifications': 'Notification Management',
+  'menu.tenant.notifications': 'Notification Management',
+  'menu.inbox': 'My Messages',
+  'menu.message-center.inbox': 'My Messages',
 };

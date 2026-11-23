@@ -86,4 +86,11 @@ export default {
   'menu.editor.flow': 'Penyusun Alur',
   'menu.editor.mind': 'Penyusun Mind',
   'menu.editor.koni': 'Penyusun Koni',
+  'menu.platform-notifications': 'Notifikasi',
+  'menu.platform.notifications': 'Notifikasi',
+  'menu.message-center': 'Pusat Pesan',
+  'menu.tenant-notifications': 'Kelola Notifikasi',
+  'menu.tenant.notifications': 'Kelola Notifikasi',
+  'menu.inbox': 'Pesan Saya',
+  'menu.message-center.inbox': 'Pesan Saya',
 };

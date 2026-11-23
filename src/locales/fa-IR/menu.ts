@@ -85,4 +85,11 @@ export default {
   'menu.editor.flow': 'ویرایشگر جریان',
   'menu.editor.mind': 'ویرایشگر ذهن',
   'menu.editor.koni': 'ویرایشگر Koni',
+  'menu.platform-notifications': 'اعلان‌ها',
+  'menu.platform.notifications': 'اعلان‌ها',
+  'menu.message-center': 'مرکز پیام',
+  'menu.tenant-notifications': 'مدیریت اعلان‌ها',
+  'menu.tenant.notifications': 'مدیریت اعلان‌ها',
+  'menu.inbox': 'پیام‌های من',
+  'menu.message-center.inbox': 'پیام‌های من',
 };

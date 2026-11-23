@@ -16,6 +16,7 @@ import {
   ErrorBoundary,
   Footer,
   LangDropdown,
+  NotificationBell,
   OfflineBanner,
   VersionDropdown,
 } from '@/components';
@@ -37,6 +38,21 @@ export const locale = { getLocale: getSiteLocale };
 
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
+const CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
+  "style-src 'self' 'unsafe-inline'",
+  // 开发环境的对象存储（MinIO）是 http://127.0.0.1:8333，重定向后的签名地址
+  // 不属于 'self'，需要单独放行；生产环境使用 https 存储域名，已被 https: 覆盖。
+  `img-src 'self' data: blob: https:${isDev ? ' http://127.0.0.1:8333' : ''}`,
+  "font-src 'self' data: https://mdn.alipayobjects.com",
+  "connect-src 'self' ws: wss: https://www.google-analytics.com",
+  "frame-src 'self' blob:",
+  "worker-src 'self' blob:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ');
 
 /**
  * @see https://umijs.org/docs/api/runtime-config#getinitialstate
@@ -142,7 +158,11 @@ export const layout: RunTimeLayoutConfig = ({
       // `locale` prop is a locale string, so narrow to the boolean toggle here.
       const localeEnabled =
         (initialState?.settings as { locale?: boolean })?.locale !== false;
+      const canReadInbox = initialState?.navigation?.permissions.includes(
+        'notifications:inbox:read',
+      );
       return [
+        canReadInbox && <NotificationBell key="notifications" />,
         <DocLink key="doc" />,
         <VersionDropdown key="version" />,
         localeEnabled && <LangDropdown key="lang" />,
@@ -210,6 +230,10 @@ export const layout: RunTimeLayoutConfig = ({
       return (
         <>
           <Helmet>
+            <meta
+              httpEquiv="Content-Security-Policy"
+              content={CONTENT_SECURITY_POLICY}
+            />
             <title>
               {initialState?.siteSettings?.title ?? defaultSettings.title}
             </title>

@@ -142,6 +142,13 @@ export default [
         component: './management/platform-dictionaries',
       },
       {
+        path: '/platform/notifications',
+        name: 'platform-notifications',
+        icon: 'notification',
+        access: 'canPlatform',
+        component: './management/platform-notifications',
+      },
+      {
         path: '/platform/navigation',
         redirect: '/platform/navigation/platform',
       },
@@ -233,6 +240,26 @@ export default [
     name: 'tenant-mqtt-test',
     icon: 'api',
     component: './management/mqtt-test/tenant',
+  },
+  {
+    path: '/message-center',
+    name: 'message-center',
+    icon: 'mail',
+    routes: [
+      { path: '/message-center', redirect: '/message-center/inbox' },
+      {
+        path: '/message-center/notifications',
+        name: 'tenant-notifications',
+        icon: 'notification',
+        component: './management/notifications',
+      },
+      {
+        path: '/message-center/inbox',
+        name: 'inbox',
+        icon: 'inbox',
+        component: './message-center/inbox',
+      },
+    ],
   },
   {
     path: '/dashboard',

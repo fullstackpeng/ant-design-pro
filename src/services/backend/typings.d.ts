@@ -86,6 +86,20 @@ declare namespace BackendAPI {
     pageCode?: string;
   };
 
+  type CreateNotificationDto = {
+    type: "notice" | "announcement";
+    title: string;
+    /** TinyMCE 生成的 HTML，服务端会消毒 */
+    contentHtml: string;
+    isActive: boolean;
+    publishAt?: string;
+    expireAt?: string;
+    /** 平台通知定向到租户 ID；公告忽略该字段 */
+    targetTenantIds?: string[];
+    /** 租户通知定向到成员用户 ID；公告忽略该字段 */
+    targetUserIds?: string[];
+  };
+
   type CreatePlanDto = {
     name: string;
     maxMembers: number;
@@ -212,6 +226,11 @@ declare namespace BackendAPI {
     id: string;
   };
 
+  type deletePlatformNotificationParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
   type deleteRoleParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
@@ -223,6 +242,11 @@ declare namespace BackendAPI {
   };
 
   type deleteTenantMqttBrokerParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type deleteTenantNotificationParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
   };
@@ -392,8 +416,18 @@ declare namespace BackendAPI {
     code: string;
   };
 
+  type getNotificationAssetParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
   type getPlatformDictionaryParams = {
     code: string;
+  };
+
+  type getPlatformNotificationParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
   };
 
   type getSiteAssetParams = {
@@ -402,6 +436,11 @@ declare namespace BackendAPI {
   };
 
   type getTaskRunParams = {
+    id: string;
+  };
+
+  type getTenantNotificationParams = {
+    /** 64 位正整数 ID，以字符串传输 */
     id: string;
   };
 
@@ -424,6 +463,13 @@ declare namespace BackendAPI {
     id: string;
   };
 
+  type InboxQueryDto = {
+    current?: number;
+    pageSize?: number;
+    type?: "notice" | "announcement";
+    status?: "all" | "unread" | "read";
+  };
+
   type listDictionariesParams = {
     current?: number;
     pageSize?: number;
@@ -441,6 +487,13 @@ declare namespace BackendAPI {
     pageSize?: number;
     /** 文件名，支持包含匹配 */
     keyword?: string;
+  };
+
+  type listInboxNotificationsParams = {
+    current?: number;
+    pageSize?: number;
+    type?: "notice" | "announcement";
+    status?: "all" | "unread" | "read";
   };
 
   type listLoginTenantsParams = {
@@ -490,6 +543,13 @@ declare namespace BackendAPI {
     tenant?: string;
   };
 
+  type listPlatformNotificationsParams = {
+    current?: number;
+    pageSize?: number;
+    type?: "notice" | "announcement";
+    keyword?: string;
+  };
+
   type listScheduledTasksParams = {
     current?: number;
     pageSize?: number;
@@ -516,6 +576,13 @@ declare namespace BackendAPI {
       | "timed_out"
       | "skipped";
     taskId?: string;
+  };
+
+  type listTenantNotificationsParams = {
+    current?: number;
+    pageSize?: number;
+    type?: "notice" | "announcement";
+    keyword?: string;
   };
 
   type listTenantsParams = {
@@ -702,6 +769,55 @@ declare namespace BackendAPI {
     data: NavigationDto;
   };
 
+  type NotificationAssetDto = {
+    id: string;
+    /** 可写入通知正文的稳定地址，需要登录会话访问 */
+    url: string;
+  };
+
+  type NotificationAssetResponseDto = {
+    success: true;
+    data: NotificationAssetDto;
+  };
+
+  type NotificationDetailResponseDto = {
+    success: true;
+    data: NotificationDto;
+  };
+
+  type NotificationDto = {
+    id: string;
+    source: "platform" | "tenant";
+    type: "notice" | "announcement";
+    title: string;
+    /** 已消毒的 HTML */
+    contentHtml: string;
+    isActive: boolean;
+    publishAt?: string | null;
+    expireAt?: string | null;
+    readAt?: string | null;
+    targetTenantIds: string[];
+    targetUserIds: string[];
+    creatorName: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+
+  type NotificationListResponseDto = {
+    success: true;
+    data: NotificationDto[];
+    total: number;
+    /** 符合筛选条件的未读总数 */
+    unreadTotal: number;
+  };
+
+  type NotificationQueryDto = {
+    current?: number;
+    pageSize?: number;
+    type?: "notice" | "announcement";
+    keyword?: string;
+  };
+
   type PaginationQueryDto = {
     current?: number;
     pageSize?: number;
@@ -853,6 +969,11 @@ declare namespace BackendAPI {
   type PublicSiteSettingsResponseDto = {
     success: true;
     data: PublicSiteSettingsDto;
+  };
+
+  type readNotificationParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
   };
 
   type RegisteredPageDto = {
@@ -1406,6 +1527,11 @@ declare namespace BackendAPI {
     id: string;
   };
 
+  type updatePlatformNotificationParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
   type UpdateRoleDto = {
     name: string;
     permissions: string[];
@@ -1497,6 +1623,11 @@ declare namespace BackendAPI {
   };
 
   type updateTenantMqttBrokerParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type updateTenantNotificationParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
   };

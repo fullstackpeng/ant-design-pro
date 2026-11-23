@@ -2,6 +2,7 @@ import component from './zh-CN/component';
 import globalHeader from './zh-CN/globalHeader';
 import management from './zh-CN/management';
 import menu from './zh-CN/menu';
+import messageCenter from './zh-CN/messageCenter';
 import network from './zh-CN/network';
 import pages from './zh-CN/pages';
 import settingDrawer from './zh-CN/settingDrawer';
@@ -17,6 +18,7 @@ export default {
   ...pages,
   ...globalHeader,
   ...menu,
+  ...messageCenter,
   ...settingDrawer,
   ...settings,
   ...network,

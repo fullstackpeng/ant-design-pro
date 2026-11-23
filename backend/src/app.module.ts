@@ -10,6 +10,7 @@ import { DictionariesModule } from './dictionaries/dictionaries.module.js';
 import { FilesModule } from './files/files.module.js';
 import { MqttModule } from './mqtt/mqtt.module.js';
 import { NavigationModule } from './navigation/navigation.module.js';
+import { NotificationsModule } from './notifications/notifications.module.js';
 import { PlatformModule } from './platform/platform.module.js';
 import { QueueModule } from './queue/queue.module.js';
 import { RealtimeModule } from './realtime/realtime.module.js';
@@ -38,6 +39,7 @@ class AppController {
     DictionariesModule,
     StorageModule,
     FilesModule,
+    NotificationsModule,
     MqttModule,
     QueueModule,
     RealtimeModule,

@@ -85,4 +85,11 @@ export default {
   'menu.editor.flow': 'フローエディタ',
   'menu.editor.mind': 'マインドエディター',
   'menu.editor.koni': 'コニエディター',
+  'menu.platform-notifications': '通知・お知らせ',
+  'menu.platform.notifications': '通知・お知らせ',
+  'menu.message-center': 'メッセージセンター',
+  'menu.tenant-notifications': '通知管理',
+  'menu.tenant.notifications': '通知管理',
+  'menu.inbox': '受信箱',
+  'menu.message-center.inbox': '受信箱',
 };

@@ -85,4 +85,11 @@ export default {
   'menu.editor.flow': '流程編輯器',
   'menu.editor.mind': '腦圖編輯器',
   'menu.editor.koni': '拓撲編輯器',
+  'menu.platform-notifications': '通知公告',
+  'menu.platform.notifications': '通知公告',
+  'menu.message-center': '消息中心',
+  'menu.tenant-notifications': '通知公告管理',
+  'menu.tenant.notifications': '通知公告管理',
+  'menu.inbox': '我的消息',
+  'menu.message-center.inbox': '我的消息',
 };
