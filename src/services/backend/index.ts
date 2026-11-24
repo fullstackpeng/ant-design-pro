@@ -3,6 +3,7 @@
 // API 更新时间：
 // API 唯一标识：
 import * as health from "./health";
+import * as audit from "./audit";
 import * as auth from "./auth";
 import * as account from "./account";
 import * as storage from "./storage";
@@ -22,6 +23,7 @@ import * as notifications from "./notifications";
 import * as scheduledTasks from "./scheduledTasks";
 export default {
   health,
+  audit,
   auth,
   account,
   storage,

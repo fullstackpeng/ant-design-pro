@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
+import { AuditCleanupService } from './audit/audit-cleanup.service.js';
 import { QueueProbeWorker } from './queue/queue-probe.worker.js';
 import { WorkerModule } from './queue/worker.module.js';
 import { TaskRuntimeService } from './scheduled-tasks/task-runtime.service.js';
@@ -22,6 +23,7 @@ async function bootstrap() {
       process.exitCode = 1;
       void app.close();
     });
+    app.get(AuditCleanupService).start();
   } catch (error) {
     await app.close();
     throw error;

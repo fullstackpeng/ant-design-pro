@@ -18,6 +18,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuditEndpoint } from '../audit/audit-action.js';
 import { RequireScope } from '../auth/access-scope.decorator.js';
 import { CurrentSession } from '../auth/current-session.decorator.js';
 import type { SessionContext } from '../auth/session-context.js';
@@ -37,6 +38,7 @@ import { RolesService } from './roles.service.js';
 @ApiExtraModels(IdParamDto)
 export class RolesController {
   constructor(@Inject(RolesService) private readonly roles: RolesService) {}
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('roles')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({ operationId: 'listRoles', summary: '查询当前租户角色' })
@@ -46,6 +48,7 @@ export class RolesController {
   ): Promise<RoleListResponseDto> {
     return this.roles.list(session);
   }
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('permissions')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -58,6 +61,7 @@ export class RolesController {
   ): Promise<PermissionListResponseDto> {
     return this.roles.catalog(session);
   }
+  @AuditEndpoint({ event: 'roles.create', name: '新增角色' })
   @Post('roles')
   @ApiOperation({ operationId: 'createRole', summary: '创建租户角色' })
   @ApiBody({ type: CreateRoleDto })
@@ -68,6 +72,7 @@ export class RolesController {
   ): Promise<EmptyResponseDto> {
     return this.roles.create(session, body);
   }
+  @AuditEndpoint({ event: 'roles.update', name: '修改角色权限' })
   @Patch('roles/:id')
   @ApiOperation({ operationId: 'updateRole', summary: '修改租户角色与权限' })
   @ApiBody({ type: UpdateRoleDto })
@@ -79,6 +84,7 @@ export class RolesController {
   ): Promise<EmptyResponseDto> {
     return this.roles.update(session, params.id, body);
   }
+  @AuditEndpoint({ event: 'roles.delete', name: '删除角色' })
   @Delete('roles/:id')
   @ApiOperation({ operationId: 'deleteRole', summary: '删除未分配的租户角色' })
   @ApiOkResponse({ type: EmptyResponseDto })

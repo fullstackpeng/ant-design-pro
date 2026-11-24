@@ -1,4 +1,5 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { AuditAction } from '../audit/audit-action.js';
 import type { SessionContext } from '../auth/session-context.js';
 import { id, success, tenantId } from '../common/validation.js';
 import { PrismaService } from '../database/prisma.service.js';
@@ -29,6 +30,11 @@ export class PositionsService {
     );
   }
 
+  @AuditAction({
+    event: 'positions.create',
+    name: '新增岗位',
+    entity: 'tenantPosition',
+  })
   async create(session: SessionContext, body: CreatePositionDto) {
     const tenant = tenantId(session);
     await transaction(this.prisma, async (tx) => {
@@ -38,6 +44,12 @@ export class PositionsService {
     return success(null);
   }
 
+  @AuditAction({
+    event: 'positions.update',
+    name: '修改岗位',
+    targetArg: 1,
+    entity: 'tenantPosition',
+  })
   async update(
     session: SessionContext,
     entityId: string,
@@ -74,6 +86,12 @@ export class PositionsService {
       });
   }
 
+  @AuditAction({
+    event: 'positions.delete',
+    name: '删除岗位',
+    targetArg: 1,
+    entity: 'tenantPosition',
+  })
   async remove(session: SessionContext, entityId: string) {
     const tenant = tenantId(session);
     await transaction(this.prisma, async (tx) => {

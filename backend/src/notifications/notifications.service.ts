@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import sanitizeHtml from 'sanitize-html';
+import { AuditAction } from '../audit/audit-action.js';
 import type { SessionContext } from '../auth/session-context.js';
 import {
   pagination,
@@ -378,10 +379,21 @@ export class NotificationsService {
     return { success: true as const, data: null };
   }
 
+  @AuditAction({
+    event: 'platform-notifications.create',
+    name: '创建平台通知',
+    entity: 'notification',
+  })
   createPlatform(session: SessionContext, body: CreateNotificationDto) {
     return this.write(session, body, 'platform', undefined);
   }
 
+  @AuditAction({
+    event: 'platform-notifications.update',
+    name: '修改平台通知',
+    targetArg: 1,
+    entity: 'notification',
+  })
   updatePlatform(
     session: SessionContext,
     value: string,
@@ -390,10 +402,21 @@ export class NotificationsService {
     return this.write(session, body, 'platform', undefined, value);
   }
 
+  @AuditAction({
+    event: 'notifications.create',
+    name: '创建租户通知',
+    entity: 'notification',
+  })
   createTenant(session: SessionContext, body: CreateNotificationDto) {
     return this.write(session, body, 'tenant', sessionTenantId(session));
   }
 
+  @AuditAction({
+    event: 'notifications.update',
+    name: '修改租户通知',
+    targetArg: 1,
+    entity: 'notification',
+  })
   updateTenant(
     session: SessionContext,
     value: string,
@@ -402,6 +425,12 @@ export class NotificationsService {
     return this.write(session, body, 'tenant', sessionTenantId(session), value);
   }
 
+  @AuditAction({
+    event: 'notifications.delete',
+    name: '删除通知',
+    targetArg: 0,
+    entity: 'notification',
+  })
   async remove(
     value: string,
     source: NotificationSource,
@@ -484,6 +513,12 @@ export class NotificationsService {
     };
   }
 
+  @AuditAction({
+    event: 'inbox.read',
+    name: '标记消息已读',
+    targetArg: 1,
+    entity: 'notificationRead',
+  })
   async markRead(session: SessionContext, value: string) {
     const userId = parseId(session.userid);
     const where: Prisma.NotificationWhereInput = {
@@ -506,6 +541,11 @@ export class NotificationsService {
     return { success: true as const, data: null };
   }
 
+  @AuditAction({
+    event: 'inbox.read-all',
+    name: '标记全部消息已读',
+    entity: 'notificationRead',
+  })
   async markAllRead(session: SessionContext) {
     const userId = parseId(session.userid);
     const rows = await this.prisma.notification.findMany({

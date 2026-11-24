@@ -19,6 +19,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuditEndpoint } from '../audit/audit-action.js';
 import { RequireScope } from '../auth/access-scope.decorator.js';
 import { CurrentSession } from '../auth/current-session.decorator.js';
 import type { SessionContext } from '../auth/session-context.js';
@@ -55,6 +56,7 @@ export class ScheduledTasksController {
     private readonly tasks: ScheduledTasksService,
   ) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get()
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -66,6 +68,7 @@ export class ScheduledTasksController {
     return this.tasks.list(query);
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('handlers')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -77,6 +80,7 @@ export class ScheduledTasksController {
     return this.tasks.handlers();
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('runs')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -88,6 +92,7 @@ export class ScheduledTasksController {
     return this.tasks.runs(query);
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('runs/:id')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({ operationId: 'getTaskRun', summary: '执行详情与配置快照' })
@@ -96,6 +101,7 @@ export class ScheduledTasksController {
     return this.tasks.run(params.id);
   }
 
+  @AuditEndpoint({ event: 'tasks.rerun', name: '重跑任务' })
   @Post('runs/:id/rerun')
   @ApiOperation({
     operationId: 'rerunTask',
@@ -106,6 +112,7 @@ export class ScheduledTasksController {
     return this.tasks.rerun(actor, params.id);
   }
 
+  @AuditEndpoint({ event: 'tasks.create', name: '创建定时任务' })
   @Post()
   @ApiBody({ type: CreateTaskDto })
   @ApiOperation({ operationId: 'createScheduledTask', summary: '创建平台任务' })
@@ -114,6 +121,7 @@ export class ScheduledTasksController {
     return this.tasks.create(actor, body);
   }
 
+  @AuditEndpoint({ event: 'tasks.update', name: '修改定时任务' })
   @Patch(':id')
   @ApiBody({ type: UpdateTaskDto })
   @ApiOperation({
@@ -129,6 +137,7 @@ export class ScheduledTasksController {
     return this.tasks.update(actor, BigInt(params.id), body);
   }
 
+  @AuditEndpoint({ event: 'tasks.enable', name: '修改任务启用状态' })
   @Patch(':id/enabled')
   @ApiBody({ type: TaskEnabledDto })
   @ApiOperation({
@@ -144,6 +153,7 @@ export class ScheduledTasksController {
     return this.tasks.enable(actor, BigInt(params.id), body);
   }
 
+  @AuditEndpoint({ event: 'tasks.delete', name: '删除定时任务' })
   @Delete(':id')
   @ApiBody({ type: RevisionDto })
   @ApiOperation({
@@ -159,6 +169,7 @@ export class ScheduledTasksController {
     return this.tasks.remove(actor, BigInt(params.id), body);
   }
 
+  @AuditEndpoint({ event: 'tasks.trigger', name: '手动触发任务' })
   @Post(':id/trigger')
   @ApiBody({ type: RevisionDto })
   @ApiOperation({

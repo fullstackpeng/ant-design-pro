@@ -5,6 +5,7 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
+import { AuditAction } from '../audit/audit-action.js';
 import { AuthorizationService } from '../auth/authorization.service.js';
 import { directoryPaths, registeredPages } from '../auth/page-registry.js';
 import type { SessionContext } from '../auth/session-context.js';
@@ -125,6 +126,7 @@ export class NavigationService {
     }
   }
 
+  @AuditAction({ event: 'menus.create', name: '创建菜单', entity: 'menu' })
   async createMenu(body: CreateMenuDto) {
     const page =
       body.kind === 'page'
@@ -175,6 +177,12 @@ export class NavigationService {
     return this.authorization.featureCodes(tenant);
   }
 
+  @AuditAction({
+    event: 'features.assign',
+    name: '分配租户功能',
+    targetArg: 0,
+    entity: 'tenantFeature',
+  })
   async assignFeatures(tenant: string, codes: string[]) {
     const tenantId = id(tenant);
     await transaction(this.prisma, async (tx) => {
@@ -193,6 +201,12 @@ export class NavigationService {
     return [...codes].sort();
   }
 
+  @AuditAction({
+    event: 'menus.update',
+    name: '修改菜单',
+    targetArg: 0,
+    entity: 'menu',
+  })
   async updateMenu(code: string, body: UpdateMenuDto) {
     return this.menuDto(
       await transaction(this.prisma, async (tx) => {
@@ -225,6 +239,12 @@ export class NavigationService {
     );
   }
 
+  @AuditAction({
+    event: 'menus.delete',
+    name: '删除菜单',
+    targetArg: 0,
+    entity: 'menu',
+  })
   async deleteMenu(code: string) {
     await transaction(this.prisma, async (tx) => {
       const menu = await tx.menu.findUniqueOrThrow({ where: { code } });

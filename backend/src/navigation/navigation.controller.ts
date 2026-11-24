@@ -18,6 +18,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuditEndpoint } from '../audit/audit-action.js';
 import { RequireScope } from '../auth/access-scope.decorator.js';
 import { CurrentSession } from '../auth/current-session.decorator.js';
 import type { SessionContext } from '../auth/session-context.js';
@@ -46,6 +47,7 @@ export class NavigationController {
     @Inject(NavigationService) private readonly navigation: NavigationService,
   ) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('current/navigation')
   @RequireScope('authenticated')
   @Header('Cache-Control', 'no-store')
@@ -60,6 +62,7 @@ export class NavigationController {
     return { success: true, data: await this.navigation.current(session) };
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('platform/features')
   @RequireScope('platform')
   @Header('Cache-Control', 'no-store')
@@ -69,6 +72,7 @@ export class NavigationController {
     return { success: true, data: await this.navigation.features() };
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('platform/menus')
   @RequireScope('platform')
   @Header('Cache-Control', 'no-store')
@@ -78,6 +82,7 @@ export class NavigationController {
     return { success: true, data: await this.navigation.menus() };
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('platform/pages')
   @RequireScope('platform')
   @Header('Cache-Control', 'no-store')
@@ -90,6 +95,7 @@ export class NavigationController {
     return { success: true, data: this.navigation.pages() };
   }
 
+  @AuditEndpoint({ event: 'menus.create', name: '创建菜单' })
   @Post('platform/menus')
   @RequireScope('platform')
   @ApiOperation({
@@ -102,6 +108,7 @@ export class NavigationController {
     return { success: true, data: [await this.navigation.createMenu(body)] };
   }
 
+  @AuditEndpoint({ event: 'menus.delete', name: '删除菜单' })
   @Delete('platform/menus/:code')
   @RequireScope('platform')
   @ApiOperation({
@@ -114,6 +121,7 @@ export class NavigationController {
     return { success: true, data: null };
   }
 
+  @AuditEndpoint({ event: 'menus.update', name: '修改菜单' })
   @Patch('platform/menus/:code')
   @RequireScope('platform')
   @ApiOperation({
@@ -132,6 +140,7 @@ export class NavigationController {
     };
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('platform/tenants/:id/features')
   @RequireScope('platform')
   @Header('Cache-Control', 'no-store')
@@ -149,6 +158,7 @@ export class NavigationController {
     };
   }
 
+  @AuditEndpoint({ event: 'features.assign', name: '分配租户功能' })
   @Patch('platform/tenants/:id/features')
   @RequireScope('platform')
   @ApiOperation({

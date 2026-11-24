@@ -1,4 +1,5 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { AuditAction } from '../audit/audit-action.js';
 import type { SessionContext } from '../auth/session-context.js';
 import type { PaginationQueryDto } from '../common/dto/request.dto.js';
 import { id, json, pagination, success } from '../common/validation.js';
@@ -50,6 +51,11 @@ export class SettingsService {
     );
   }
 
+  @AuditAction({
+    event: 'settings.update',
+    name: '修改系统配置',
+    entity: 'siteSettings',
+  })
   async update(session: SessionContext, body: UpdateSiteSettingsDto) {
     return success(
       await transaction(this.prisma, async (tx) => {

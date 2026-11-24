@@ -1,4 +1,5 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { AuditAction } from '../audit/audit-action.js';
 import {
   availablePermissions,
   validatePermissions,
@@ -68,6 +69,11 @@ export class RolesService {
     );
   }
 
+  @AuditAction({
+    event: 'roles.create',
+    name: '新增角色',
+    entity: 'tenantRole',
+  })
   async create(session: SessionContext, body: CreateRoleDto) {
     const tenant = tenantId(session);
     await transaction(this.prisma, async (tx) => {
@@ -83,6 +89,12 @@ export class RolesService {
     return success(null);
   }
 
+  @AuditAction({
+    event: 'roles.update',
+    name: '修改角色权限',
+    targetArg: 1,
+    entity: 'tenantRole',
+  })
   async update(session: SessionContext, roleId: string, body: UpdateRoleDto) {
     const tenant = tenantId(session);
     await transaction(this.prisma, async (tx) => {
@@ -124,6 +136,12 @@ export class RolesService {
       });
   }
 
+  @AuditAction({
+    event: 'roles.delete',
+    name: '删除角色',
+    targetArg: 1,
+    entity: 'tenantRole',
+  })
   async remove(session: SessionContext, roleId: string) {
     await transaction(this.prisma, async (tx) => {
       const tenant = tenantId(session);

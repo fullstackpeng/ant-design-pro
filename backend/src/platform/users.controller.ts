@@ -18,6 +18,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuditEndpoint } from '../audit/audit-action.js';
 import { RequireScope } from '../auth/access-scope.decorator.js';
 import { IdParamDto } from '../common/dto/request.dto.js';
 import { ApiErrors, EmptyResponseDto } from '../common/dto/response.dto.js';
@@ -37,6 +38,7 @@ import { UsersService } from './users.service.js';
 @ApiExtraModels(IdParamDto, UserQueryDto)
 export class UsersController {
   constructor(@Inject(UsersService) private readonly users: UsersService) {}
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get()
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -47,6 +49,7 @@ export class UsersController {
   list(@Query() query: UserQueryDto): Promise<UserListResponseDto> {
     return this.users.list(query);
   }
+  @AuditEndpoint({ event: 'users.create', name: '创建账号' })
   @Post()
   @ApiOperation({ operationId: 'createUser', summary: '创建普通全局账号' })
   @ApiBody({ type: CreateUserDto })
@@ -54,6 +57,7 @@ export class UsersController {
   create(@Body() body: CreateUserDto): Promise<EmptyResponseDto> {
     return this.users.create(body);
   }
+  @AuditEndpoint({ event: 'users.update', name: '修改账号' })
   @Patch(':id')
   @ApiOperation({
     operationId: 'updateUser',
@@ -67,6 +71,7 @@ export class UsersController {
   ): Promise<EmptyResponseDto> {
     return this.users.update(params.id, body);
   }
+  @AuditEndpoint({ event: 'users.password.reset', name: '重置账号密码' })
   @Post(':id/password')
   @ApiOperation({
     operationId: 'resetUserPassword',

@@ -87,6 +87,71 @@ declare namespace BackendAPI {
     id: string;
   };
 
+  type AuditLogDto = {
+    id: string;
+    eventId: string;
+    eventCode: string;
+    module: string;
+    action: string;
+    scope: string;
+    tenantId: string | null;
+    tenantCode: string;
+    tenantName: string;
+    actorId: string | null;
+    actorName: string;
+    targetTenantId: string | null;
+    targetType: string;
+    targetId: string;
+    targetName: string;
+    result: string;
+    message: string;
+    requestId: string;
+    ip: string;
+    userAgent: string;
+    changes: Record<string, any>[];
+    createdAt: string;
+    attemptedAccount?: string;
+    attemptedTenant?: string;
+  };
+
+  type AuditLogListResponseDto = {
+    success: true;
+    data: AuditLogDto[];
+    total: number;
+  };
+
+  type AuditLogResponseDto = {
+    success: true;
+    data: AuditLogDto;
+  };
+
+  type AuditPolicyDto = {
+    operationDays: number;
+    loginDays: number;
+    revision: number;
+  };
+
+  type AuditPolicyResponseDto = {
+    success: true;
+    data: AuditPolicyDto;
+  };
+
+  type AuditQueryDto = {
+    current?: number;
+    pageSize?: number;
+    tenantId?: string;
+    actorName?: string;
+    module?: string;
+    eventCode?: string;
+    result?: "succeeded" | "failed" | "denied" | "accepted";
+    startAt?: string;
+    endAt?: string;
+    ip?: string;
+    attemptedAccount?: string;
+    attemptedTenant?: string;
+    requestId?: string;
+  };
+
   type ChangeAccountPasswordDto = {
     currentPassword: string;
     newPassword: string;
@@ -530,7 +595,17 @@ declare namespace BackendAPI {
     code: string;
   };
 
+  type getPlatformLoginLogParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
   type getPlatformNotificationParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type getPlatformOperationLogParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
   };
@@ -544,7 +619,17 @@ declare namespace BackendAPI {
     id: string;
   };
 
+  type getTenantLoginLogParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
   type getTenantNotificationParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type getTenantOperationLogParams = {
     /** 64 位正整数 ID，以字符串传输 */
     id: string;
   };
@@ -652,11 +737,43 @@ declare namespace BackendAPI {
     tenant?: string;
   };
 
+  type listPlatformLoginLogsParams = {
+    current?: number;
+    pageSize?: number;
+    tenantId?: string;
+    actorName?: string;
+    module?: string;
+    eventCode?: string;
+    result?: "succeeded" | "failed" | "denied" | "accepted";
+    startAt?: string;
+    endAt?: string;
+    ip?: string;
+    attemptedAccount?: string;
+    attemptedTenant?: string;
+    requestId?: string;
+  };
+
   type listPlatformNotificationsParams = {
     current?: number;
     pageSize?: number;
     type?: "notice" | "announcement";
     keyword?: string;
+  };
+
+  type listPlatformOperationLogsParams = {
+    current?: number;
+    pageSize?: number;
+    tenantId?: string;
+    actorName?: string;
+    module?: string;
+    eventCode?: string;
+    result?: "succeeded" | "failed" | "denied" | "accepted";
+    startAt?: string;
+    endAt?: string;
+    ip?: string;
+    attemptedAccount?: string;
+    attemptedTenant?: string;
+    requestId?: string;
   };
 
   type listScheduledTasksParams = {
@@ -687,11 +804,43 @@ declare namespace BackendAPI {
     taskId?: string;
   };
 
+  type listTenantLoginLogsParams = {
+    current?: number;
+    pageSize?: number;
+    tenantId?: string;
+    actorName?: string;
+    module?: string;
+    eventCode?: string;
+    result?: "succeeded" | "failed" | "denied" | "accepted";
+    startAt?: string;
+    endAt?: string;
+    ip?: string;
+    attemptedAccount?: string;
+    attemptedTenant?: string;
+    requestId?: string;
+  };
+
   type listTenantNotificationsParams = {
     current?: number;
     pageSize?: number;
     type?: "notice" | "announcement";
     keyword?: string;
+  };
+
+  type listTenantOperationLogsParams = {
+    current?: number;
+    pageSize?: number;
+    tenantId?: string;
+    actorName?: string;
+    module?: string;
+    eventCode?: string;
+    result?: "succeeded" | "failed" | "denied" | "accepted";
+    startAt?: string;
+    endAt?: string;
+    ip?: string;
+    attemptedAccount?: string;
+    attemptedTenant?: string;
+    requestId?: string;
   };
 
   type listTenantsParams = {
@@ -1556,6 +1705,12 @@ declare namespace BackendAPI {
 
   type UpdateAccountProfileDto = {
     name: string;
+  };
+
+  type UpdateAuditPolicyDto = {
+    operationDays: number;
+    loginDays: number;
+    revision: number;
   };
 
   type UpdateDepartmentDto = {

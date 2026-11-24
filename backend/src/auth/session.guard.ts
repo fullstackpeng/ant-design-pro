@@ -6,6 +6,11 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import {
+  AUDIT_ENDPOINT,
+  type AuditEndpointOptions,
+} from '../audit/audit-action.js';
+import { auditContext } from '../audit/audit-context.js';
 import { ACCESS_SCOPE, type AccessScope } from './access-scope.decorator.js';
 import { AuthService } from './auth.service.js';
 import { AuthorizationService } from './authorization.service.js';
@@ -24,6 +29,12 @@ export class SessionGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const audit = auditContext.getStore();
+    const endpoint = this.reflector.get<AuditEndpointOptions>(
+      AUDIT_ENDPOINT,
+      context.getHandler(),
+    );
+    if (audit && endpoint && 'event' in endpoint) audit.endpoint = endpoint;
     if (
       this.reflector.getAllAndOverride<boolean>(IS_PUBLIC, [
         context.getHandler(),
@@ -33,6 +44,7 @@ export class SessionGuard implements CanActivate {
       return true;
     const request = context.switchToHttp().getRequest<SessionRequest>();
     const session = await this.auth.currentUser(sessionToken(request));
+    if (audit) audit.session = session;
     const requestedTenant = request.headers['x-tenant-id'];
     if (
       requestedTenant !== undefined &&

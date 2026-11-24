@@ -34,6 +34,7 @@ jobs:
       - run: npm ci --prefix backend
       - run: npm run test:queue --prefix backend
       - run: npm run test:tasks --prefix backend
+      - run: npm run test:audit --prefix backend
 
   permissions:
     runs-on: ubuntu-latest

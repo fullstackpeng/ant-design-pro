@@ -18,6 +18,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuditEndpoint } from '../audit/audit-action.js';
 import { RequireScope } from '../auth/access-scope.decorator.js';
 import { CurrentSession } from '../auth/current-session.decorator.js';
 import { RequireFeature } from '../auth/require-feature.decorator.js';
@@ -59,6 +60,7 @@ export class DictionariesController {
     private readonly dictionaries: DictionariesService,
   ) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get()
   @RequirePermission('dictionaries:read')
   @Header('Cache-Control', 'no-store')
@@ -74,6 +76,7 @@ export class DictionariesController {
     return this.dictionaries.list(session, query);
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get(':code/history')
   @RequirePermission('dictionaries:read')
   @Header('Cache-Control', 'no-store')
@@ -95,6 +98,7 @@ export class DictionariesController {
   }
 
   // Reading options is available to all members of a tenant with the feature enabled.
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get(':code')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -109,6 +113,7 @@ export class DictionariesController {
     return this.dictionaries.detail(session, params.code);
   }
 
+  @AuditEndpoint({ event: 'dictionaries.create', name: '创建字典' })
   @Post()
   @RequirePermission('dictionaries:create')
   @ApiOperation({ operationId: 'createDictionary', summary: '创建字典类型' })
@@ -121,6 +126,7 @@ export class DictionariesController {
     return this.dictionaries.create(session, body);
   }
 
+  @AuditEndpoint({ event: 'dictionaries.update', name: '修改字典' })
   @Patch(':code')
   @RequirePermission('dictionaries:update')
   @ApiOperation({
@@ -137,6 +143,7 @@ export class DictionariesController {
     return this.dictionaries.update(session, params.code, body);
   }
 
+  @AuditEndpoint({ event: 'dictionaries.items.create', name: '新增字典项' })
   @Post(':code/items')
   @RequirePermission('dictionaries:create')
   @ApiOperation({ operationId: 'createDictionaryItem', summary: '创建字典项' })
@@ -150,6 +157,7 @@ export class DictionariesController {
     return this.dictionaries.createItem(session, params.code, body);
   }
 
+  @AuditEndpoint({ event: 'dictionaries.items.update', name: '修改字典项' })
   @Patch(':code/items/:id')
   @RequirePermission('dictionaries:update')
   @ApiOperation({

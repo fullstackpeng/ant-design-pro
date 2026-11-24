@@ -1,10 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import { UnrecoverableError } from 'bullmq';
+import { writeAudit } from '../audit/audit-action.js';
 import { json } from '../common/validation.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { transaction } from '../database/transaction.js';
-import type { Prisma } from '../generated/prisma/client.js';
+import type { Prisma, TaskRun } from '../generated/prisma/client.js';
 import { InternalExecutor } from './executors/internal.executor.js';
 import { taskError } from './task.persistence.js';
 import { type TaskSnapshot, terminalStatuses } from './task.types.js';
@@ -15,6 +16,61 @@ export class TaskExecutionService {
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(InternalExecutor) private readonly executor: InternalExecutor,
   ) {}
+
+  private async recordOutcome(
+    tx: Prisma.TransactionClient,
+    run: TaskRun,
+    status: string,
+  ) {
+    const tenant =
+      run.tenantId === null
+        ? null
+        : await tx.tenant.findUnique({
+            where: { id: run.tenantId },
+            select: { id: true, code: true, name: true },
+          });
+    await writeAudit(
+      tx,
+      { event: 'tasks.execution.finished', name: '定时任务执行结束' },
+      {
+        requestId: run.id,
+        ip: '',
+        userAgent: '',
+        ...(tenant
+          ? {
+              tenantContext: {
+                id: tenant.id.toString(),
+                code: tenant.code,
+                name: tenant.name,
+              },
+            }
+          : {}),
+        action: {
+          changes: [
+            {
+              entity: 'taskRun',
+              operation: status,
+              before: {},
+              after: {
+                id: run.id,
+                name: run.taskName,
+                taskId: run.taskId.toString(),
+                tenantId: run.tenantId?.toString() ?? null,
+                status,
+              },
+            },
+          ],
+        },
+      },
+      status === 'succeeded'
+        ? 'succeeded'
+        : status === 'skipped'
+          ? 'denied'
+          : 'failed',
+      status === 'succeeded' ? '' : '执行未成功，详见关联任务记录',
+      run.id,
+    );
+  }
 
   private async claim(id: string) {
     return transaction(this.prisma, async (tx) => {
@@ -47,6 +103,7 @@ export class TaskExecutionService {
             error: '任务禁用、删除或租户不可用',
           },
         });
+        await this.recordOutcome(tx, run, 'skipped');
         return { kind: 'done' as const };
       }
       const snapshot = run.snapshot as unknown as TaskSnapshot;
@@ -59,6 +116,7 @@ export class TaskExecutionService {
             error: '执行次数已达上限',
           },
         });
+        await this.recordOutcome(tx, run, 'failed');
         return { kind: 'done' as const };
       }
       const active = await tx.taskRun.count({
@@ -193,6 +251,7 @@ export class TaskExecutionService {
             error,
           },
         });
+      if (updated.count && !retry) await this.recordOutcome(tx, run, status);
       return updated.count;
     });
     if (!committed) throw new Error('执行结果未提交：租约已被其他实例接管');
@@ -228,6 +287,8 @@ export class TaskExecutionService {
             error: '执行进程中断或租约过期，副作用需通过业务幂等核查',
           },
         });
+        if (changed.count && !retry)
+          await this.recordOutcome(tx, run, 'failed');
         if (changed.count && run.leaseToken) {
           const attempt = await tx.taskAttempt.findUnique({
             where: { id: run.leaseToken },

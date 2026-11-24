@@ -17,6 +17,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuditEndpoint } from '../audit/audit-action.js';
 import { RequireScope } from '../auth/access-scope.decorator.js';
 import { IdParamDto } from '../common/dto/request.dto.js';
 import { ApiErrors, EmptyResponseDto } from '../common/dto/response.dto.js';
@@ -42,6 +43,7 @@ export class StorageController {
     private readonly providers: StorageProvidersService,
   ) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('protocols')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -53,6 +55,7 @@ export class StorageController {
     return this.providers.protocolsMeta();
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('providers')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -64,6 +67,7 @@ export class StorageController {
     return this.providers.list();
   }
 
+  @AuditEndpoint({ event: 'storage.create', name: '创建存储服务商' })
   @Post('providers')
   @ApiOperation({ operationId: 'createStorageProvider', summary: '新增服务商' })
   @ApiBody({ type: CreateStorageProviderDto })
@@ -72,6 +76,7 @@ export class StorageController {
     return this.providers.create(body);
   }
 
+  @AuditEndpoint({ event: 'storage.update', name: '修改存储服务商' })
   @Patch('providers/:id')
   @ApiOperation({ operationId: 'updateStorageProvider', summary: '修改服务商' })
   @ApiBody({ type: UpdateStorageProviderDto })
@@ -83,6 +88,7 @@ export class StorageController {
     return this.providers.update(params.id, body);
   }
 
+  @AuditEndpoint({ event: 'storage.default', name: '设置默认存储服务商' })
   @Post('providers/:id/default')
   @ApiOperation({
     operationId: 'setDefaultStorageProvider',
@@ -93,6 +99,7 @@ export class StorageController {
     return this.providers.setDefault(params.id);
   }
 
+  @AuditEndpoint({ event: 'storage.test', name: '测试存储连接' })
   @Post('providers/:id/test')
   @ApiOperation({
     operationId: 'testStorageProvider',

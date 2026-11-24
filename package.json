@@ -31,6 +31,7 @@
     "test": "vitest run",
     "test:unit": "vitest run --config vitest.unit.config.ts",
     "test:permissions": "npm --prefix backend run test:permissions",
+    "test:audit": "npm --prefix backend run test:audit",
     "test:routes": "node --experimental-strip-types tests/routes.test.mjs",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",

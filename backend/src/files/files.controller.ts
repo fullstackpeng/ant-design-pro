@@ -30,6 +30,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import type { Response } from 'express';
+import { AuditEndpoint } from '../audit/audit-action.js';
 import { RequireScope } from '../auth/access-scope.decorator.js';
 import { CurrentSession } from '../auth/current-session.decorator.js';
 import { Public } from '../auth/public.decorator.js';
@@ -97,6 +98,7 @@ const uploadBody = {
 export class TenantFilesController {
   constructor(@Inject(FilesService) private readonly files: FilesService) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get()
   @RequirePermission('files:read')
   @Header('Cache-Control', 'no-store')
@@ -109,6 +111,7 @@ export class TenantFilesController {
     return this.files.tenantList(session, query);
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('usage')
   @RequirePermission('files:read')
   @Header('Cache-Control', 'no-store')
@@ -120,6 +123,7 @@ export class TenantFilesController {
     return this.files.tenantUsage(session);
   }
 
+  @AuditEndpoint({ event: 'files.upload', name: '上传租户文件' })
   @Post()
   @RequirePermission('files:create')
   @UseFilters(UploadExceptionFilter)
@@ -135,6 +139,7 @@ export class TenantFilesController {
     return this.files.uploadTenant(session, file);
   }
 
+  @AuditEndpoint({ event: 'files.download', name: '获取租户文件下载地址' })
   @Get(':id/download')
   @RequirePermission('files:read')
   @Header('Cache-Control', 'no-store')
@@ -150,6 +155,7 @@ export class TenantFilesController {
     return this.files.tenantDownload(session, params.id);
   }
 
+  @AuditEndpoint({ event: 'files.delete', name: '删除租户文件' })
   @Delete(':id')
   @RequirePermission('files:delete')
   @ApiOperation({ operationId: 'deleteFile', summary: '删除文件' })
@@ -171,6 +177,7 @@ export class TenantFilesController {
 export class PlatformFilesController {
   constructor(@Inject(FilesService) private readonly files: FilesService) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get()
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -182,6 +189,7 @@ export class PlatformFilesController {
     return this.files.platformList(query);
   }
 
+  @AuditEndpoint({ event: 'platform-files.upload', name: '上传平台文件' })
   @Post()
   @UseFilters(UploadExceptionFilter)
   @UseInterceptors(FileInterceptor('file', uploadOptions))
@@ -199,6 +207,10 @@ export class PlatformFilesController {
     return this.files.uploadPlatform(session, file);
   }
 
+  @AuditEndpoint({
+    event: 'platform-files.download',
+    name: '获取平台文件下载地址',
+  })
   @Get(':id/download')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -210,6 +222,7 @@ export class PlatformFilesController {
     return this.files.platformDownload(params.id);
   }
 
+  @AuditEndpoint({ event: 'site-assets.upload', name: '上传站点资源' })
   @Post('site-assets')
   @UseFilters(UploadExceptionFilter)
   @UseInterceptors(FileInterceptor('file', uploadOptions))
@@ -227,6 +240,7 @@ export class PlatformFilesController {
     return this.files.uploadSiteAsset(session, file);
   }
 
+  @AuditEndpoint({ event: 'platform-files.delete', name: '删除平台文件' })
   @Delete(':id')
   @ApiOperation({
     operationId: 'deletePlatformFile',
@@ -244,6 +258,7 @@ export class PlatformFilesController {
 export class SiteAssetsController {
   constructor(@Inject(FilesService) private readonly files: FilesService) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get(':id')
   @Public()
   @ApiOperation({
@@ -270,6 +285,7 @@ export class SiteAssetsController {
 export class TenantNotificationImagesController {
   constructor(@Inject(FilesService) private readonly files: FilesService) {}
 
+  @AuditEndpoint({ event: 'notification-assets.upload', name: '上传通知图片' })
   @Post()
   @RequirePermission('notifications:create')
   @UseFilters(UploadExceptionFilter)
@@ -297,6 +313,7 @@ export class TenantNotificationImagesController {
 export class PlatformNotificationImagesController {
   constructor(@Inject(FilesService) private readonly files: FilesService) {}
 
+  @AuditEndpoint({ event: 'notification-assets.upload', name: '上传通知图片' })
   @Post()
   @UseFilters(UploadExceptionFilter)
   @UseInterceptors(FileInterceptor('file', uploadOptions))
@@ -325,6 +342,7 @@ export class PlatformNotificationImagesController {
 export class NotificationAssetsController {
   constructor(@Inject(FilesService) private readonly files: FilesService) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get(':id')
   @Header('Cache-Control', 'private, max-age=60')
   @ApiOperation({

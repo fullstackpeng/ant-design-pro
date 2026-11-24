@@ -110,6 +110,18 @@ export default [
         component: './management/users',
       },
       {
+        path: '/platform/audit/operation-logs',
+        name: 'audit-operation-logs',
+        access: 'canPlatform',
+        component: './management/audit',
+      },
+      {
+        path: '/platform/audit/login-logs',
+        name: 'audit-login-logs',
+        access: 'canPlatform',
+        component: './management/audit',
+      },
+      {
         path: '/platform/settings',
         name: 'settings',
         access: 'canPlatform',
@@ -205,6 +217,16 @@ export default [
     name: 'tenant-roles',
     icon: 'team',
     component: './management/roles',
+  },
+  {
+    path: '/tenant/audit/operation-logs',
+    name: 'audit-operation-logs',
+    component: './management/audit',
+  },
+  {
+    path: '/tenant/audit/login-logs',
+    name: 'audit-login-logs',
+    component: './management/audit',
   },
   {
     path: '/tenant/dictionaries',

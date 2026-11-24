@@ -339,6 +339,11 @@ test('platform scheduled tasks: authorization, isolation, execution and recovery
       assert.equal(run.status, 'succeeded');
       assert.equal((run.result as { message: string }).message, 'before');
       assert.equal(run.attempts.length, 1);
+      const auditEvents = await prisma.operationLog.findMany({
+        where: { eventCode: 'tasks.execution.finished', requestId: run.id },
+      });
+      assert.equal(auditEvents.length, 1);
+      assert.equal(auditEvents[0].result, 'succeeded');
       assert.equal((await call(`${root}/runs/${run.id}`)).status, 200);
       const filtered = await (
         await call(

@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
+import { AuditAction } from '../audit/audit-action.js';
 import { decryptSecrets, encryptSecrets } from '../common/secret-box.js';
 import { id, success } from '../common/validation.js';
 import { PrismaService } from '../database/prisma.service.js';
@@ -58,6 +59,11 @@ export class StorageProvidersService {
     return { success: true as const, data: this.protocols.list() };
   }
 
+  @AuditAction({
+    event: 'storage.create',
+    name: '创建存储服务商',
+    entity: 'storageProvider',
+  })
   async create(body: CreateStorageProviderDto) {
     const definition = this.protocols.require(body.protocol);
     definition.validate(body.config, body.secrets);
@@ -86,6 +92,12 @@ export class StorageProvidersService {
     return success(null);
   }
 
+  @AuditAction({
+    event: 'storage.update',
+    name: '修改存储服务商',
+    targetArg: 0,
+    entity: 'storageProvider',
+  })
   async update(provider: string, body: UpdateStorageProviderDto) {
     const providerId = id(provider);
     await transaction(this.prisma, async (tx) => {
@@ -135,6 +147,12 @@ export class StorageProvidersService {
     return success(null);
   }
 
+  @AuditAction({
+    event: 'storage.default',
+    name: '设置默认存储服务商',
+    targetArg: 0,
+    entity: 'storageProvider',
+  })
   async setDefault(provider: string) {
     const providerId = id(provider);
     await transaction(this.prisma, async (tx) => {
@@ -158,6 +176,13 @@ export class StorageProvidersService {
     return success(null);
   }
 
+  @AuditAction({
+    event: 'storage.test',
+    name: '测试存储连接',
+    targetArg: 0,
+    mode: 'external',
+    entity: 'storageProvider',
+  })
   async test(provider: string) {
     const row = await this.prisma.storageProvider.findUniqueOrThrow({
       where: { id: id(provider) },

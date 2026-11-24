@@ -28,6 +28,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
+import { AuditEndpoint } from '../audit/audit-action.js';
 import { RequireScope } from '../auth/access-scope.decorator.js';
 import { CurrentSession } from '../auth/current-session.decorator.js';
 import {
@@ -63,6 +64,7 @@ export class AccountController {
     @Inject(AccountService) private readonly account: AccountService,
   ) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('profile')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -76,6 +78,7 @@ export class AccountController {
     return this.account.profile(session);
   }
 
+  @AuditEndpoint({ event: 'account.profile.update', name: '修改个人资料' })
   @Patch('profile')
   @ApiOperation({
     operationId: 'updateAccountProfile',
@@ -90,6 +93,7 @@ export class AccountController {
     return this.account.updateProfile(session, body);
   }
 
+  @AuditEndpoint({ event: 'account.password.update', name: '修改个人密码' })
   @Post('password')
   @HttpCode(200)
   @ApiOperation({
@@ -113,6 +117,7 @@ export class AccountController {
     return result;
   }
 
+  @AuditEndpoint({ event: 'account.sessions.revoke', name: '撤销其他会话' })
   @Post('sessions/revoke-others')
   @HttpCode(200)
   @ApiOperation({
@@ -127,6 +132,7 @@ export class AccountController {
     return this.account.revokeOtherSessions(session, sessionToken(request));
   }
 
+  @AuditEndpoint({ event: 'account.avatar.upload', name: '上传头像' })
   @Post('avatar')
   @UseInterceptors(
     FileInterceptor('file', {
@@ -154,6 +160,7 @@ export class AccountController {
     return this.account.uploadAvatar(session, file);
   }
 
+  @AuditEndpoint({ event: 'account.avatar.delete', name: '删除头像' })
   @Delete('avatar')
   @ApiOperation({ operationId: 'removeAccountAvatar', summary: '移除本人头像' })
   @ApiOkResponse({ type: EmptyResponseDto })
@@ -163,6 +170,7 @@ export class AccountController {
     return this.account.removeAvatar(session);
   }
 
+  @AuditEndpoint({ exempt: '资源展示读取，无业务变更' })
   @Get('avatar/:version')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({

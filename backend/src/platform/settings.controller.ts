@@ -15,6 +15,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuditEndpoint } from '../audit/audit-action.js';
 import { RequireScope } from '../auth/access-scope.decorator.js';
 import { CurrentSession } from '../auth/current-session.decorator.js';
 import { Public } from '../auth/public.decorator.js';
@@ -38,6 +39,7 @@ export class SettingsController {
     @Inject(SettingsService) private readonly settings: SettingsService,
   ) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('site-settings')
   @Public()
   @Header('Cache-Control', 'no-store')
@@ -50,6 +52,7 @@ export class SettingsController {
     return this.settings.publicSettings();
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('platform/settings')
   @RequireScope('platform')
   @ApiCookieAuth('session')
@@ -63,6 +66,7 @@ export class SettingsController {
     return this.settings.get();
   }
 
+  @AuditEndpoint({ event: 'settings.update', name: '修改系统配置' })
   @Patch('platform/settings')
   @RequireScope('platform')
   @ApiCookieAuth('session')
@@ -79,6 +83,7 @@ export class SettingsController {
     return this.settings.update(session, body);
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('platform/settings/history')
   @RequireScope('platform')
   @ApiCookieAuth('session')

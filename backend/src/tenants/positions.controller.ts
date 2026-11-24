@@ -18,6 +18,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuditEndpoint } from '../audit/audit-action.js';
 import { RequireScope } from '../auth/access-scope.decorator.js';
 import { CurrentSession } from '../auth/current-session.decorator.js';
 import { RequireFeature } from '../auth/require-feature.decorator.js';
@@ -44,6 +45,7 @@ export class PositionsController {
     @Inject(PositionsService) private readonly service: PositionsService,
   ) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get()
   @RequirePermission('positions:read')
   @Header('Cache-Control', 'no-store')
@@ -55,6 +57,7 @@ export class PositionsController {
     return this.service.list(session);
   }
 
+  @AuditEndpoint({ event: 'positions.create', name: '新增岗位' })
   @Post()
   @RequirePermission('positions:create')
   @ApiOperation({ operationId: 'createPosition', summary: '新增岗位' })
@@ -67,6 +70,7 @@ export class PositionsController {
     return this.service.create(session, body);
   }
 
+  @AuditEndpoint({ event: 'positions.update', name: '修改岗位' })
   @Patch(':id')
   @RequirePermission('positions:update')
   @ApiOperation({ operationId: 'updatePosition', summary: '编辑岗位' })
@@ -80,6 +84,7 @@ export class PositionsController {
     return this.service.update(session, params.id, body);
   }
 
+  @AuditEndpoint({ event: 'positions.delete', name: '删除岗位' })
   @Delete(':id')
   @RequirePermission('positions:delete')
   @ApiOperation({ operationId: 'deletePosition', summary: '删除未使用的岗位' })

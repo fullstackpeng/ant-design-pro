@@ -359,6 +359,21 @@ test('mqtt bridge, tenant brokers and credential reveal', async (t) => {
           await prisma.mqttMessage.count({ where: { tenantId: tenant.id } }),
           0,
         );
+        const events = await prisma.operationLog.findMany({
+          where: { eventCode: 'realtime.mqtt', result: 'succeeded' },
+        });
+        assert(
+          events.some((event) =>
+            JSON.stringify(event.changes).includes('mqtt.publish'),
+          ),
+        );
+        for (const event of events) {
+          const detail = JSON.stringify(event.changes);
+          assert(!detail.includes('browser->device'));
+          assert(!detail.includes('tenant-secret'));
+          assert(!detail.includes('bridge-secret'));
+          assert(!detail.includes('admin-secret'));
+        }
       },
     );
   } finally {

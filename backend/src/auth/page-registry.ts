@@ -44,6 +44,34 @@ function page(
 
 // Authorization is code-owned; editable menus only organize navigation.
 export const registeredPages: RegisteredPage[] = [
+  page(
+    'platform-audit-operation',
+    '/platform/audit/operation-logs',
+    '操作日志',
+    'platform',
+  ),
+  page(
+    'platform-audit-login',
+    '/platform/audit/login-logs',
+    '登录日志',
+    'platform',
+  ),
+  page(
+    'tenant-audit-operation',
+    '/tenant/audit/operation-logs',
+    '操作日志',
+    'tenant',
+    {
+      featureCode: 'audit',
+      permissionCode: 'audit:operation:read',
+      defaultMemberAccess: false,
+    },
+  ),
+  page('tenant-audit-login', '/tenant/audit/login-logs', '登录日志', 'tenant', {
+    featureCode: 'audit',
+    permissionCode: 'audit:login:read',
+    defaultMemberAccess: false,
+  }),
   page('welcome', '/welcome', '首页', 'authenticated'),
   page('websocket-test', '/websocket', 'WebSocket 测试', 'platform'),
   page('account-center', '/account/center', '个人中心', 'authenticated', {

@@ -19,6 +19,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
+import { AuditEndpoint } from '../audit/audit-action.js';
 import { ApiErrors, EmptyResponseDto } from '../common/dto/response.dto.js';
 import { RequireScope } from './access-scope.decorator.js';
 import { AuthService } from './auth.service.js';
@@ -41,6 +42,7 @@ import {
 export class AuthController {
   constructor(@Inject(AuthService) private readonly auth: AuthService) {}
 
+  @AuditEndpoint({ event: 'auth.login', name: '账号登录', kind: 'login' })
   @Post('login/account')
   @Public()
   @HttpCode(200)
@@ -62,6 +64,7 @@ export class AuthController {
     return { success: true, data: null };
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('login/tenants')
   @Public()
   @Header('Cache-Control', 'no-store')
@@ -77,6 +80,7 @@ export class AuthController {
     return this.auth.loginTenants(query);
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('currentUser')
   @RequireScope('authenticated')
   @Header('Cache-Control', 'no-store')
@@ -95,6 +99,7 @@ export class AuthController {
     };
   }
 
+  @AuditEndpoint({ event: 'auth.logout', name: '主动退出', kind: 'login' })
   @Post('login/outLogin')
   @Public()
   @HttpCode(200)
@@ -105,7 +110,7 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<EmptyResponseDto> {
-    await this.auth.logout(sessionToken(request));
+    await this.auth.logoutCurrent(sessionToken(request));
     response.clearCookie(SESSION_COOKIE, cookieOptions);
     return { success: true, data: null };
   }

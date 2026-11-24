@@ -1,4 +1,5 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { AuditAction } from '../audit/audit-action.js';
 import type { SessionContext } from '../auth/session-context.js';
 import { id, pagination, success } from '../common/validation.js';
 import { PrismaService } from '../database/prisma.service.js';
@@ -87,6 +88,11 @@ export class MqttMessagesService {
     };
   }
 
+  @AuditAction({
+    event: 'mqtt-messages.cleanup',
+    name: '清理 MQTT 消息',
+    mode: 'database',
+  })
   async cleanup(
     session: SessionContext,
     tenantIdParam: string | undefined,

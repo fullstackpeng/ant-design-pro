@@ -18,6 +18,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuditEndpoint } from '../audit/audit-action.js';
 import { RequireScope } from '../auth/access-scope.decorator.js';
 import { CurrentSession } from '../auth/current-session.decorator.js';
 import type { SessionContext } from '../auth/session-context.js';
@@ -61,6 +62,7 @@ export class PlatformDictionariesController {
     private readonly historyService: DictionariesService,
   ) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get()
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -74,6 +76,7 @@ export class PlatformDictionariesController {
     return this.dictionaries.list(query);
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get(':code/history')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -93,6 +96,7 @@ export class PlatformDictionariesController {
     );
   }
 
+  @AuditEndpoint({ event: 'platform-dictionaries.create', name: '创建字典' })
   @Post()
   @ApiOperation({
     operationId: 'createPlatformDictionary',
@@ -107,6 +111,7 @@ export class PlatformDictionariesController {
     return this.dictionaries.create(session, body);
   }
 
+  @AuditEndpoint({ event: 'platform-dictionaries.update', name: '修改字典' })
   @Patch(':code')
   @ApiOperation({
     operationId: 'updatePlatformDictionary',
@@ -122,6 +127,10 @@ export class PlatformDictionariesController {
     return this.dictionaries.update(session, params.code, body);
   }
 
+  @AuditEndpoint({
+    event: 'platform-dictionaries.items.create',
+    name: '新增字典项',
+  })
   @Post(':code/items')
   @ApiOperation({
     operationId: 'createPlatformDictionaryItem',
@@ -137,6 +146,10 @@ export class PlatformDictionariesController {
     return this.dictionaries.createItem(session, params.code, body);
   }
 
+  @AuditEndpoint({
+    event: 'platform-dictionaries.items.update',
+    name: '修改字典项',
+  })
   @Patch(':code/items/:id')
   @ApiOperation({
     operationId: 'updatePlatformDictionaryItem',
@@ -165,6 +178,7 @@ export class PlatformDictionaryLookupController {
     private readonly dictionaries: PlatformDictionariesService,
   ) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get(':code')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({

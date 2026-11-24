@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { IncomingMessage } from 'node:http';
 import {
   BadRequestException,
@@ -11,6 +12,8 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { WebSocket, type WebSocketServer as WsServer } from 'ws';
+import { AuditAction } from '../audit/audit-action.js';
+import { auditContext, recordAuditTarget } from '../audit/audit-context.js';
 import { AuthService } from '../auth/auth.service.js';
 import { AuthorizationService } from '../auth/authorization.service.js';
 import {
@@ -31,6 +34,8 @@ const MAX_TEXT_LENGTH = 2000;
 interface ClientState {
   session: SessionContext;
   connectedAt: string;
+  ip: string;
+  userAgent: string;
 }
 
 interface ClientFrame {
@@ -109,6 +114,8 @@ export class RealtimeGateway
       this.clients.set(client, {
         session,
         connectedAt: new Date().toISOString(),
+        ip: request.socket.remoteAddress ?? '',
+        userAgent: String(request.headers['user-agent'] ?? '').slice(0, 500),
       });
       this.send(client, {
         type: 'welcome',
@@ -190,84 +197,132 @@ export class RealtimeGateway
     frame: ClientFrame,
   ) {
     try {
-      if (frame.type === 'mqtt.connect') {
-        const target = await this.resolveMqttTarget(state.session, frame);
-        await this.closeMqttTest(client);
-        const connection = await this.mqtt.openTest(target, (event) =>
-          this.send(client, { type: 'mqtt.message', ...event }),
-        );
-        this.mqttTests.set(client, { connection, target });
-        this.send(client, {
-          type: 'mqtt.connected',
-          brokerType: target.brokerType,
-          brokerId: target.brokerId.toString(),
-          tenantId: target.tenantId.toString(),
-          protocolVersion: target.protocolVersion,
-        });
-        return;
-      }
-      if (frame.type === 'mqtt.disconnect') {
-        await this.closeMqttTest(client);
-        this.send(client, { type: 'mqtt.disconnected' });
-        return;
-      }
-      const test = this.mqttTests.get(client);
-      if (!test)
-        throw new BadRequestException({
-          success: false,
-          errorMessage: '请先发送 mqtt.connect',
-        });
-      if (frame.type === 'mqtt.subscribe') {
-        const topic = this.requireTopic(frame.topic);
-        const qos = this.requireQos(frame.qos);
-        await test.connection.subscribe(topic, qos);
-        this.send(client, { type: 'mqtt.subscribed', topic, qos });
-        return;
-      }
-      if (frame.type === 'mqtt.unsubscribe') {
-        const topic = this.requireTopic(frame.topic);
-        await test.connection.unsubscribe(topic);
-        this.send(client, { type: 'mqtt.unsubscribed', topic });
-        return;
-      }
-      if (frame.type === 'mqtt.publish') {
-        const topic = this.requireTopic(frame.topic);
-        const qos = this.requireQos(frame.qos);
-        const payload =
-          typeof frame.payload === 'string'
-            ? frame.payload
-            : JSON.stringify(frame.payload ?? '');
-        if (payload.length > 64 * 1024)
-          throw new BadRequestException({
-            success: false,
-            errorMessage: '消息内容超过 64KB',
-          });
-        const result = await this.mqtt.publish(
-          test.target,
-          topic,
-          payload,
-          'utf8',
-          qos,
-          frame.retain === true,
-        );
-        this.send(client, {
-          type: 'mqtt.published',
-          id: result.id?.toString() ?? null,
-          sent: result.sent,
-        });
-        return;
-      }
-      throw new BadRequestException({
-        success: false,
-        errorMessage:
-          '支持的 MQTT 操作：connect、disconnect、subscribe、unsubscribe、publish',
-      });
+      await auditContext.run(
+        {
+          requestId: randomUUID(),
+          session: state.session,
+          ip: state.ip,
+          userAgent: state.userAgent,
+        },
+        () => this.performMqtt(client, state, frame),
+      );
     } catch (error) {
       this.send(client, {
         type: 'mqtt.error',
         message: this.mqttErrorMessage(error),
       });
     }
+  }
+
+  @AuditAction({
+    event: 'realtime.mqtt',
+    name: 'WebSocket MQTT 操作',
+    mode: 'external',
+    entity: 'mqttTest',
+  })
+  private async performMqtt(
+    client: WebSocket,
+    state: ClientState,
+    frame: ClientFrame,
+  ) {
+    auditContext.getStore()?.action?.changes.push({
+      entity: 'mqttTest',
+      operation: String(frame.type).slice(0, 80),
+      before: {},
+      after: {},
+    });
+    if (frame.type === 'mqtt.connect') {
+      const target = await this.resolveMqttTarget(state.session, frame);
+      recordAuditTarget('mqttTest', {
+        id: target.brokerId,
+        tenantId: target.tenantId,
+      });
+      await this.closeMqttTest(client);
+      const connection = await this.mqtt.openTest(target, (event) =>
+        this.send(client, { type: 'mqtt.message', ...event }),
+      );
+      this.mqttTests.set(client, { connection, target });
+      this.send(client, {
+        type: 'mqtt.connected',
+        brokerType: target.brokerType,
+        brokerId: target.brokerId.toString(),
+        tenantId: target.tenantId.toString(),
+        protocolVersion: target.protocolVersion,
+      });
+      return;
+    }
+    if (frame.type === 'mqtt.disconnect') {
+      const target = this.mqttTests.get(client)?.target;
+      if (target)
+        recordAuditTarget('mqttTest', {
+          id: target.brokerId,
+          tenantId: target.tenantId,
+        });
+      await this.closeMqttTest(client);
+      this.send(client, { type: 'mqtt.disconnected' });
+      return;
+    }
+    const test = this.mqttTests.get(client);
+    if (!test)
+      throw new BadRequestException({
+        success: false,
+        errorMessage: '请先发送 mqtt.connect',
+      });
+    recordAuditTarget('mqttTest', {
+      id: test.target.brokerId,
+      tenantId: test.target.tenantId,
+    });
+    if (frame.type === 'mqtt.subscribe') {
+      const topic = this.requireTopic(frame.topic);
+      const qos = this.requireQos(frame.qos);
+      await test.connection.subscribe(topic, qos);
+      this.send(client, { type: 'mqtt.subscribed', topic, qos });
+      return;
+    }
+    if (frame.type === 'mqtt.unsubscribe') {
+      const topic = this.requireTopic(frame.topic);
+      await test.connection.unsubscribe(topic);
+      this.send(client, { type: 'mqtt.unsubscribed', topic });
+      return;
+    }
+    if (frame.type === 'mqtt.publish') {
+      const topic = this.requireTopic(frame.topic);
+      const qos = this.requireQos(frame.qos);
+      const payload =
+        typeof frame.payload === 'string'
+          ? frame.payload
+          : JSON.stringify(frame.payload ?? '');
+      if (payload.length > 64 * 1024)
+        throw new BadRequestException({
+          success: false,
+          errorMessage: '消息内容超过 64KB',
+        });
+      const result = await this.mqtt.publish(
+        test.target,
+        topic,
+        payload,
+        'utf8',
+        qos,
+        frame.retain === true,
+      );
+      const audit = auditContext.getStore();
+      if (audit && !result.sent)
+        audit.outcome = {
+          result: 'accepted',
+          message: '消息已进入发送队列，尚未确认发送成功',
+        };
+      this.send(client, {
+        type: 'mqtt.published',
+        id: result.id?.toString() ?? null,
+        sent: result.sent,
+      });
+      return;
+    }
+    throw new BadRequestException({
+      success: false,
+      errorMessage:
+        '支持的 MQTT 操作：connect、disconnect、subscribe、unsubscribe、publish',
+    });
   }
 
   private async resolveMqttTarget(

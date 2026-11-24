@@ -18,6 +18,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuditEndpoint } from '../audit/audit-action.js';
 import { RequireScope } from '../auth/access-scope.decorator.js';
 import { CurrentSession } from '../auth/current-session.decorator.js';
 import { RequireFeature } from '../auth/require-feature.decorator.js';
@@ -44,6 +45,7 @@ export class DepartmentsController {
     @Inject(DepartmentsService) private readonly service: DepartmentsService,
   ) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get()
   @RequirePermission('departments:read')
   @Header('Cache-Control', 'no-store')
@@ -55,6 +57,7 @@ export class DepartmentsController {
     return this.service.list(session);
   }
 
+  @AuditEndpoint({ event: 'departments.create', name: '新增部门' })
   @Post()
   @RequirePermission('departments:create')
   @ApiOperation({ operationId: 'createDepartment', summary: '新增部门' })
@@ -67,6 +70,7 @@ export class DepartmentsController {
     return this.service.create(session, body);
   }
 
+  @AuditEndpoint({ event: 'departments.update', name: '修改部门' })
   @Patch(':id')
   @RequirePermission('departments:update')
   @ApiOperation({ operationId: 'updateDepartment', summary: '编辑部门' })
@@ -80,6 +84,7 @@ export class DepartmentsController {
     return this.service.update(session, params.id, body);
   }
 
+  @AuditEndpoint({ event: 'departments.delete', name: '删除部门' })
   @Delete(':id')
   @RequirePermission('departments:delete')
   @ApiOperation({

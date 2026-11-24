@@ -9,6 +9,7 @@ import {
   type OnModuleInit,
 } from '@nestjs/common';
 import { connect, type MqttClient } from 'mqtt';
+import { AuditAction } from '../audit/audit-action.js';
 import { decryptSecrets } from '../common/secret-box.js';
 import { PrismaService } from '../database/prisma.service.js';
 import type { TenantMqttBroker } from '../generated/prisma/client.js';
@@ -149,6 +150,24 @@ export class MqttBridgeService implements OnModuleInit, OnModuleDestroy {
       this.persistent.delete('platform');
     }
     await this.startPlatformConnection();
+  }
+
+  @AuditAction({
+    event: 'mqtt-admin.reconnect',
+    name: '重新连接 MQTT Bridge',
+    mode: 'external',
+  })
+  async reconnectManually() {
+    await this.restartPlatform();
+  }
+
+  @AuditAction({
+    event: 'mqtt-admin.processOutbox',
+    name: '重试 MQTT 发件箱',
+    mode: 'external',
+  })
+  async processOutboxManually() {
+    await this.processOutbox();
   }
 
   async openTest(

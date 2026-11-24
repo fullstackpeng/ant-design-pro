@@ -18,6 +18,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuditEndpoint } from '../audit/audit-action.js';
 import { RequireScope } from '../auth/access-scope.decorator.js';
 import { CurrentSession } from '../auth/current-session.decorator.js';
 import type { SessionContext } from '../auth/session-context.js';
@@ -54,6 +55,7 @@ export class PlatformController {
     @Inject(PlatformService) private readonly platform: PlatformService,
   ) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('tenants')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({ operationId: 'listTenants', summary: '分页查询租户' })
@@ -62,6 +64,7 @@ export class PlatformController {
     return this.platform.tenants(query);
   }
 
+  @AuditEndpoint({ event: 'tenants.create', name: '创建租户' })
   @Post('tenants')
   @ApiOperation({
     operationId: 'createTenant',
@@ -76,6 +79,7 @@ export class PlatformController {
     return this.platform.createTenant(session, body);
   }
 
+  @AuditEndpoint({ event: 'tenants.update', name: '修改租户' })
   @Patch('tenants/:id')
   @ApiOperation({
     operationId: 'updateTenant',
@@ -91,6 +95,7 @@ export class PlatformController {
     return this.platform.updateTenant(session, params.id, body);
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('plans')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({ operationId: 'listPlans', summary: '分页查询套餐' })
@@ -99,6 +104,7 @@ export class PlatformController {
     return this.platform.plans(query);
   }
 
+  @AuditEndpoint({ event: 'plans.create', name: '创建套餐' })
   @Post('plans')
   @ApiOperation({ operationId: 'createPlan', summary: '创建套餐' })
   @ApiBody({ type: CreatePlanDto })
@@ -107,6 +113,7 @@ export class PlatformController {
     return this.platform.createPlan(body);
   }
 
+  @AuditEndpoint({ event: 'plans.update', name: '修改套餐' })
   @Patch('plans/:id')
   @ApiOperation({ operationId: 'updatePlan', summary: '修改套餐与成员上限' })
   @ApiBody({ type: UpdatePlanDto })
@@ -118,6 +125,7 @@ export class PlatformController {
     return this.platform.updatePlan(params.id, body);
   }
 
+  @AuditEndpoint({ event: 'subscriptions.assign', name: '分配租户订阅' })
   @Post('tenants/:id/subscription')
   @ApiOperation({
     operationId: 'assignPlan',

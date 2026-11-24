@@ -8,6 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { connect } from 'mqtt';
+import { AuditAction } from '../audit/audit-action.js';
 import type { SessionContext } from '../auth/session-context.js';
 import { decryptSecrets, encryptSecrets } from '../common/secret-box.js';
 import { id, success, tenantId } from '../common/validation.js';
@@ -76,12 +77,23 @@ export class TenantMqttBrokersService {
     };
   }
 
+  @AuditAction({
+    event: 'mqtt-brokers.create',
+    name: '新增租户 Broker',
+    entity: 'tenantMqttBroker',
+  })
   async createTenant(session: SessionContext, body: CreateTenantMqttBrokerDto) {
     const tenant = tenantId(session);
     await this.createForTenant(tenant, body);
     return success(null);
   }
 
+  @AuditAction({
+    event: 'mqtt-brokers.update',
+    name: '修改租户 Broker',
+    targetArg: 1,
+    entity: 'tenantMqttBroker',
+  })
   async updateTenant(
     session: SessionContext,
     broker: string,
@@ -91,38 +103,82 @@ export class TenantMqttBrokersService {
     return success(null);
   }
 
+  @AuditAction({
+    event: 'mqtt-brokers.delete',
+    name: '删除租户 Broker',
+    targetArg: 1,
+    entity: 'tenantMqttBroker',
+  })
   async deleteTenant(session: SessionContext, broker: string) {
     await this.deleteForTenant(tenantId(session), id(broker));
     return success(null);
   }
 
+  @AuditAction({
+    event: 'mqtt-brokers.default',
+    name: '设置租户默认 Broker',
+    targetArg: 1,
+    entity: 'tenantMqttBroker',
+  })
   async setDefaultTenant(session: SessionContext, broker: string) {
     await this.setDefaultForTenant(tenantId(session), id(broker));
     return success(null);
   }
 
+  @AuditAction({
+    event: 'mqtt-platform-brokers.update',
+    name: '平台修改租户 Broker',
+    targetArg: 0,
+    entity: 'tenantMqttBroker',
+  })
   async updatePlatform(broker: string, body: UpdateTenantMqttBrokerDto) {
     const row = await this.findOrThrow(id(broker));
     await this.updateForTenant(row.tenantId, row.id, body);
     return success(null);
   }
 
+  @AuditAction({
+    event: 'mqtt-platform-brokers.delete',
+    name: '平台删除租户 Broker',
+    targetArg: 0,
+    entity: 'tenantMqttBroker',
+  })
   async deletePlatform(broker: string) {
     const row = await this.findOrThrow(id(broker));
     await this.deleteForTenant(row.tenantId, row.id);
     return success(null);
   }
 
+  @AuditAction({
+    event: 'mqtt-platform-brokers.default',
+    name: '平台设置默认 Broker',
+    targetArg: 0,
+    entity: 'tenantMqttBroker',
+  })
   async setDefaultPlatform(broker: string) {
     const row = await this.findOrThrow(id(broker));
     await this.setDefaultForTenant(row.tenantId, row.id);
     return success(null);
   }
 
+  @AuditAction({
+    event: 'mqtt-brokers.test',
+    name: '测试 Broker 连接',
+    targetArg: 0,
+    mode: 'external',
+    entity: 'tenantMqttBroker',
+  })
   async test(broker: string) {
     return this.testRow(await this.findOrThrow(id(broker)));
   }
 
+  @AuditAction({
+    event: 'mqtt-brokers.tenant-test',
+    name: '测试租户 Broker 连接',
+    targetArg: 1,
+    mode: 'external',
+    entity: 'tenantMqttBroker',
+  })
   async testForTenant(session: SessionContext, broker: string) {
     const row = await this.findForTenant(tenantId(session), id(broker));
     return this.testRow(row);

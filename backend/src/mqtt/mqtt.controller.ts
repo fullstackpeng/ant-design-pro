@@ -21,6 +21,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuditEndpoint } from '../audit/audit-action.js';
 import { RequireScope } from '../auth/access-scope.decorator.js';
 import { CurrentSession } from '../auth/current-session.decorator.js';
 import { RequireFeature } from '../auth/require-feature.decorator.js';
@@ -74,6 +75,7 @@ export class PlatformMqttController {
     private readonly bridge: MqttBridgeService,
   ) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('broker')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -85,6 +87,7 @@ export class PlatformMqttController {
     return this.platform.get();
   }
 
+  @AuditEndpoint({ event: 'mqtt-platform.update', name: '修改平台 MQTT 配置' })
   @Patch('broker')
   @ApiOperation({
     operationId: 'updateMqttPlatformBroker',
@@ -98,6 +101,7 @@ export class PlatformMqttController {
     return this.platform.update(body);
   }
 
+  @AuditEndpoint({ event: 'mqtt-platform.test', name: '测试平台 MQTT 连接' })
   @Post('broker/test')
   @ApiOperation({
     operationId: 'testMqttPlatformBroker',
@@ -108,6 +112,7 @@ export class PlatformMqttController {
     return this.platform.test();
   }
 
+  @AuditEndpoint({ event: 'mqtt-platform.provision', name: '配置 MQTT Bridge' })
   @Post('broker/provision-bridge')
   @ApiOperation({
     operationId: 'provisionMqttBridge',
@@ -118,6 +123,7 @@ export class PlatformMqttController {
     return this.platform.provisionBridge();
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('broker/status')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -149,6 +155,10 @@ export class PlatformMqttController {
     return { success: true as const, data: this.bridge.status() };
   }
 
+  @AuditEndpoint({
+    event: 'mqtt-admin.processOutbox',
+    name: '重试 MQTT 发件箱',
+  })
   @Post('outbox/process')
   @ApiOperation({
     operationId: 'processMqttOutbox',
@@ -156,10 +166,14 @@ export class PlatformMqttController {
   })
   @ApiCreatedResponse({ type: EmptyResponseDto })
   async processOutbox(): Promise<EmptyResponseDto> {
-    await this.bridge.processOutbox();
+    await this.bridge.processOutboxManually();
     return { success: true, data: null };
   }
 
+  @AuditEndpoint({
+    event: 'mqtt-admin.reconnect',
+    name: '重新连接 MQTT Bridge',
+  })
   @Post('broker/reconnect')
   @ApiOperation({
     operationId: 'reconnectMqttBridge',
@@ -167,10 +181,11 @@ export class PlatformMqttController {
   })
   @ApiCreatedResponse({ type: EmptyResponseDto })
   async reconnect(): Promise<EmptyResponseDto> {
-    await this.bridge.restartPlatform();
+    await this.bridge.reconnectManually();
     return { success: true, data: null };
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('tenants')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -182,6 +197,10 @@ export class PlatformMqttController {
     return this.credentials.listTenants();
   }
 
+  @AuditEndpoint({
+    event: 'mqtt-credentials.provision',
+    name: '配置租户 MQTT 账号',
+  })
   @Post('tenants/:tenantId/provision')
   @ApiOperation({
     operationId: 'provisionMqttTenantCredential',
@@ -194,6 +213,7 @@ export class PlatformMqttController {
     return this.credentials.provisionTenant(BigInt(params.tenantId));
   }
 
+  @AuditEndpoint({ event: 'mqtt-credentials.reveal', name: '查看 MQTT 凭据' })
   @Post('tenants/:tenantId/credentials/reveal')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -211,6 +231,7 @@ export class PlatformMqttController {
     return this.credentials.reveal(session, params.tenantId, body.password, ip);
   }
 
+  @AuditEndpoint({ event: 'mqtt-credentials.rotate', name: '轮换 MQTT 凭据' })
   @Post('tenants/:tenantId/credentials/rotate')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -228,6 +249,7 @@ export class PlatformMqttController {
     return this.credentials.rotate(session, params.tenantId, body.password, ip);
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('brokers')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -239,6 +261,10 @@ export class PlatformMqttController {
     return this.tenantBrokers.listPlatform();
   }
 
+  @AuditEndpoint({
+    event: 'mqtt-platform-brokers.update',
+    name: '平台修改租户 Broker',
+  })
   @Patch('brokers/:id')
   @ApiOperation({
     operationId: 'updatePlatformMqttBroker',
@@ -253,6 +279,10 @@ export class PlatformMqttController {
     return this.tenantBrokers.updatePlatform(params.id, body);
   }
 
+  @AuditEndpoint({
+    event: 'mqtt-platform-brokers.delete',
+    name: '平台删除租户 Broker',
+  })
   @Delete('brokers/:id')
   @ApiOperation({
     operationId: 'deletePlatformMqttBroker',
@@ -263,6 +293,10 @@ export class PlatformMqttController {
     return this.tenantBrokers.deletePlatform(params.id);
   }
 
+  @AuditEndpoint({
+    event: 'mqtt-platform-brokers.default',
+    name: '平台设置默认 Broker',
+  })
   @Post('brokers/:id/default')
   @ApiOperation({
     operationId: 'setDefaultPlatformMqttBroker',
@@ -273,6 +307,7 @@ export class PlatformMqttController {
     return this.tenantBrokers.setDefaultPlatform(params.id);
   }
 
+  @AuditEndpoint({ event: 'mqtt-brokers.test', name: '测试 Broker 连接' })
   @Post('brokers/:id/test')
   @ApiOperation({
     operationId: 'testPlatformMqttBroker',
@@ -283,6 +318,7 @@ export class PlatformMqttController {
     return this.tenantBrokers.test(params.id);
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('messages')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -296,6 +332,7 @@ export class PlatformMqttController {
     return this.messages.list(query);
   }
 
+  @AuditEndpoint({ event: 'mqtt-messages.cleanup', name: '清理 MQTT 消息' })
   @Delete('messages')
   @ApiOperation({
     operationId: 'cleanupMqttMessages',
@@ -334,6 +371,7 @@ export class TenantMqttController {
     private readonly bridge: MqttBridgeService,
   ) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('credentials')
   @RequirePermission('mqtt:read')
   @Header('Cache-Control', 'no-store')
@@ -348,6 +386,7 @@ export class TenantMqttController {
     return this.credentials.metadata(session);
   }
 
+  @AuditEndpoint({ event: 'mqtt-credentials.reveal', name: '查看 MQTT 凭据' })
   @Post('credentials/reveal')
   @RequirePermission('mqtt:credentials')
   @Header('Cache-Control', 'no-store')
@@ -365,6 +404,7 @@ export class TenantMqttController {
     return this.credentials.reveal(session, undefined, body.password, ip);
   }
 
+  @AuditEndpoint({ event: 'mqtt-credentials.rotate', name: '轮换 MQTT 凭据' })
   @Post('credentials/rotate')
   @RequirePermission('mqtt:credentials')
   @Header('Cache-Control', 'no-store')
@@ -382,6 +422,7 @@ export class TenantMqttController {
     return this.credentials.rotate(session, undefined, body.password, ip);
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('brokers')
   @RequirePermission('mqtt:read')
   @Header('Cache-Control', 'no-store')
@@ -396,6 +437,7 @@ export class TenantMqttController {
     return this.tenantBrokers.listTenant(session);
   }
 
+  @AuditEndpoint({ event: 'mqtt-brokers.create', name: '新增租户 Broker' })
   @Post('brokers')
   @RequirePermission('mqtt:manage')
   @ApiOperation({
@@ -413,6 +455,7 @@ export class TenantMqttController {
     return result;
   }
 
+  @AuditEndpoint({ event: 'mqtt-brokers.update', name: '修改租户 Broker' })
   @Patch('brokers/:id')
   @RequirePermission('mqtt:manage')
   @ApiOperation({
@@ -436,6 +479,7 @@ export class TenantMqttController {
     return result;
   }
 
+  @AuditEndpoint({ event: 'mqtt-brokers.delete', name: '删除租户 Broker' })
   @Delete('brokers/:id')
   @RequirePermission('mqtt:manage')
   @ApiOperation({
@@ -452,6 +496,7 @@ export class TenantMqttController {
     return result;
   }
 
+  @AuditEndpoint({ event: 'mqtt-brokers.default', name: '设置租户默认 Broker' })
   @Post('brokers/:id/default')
   @RequirePermission('mqtt:manage')
   @ApiOperation({
@@ -466,6 +511,10 @@ export class TenantMqttController {
     return this.tenantBrokers.setDefaultTenant(session, params.id);
   }
 
+  @AuditEndpoint({
+    event: 'mqtt-brokers.tenant-test',
+    name: '测试租户 Broker 连接',
+  })
   @Post('brokers/:id/test')
   @RequirePermission('mqtt:test')
   @ApiOperation({

@@ -7,6 +7,11 @@ import { setupOpenApi } from './openapi.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const trustedProxies = process.env.TRUST_PROXY?.split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+  if (trustedProxies?.length)
+    app.getHttpAdapter().getInstance().set('trust proxy', trustedProxies);
   app.useWebSocketAdapter(new WsAdapter(app));
   app.use(cookieParser());
   app.enableShutdownHooks();

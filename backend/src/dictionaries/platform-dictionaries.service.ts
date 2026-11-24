@@ -1,4 +1,5 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { AuditAction } from '../audit/audit-action.js';
 import type { SessionContext } from '../auth/session-context.js';
 import { id, json, pagination, success } from '../common/validation.js';
 import { PrismaService } from '../database/prisma.service.js';
@@ -69,6 +70,11 @@ export class PlatformDictionariesService {
     );
   }
 
+  @AuditAction({
+    event: 'platform-dictionaries.create',
+    name: '创建字典',
+    entity: 'platformDictionaryType',
+  })
   async create(session: SessionContext, body: CreateDictionaryDto) {
     await transaction(this.prisma, async (tx) => {
       const after = await tx.platformDictionaryType.create({
@@ -93,6 +99,12 @@ export class PlatformDictionariesService {
     return success(null);
   }
 
+  @AuditAction({
+    event: 'platform-dictionaries.update',
+    name: '修改字典',
+    targetArg: 1,
+    entity: 'platformDictionaryType',
+  })
   async update(
     session: SessionContext,
     code: string,
@@ -127,6 +139,12 @@ export class PlatformDictionariesService {
     return success(null);
   }
 
+  @AuditAction({
+    event: 'platform-dictionaries.items.create',
+    name: '新增字典项',
+    targetArg: 1,
+    entity: 'platformDictionaryItem',
+  })
   async createItem(
     session: SessionContext,
     code: string,
@@ -162,6 +180,12 @@ export class PlatformDictionariesService {
     return success(null);
   }
 
+  @AuditAction({
+    event: 'platform-dictionaries.items.update',
+    name: '修改字典项',
+    targetArg: 1,
+    entity: 'platformDictionaryItem',
+  })
   async updateItem(
     session: SessionContext,
     code: string,

@@ -1,4 +1,5 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { AuditAction } from '../audit/audit-action.js';
 import type { SessionContext } from '../auth/session-context.js';
 import type {
   PaginationQueryDto,
@@ -56,6 +57,12 @@ export class PlatformService {
     return { success: true as const, data: json(rows), total };
   }
 
+  @AuditAction({
+    event: 'tenants.create',
+    name: '创建租户',
+    mode: 'external',
+    entity: 'tenant',
+  })
   async createTenant(session: SessionContext, body: CreateTenantDto) {
     const tenantCode = body.code;
     const name = body.name;
@@ -77,7 +84,7 @@ export class PlatformService {
       });
       // Default feature bundle for new tenants; sample modules stay opt-in.
       await tx.tenantFeature.createMany({
-        data: ['members', 'files', 'mqtt', 'notifications'].map(
+        data: ['members', 'files', 'mqtt', 'notifications', 'audit'].map(
           (featureCode) => ({
             tenantId: created.id,
             featureCode,
@@ -93,6 +100,12 @@ export class PlatformService {
     return success(tenant);
   }
 
+  @AuditAction({
+    event: 'tenants.update',
+    name: '修改租户',
+    targetArg: 1,
+    entity: 'tenant',
+  })
   async updateTenant(
     session: SessionContext,
     tenant: string,
@@ -136,6 +149,7 @@ export class PlatformService {
     return { success: true as const, data: json(rows), total };
   }
 
+  @AuditAction({ event: 'plans.create', name: '创建套餐', entity: 'plan' })
   async createPlan(body: CreatePlanDto) {
     return success(
       await this.prisma.plan.create({
@@ -151,6 +165,12 @@ export class PlatformService {
     );
   }
 
+  @AuditAction({
+    event: 'plans.update',
+    name: '修改套餐',
+    targetArg: 0,
+    entity: 'plan',
+  })
   async updatePlan(plan: string, body: UpdatePlanDto) {
     const planId = id(plan);
     const limit = body.maxMembers;
@@ -196,6 +216,12 @@ export class PlatformService {
     );
   }
 
+  @AuditAction({
+    event: 'subscriptions.assign',
+    name: '分配租户订阅',
+    targetArg: 0,
+    entity: 'subscription',
+  })
   async assign(tenant: string, body: AssignPlanDto) {
     const tenantId = id(tenant);
     const planId = id(body.planId);

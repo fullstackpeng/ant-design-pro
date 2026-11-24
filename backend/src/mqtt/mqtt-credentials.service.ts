@@ -8,6 +8,8 @@ import {
   type OnModuleDestroy,
   type OnModuleInit,
 } from '@nestjs/common';
+import { AuditAction } from '../audit/audit-action.js';
+import { auditContext, recordAuditTarget } from '../audit/audit-context.js';
 import { verifyPassword } from '../auth/password.js';
 import type { SessionContext } from '../auth/session-context.js';
 import { decryptSecrets, encryptSecrets } from '../common/secret-box.js';
@@ -111,13 +113,22 @@ export class MqttCredentialsService implements OnModuleInit, OnModuleDestroy {
           data: { status: 'provisioning' },
         });
         if (claimed.count === 0) continue;
-        await this.provision(row, row.tenant.code);
+        await auditContext.exit(() =>
+          this.provisionBackground(row, row.tenant.code),
+        );
       }
     } finally {
       this.running = false;
     }
   }
 
+  @AuditAction({
+    event: 'mqtt-credentials.provision',
+    name: '配置租户 MQTT 账号',
+    targetArg: 0,
+    mode: 'external',
+    entity: 'tenantMqttCredential',
+  })
   async provisionTenant(tenantId: bigint) {
     const tenant = await this.prisma.tenant.findUniqueOrThrow({
       where: { id: tenantId },
@@ -225,6 +236,12 @@ export class MqttCredentialsService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
+  @AuditAction({
+    event: 'mqtt-credentials.reveal',
+    name: '查看 MQTT 凭据',
+    mode: 'external',
+    entity: 'tenantMqttCredential',
+  })
   async reveal(
     session: SessionContext,
     tenantIdParam: string | undefined,
@@ -249,6 +266,7 @@ export class MqttCredentialsService implements OnModuleInit, OnModuleDestroy {
     });
     const broker = await this.platformBroker.required();
     const secret = decryptSecrets(credential.password);
+    recordAuditTarget('tenantMqttCredential', credential);
     return success({
       username: credential.username,
       password: typeof secret.password === 'string' ? secret.password : '',
@@ -260,6 +278,12 @@ export class MqttCredentialsService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
+  @AuditAction({
+    event: 'mqtt-credentials.rotate',
+    name: '轮换 MQTT 凭据',
+    mode: 'external',
+    entity: 'tenantMqttCredential',
+  })
   async rotate(
     session: SessionContext,
     tenantIdParam: string | undefined,
@@ -321,6 +345,27 @@ export class MqttCredentialsService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
+  @AuditAction({
+    event: 'mqtt-credentials.background-provision',
+    name: '后台配置租户 MQTT 账号',
+    mode: 'external',
+    entity: 'tenantMqttCredential',
+  })
+  private async provisionBackground(row: CredentialRow, tenantCode: string) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: row.tenantId },
+      select: { id: true, code: true, name: true },
+    });
+    const context = auditContext.getStore();
+    if (context && tenant)
+      context.tenantContext = {
+        id: tenant.id.toString(),
+        code: tenant.code,
+        name: tenant.name,
+      };
+    await this.provision(row, tenantCode);
+  }
+
   private async provision(row: CredentialRow, tenantCode: string) {
     let admin: MosquittoAdminClient | undefined;
     try {
@@ -342,6 +387,12 @@ export class MqttCredentialsService implements OnModuleInit, OnModuleDestroy {
       });
     } catch (error) {
       const attempts = row.attempts + 1;
+      const context = auditContext.getStore();
+      if (context)
+        context.outcome = {
+          result: 'failed',
+          message: 'MQTT 账号配置失败，等待后台重试',
+        };
       const delaySeconds = Math.min(60 * 10, 2 ** Math.min(attempts, 6));
       await this.prisma.tenantMqttCredential.update({
         where: { id: row.id },

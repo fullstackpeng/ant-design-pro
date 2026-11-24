@@ -1,12 +1,22 @@
-import { Controller, Get, Module } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  type MiddlewareConsumer,
+  Module,
+  type NestModule,
+} from '@nestjs/common';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AccountModule } from './account/account.module.js';
+import { AuditMiddleware } from './audit/audit.middleware.js';
+import { AuditModule } from './audit/audit.module.js';
+import { AuditEndpoint } from './audit/audit-action.js';
 import { AuthModule } from './auth/auth.module.js';
 import { HelloResponseDto } from './auth/dto/auth-response.dto.js';
 import { Public } from './auth/public.decorator.js';
 import { HttpExceptionFilter } from './common/http-exception.filter.js';
 import { createValidationPipe } from './common/validation.pipe.js';
+import { DatabaseModule } from './database/database.module.js';
 import { DictionariesModule } from './dictionaries/dictionaries.module.js';
 import { FilesModule } from './files/files.module.js';
 import { MqttModule } from './mqtt/mqtt.module.js';
@@ -23,6 +33,7 @@ import { TenantsModule } from './tenants/tenants.module.js';
 @ApiTags('health')
 class AppController {
   @Get('hello')
+  @AuditEndpoint({ exempt: '连通性检查，无业务动作' })
   @Public()
   @ApiOperation({ operationId: 'hello', summary: '连通性检查' })
   @ApiOkResponse({ type: HelloResponseDto })
@@ -33,6 +44,8 @@ class AppController {
 
 @Module({
   imports: [
+    AuditModule,
+    DatabaseModule,
     AuthModule,
     AccountModule,
     TenantsModule,
@@ -53,4 +66,8 @@ class AppController {
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuditMiddleware).forRoutes('{*path}');
+  }
+}

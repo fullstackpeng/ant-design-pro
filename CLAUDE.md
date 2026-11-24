@@ -88,6 +88,43 @@ Run `/antd` in Claude Code for any antd-related work. It provides access to `@an
 
 Each page dir: `index.tsx`, optional `service.ts`, `_mock.ts`, `data.d.ts`, style files. Keep page-specific code with the page.
 
+## Audit logging requirements
+
+The audit feature exposes operation logs and login logs in both platform and tenant contexts. Every subsequent feature must include its audit integration in the same delivery. The initial release covers the existing backend business modules listed below.
+
+### Coverage and future feature delivery
+
+- Audit business mutations and sensitive actions, including sensitive reads, downloads, credential access, connection tests, manual triggers and reruns. Ordinary list/detail reads, health checks, static assets and polling do not require operation events; classify endpoints explicitly rather than relying only on HTTP methods.
+- Initial coverage includes authentication; personal profile, password, avatar and session management; platform accounts; tenants, plans, subscriptions and feature assignments; menus; tenant members, roles, departments and positions; platform and tenant dictionaries; system settings; storage providers; files and asset uploads; platform and tenant notifications and inbox read-state changes; MQTT configuration, credentials, brokers, administrative actions and message deletion; scheduled task management, triggering and reruns; and business actions performed through realtime or background workers.
+- Keep MQTT message traffic, socket heartbeat traffic, queue mechanics and task execution diagnostics in their dedicated records. Audit the associated business action and link to its execution record instead of duplicating every transport event. Existing frontend-only examples require no synthetic backend events; classify and integrate them when real business actions are added.
+- Every new or changed backend handler must declare its audit classification: audited business action, login event, or explicit exemption with a reason. Add an automated coverage check alongside the implementation that rejects unclassified HTTP handlers and checks sensitive GET handlers. Explicitly inventory worker and realtime business entry points as well; HTTP metadata checks alone cannot prove their coverage.
+- Shared infrastructure should capture safe request metadata automatically, while owning services provide stable event codes, target identity and allowlisted business changes. Do not treat raw request/response capture as business auditing.
+- New features are incomplete without audit declarations, actual event emission, tenant visibility rules, redaction and appropriate behavior tests. Record and verify coverage in the delivery review; documentation alone is not automatic enforcement.
+- Implementation references: `audit/audit-action.ts` provides service-level `@AuditAction` and handler-level `@AuditEndpoint`; `audit/audit-context.ts` owns request-local context and the safe-field whitelist. Use stable event codes and declare the target entity explicitly. Pure database actions use the default transactional mode; actions involving external side effects use `mode: 'external'`, which also writes transactional checkpoints for database changes. Never move external I/O into a retried database action. Consume `PrismaService` from `DatabaseModule` so request-local transaction routing remains active.
+- `npm run test:permissions` includes audit handler coverage and redaction checks; `npm run test:audit` runs the PostgreSQL audit lifecycle tests in isolated schemas. Add behavior assertions for non-HTTP entry points as well. The system-owned retention cleaner starts with the backend Worker, runs at startup and hourly, and requires that Worker to remain running. Retention defaults to 180 days per log type and accepts 1–3650 days.
+
+### Ownership, visibility and event integrity
+
+- Keep audit persistence independent of navigation and business modules. Separate the minimal audit writer from query/authorization concerns as needed to preserve acyclic dependencies; authentication must not acquire a dependency on tenant or platform business modules.
+- Platform administrators can query platform and tenant events. Tenant queries must derive scope from the authenticated context and enforce it on both list and detail endpoints. Ordinary tenant members have no default audit access; any delegated access uses explicit registered permissions and backend enforcement.
+- Distinguish actor context, affected tenant and event visibility. A platform administrator acting on tenant data remains a platform actor; target tenant identity alone must not expose platform-internal details to that tenant. Record actor and target display snapshots so later renames or deletions do not erase meaning. Do not cascade-delete audit records when users, targets or tenants are deleted.
+- Record successful database mutations and their operation events in the same transaction, including transactional retries. Write failure events outside rolled-back transactions. Distinguish business failure, authorization denial, accepted asynchronous work and final execution outcomes; do not report external effects as successful merely because a request was accepted.
+- Capture authentication success, failed attempts and explicit logout. Failed login records must preserve bounded attempted account/tenant identifiers without asserting authenticated identity or exposing cross-tenant account details. Session expiry is not an explicit logout. Guard rejections and validation failures need appropriate coverage outside controller-only interception.
+- Use stable event identifiers and request/execution correlation identifiers to link events and avoid duplicate emission on worker retries. Keep existing specialized audit histories, linking unified events to them where appropriate. Do not invent missing metadata when exposing historical records.
+- Use allowlisted, bounded snapshots and safe error summaries. Never persist passwords, password hashes, cookies, session tokens, access keys, secret values, signed URLs or raw file/message bodies. Derive client IP only through the configured trusted proxy chain.
+- Audit records are append-only through application interfaces; provide no edit, single-record delete or clear-all action. Automated retention cleanup is the controlled exception. Critical database mutation audit failures roll back the mutation; failed-attempt logging must preserve the original authentication/authorization response and surface persistence failures through operational monitoring.
+
+### Configurable retention
+
+- Retention is configurable separately for operation logs and login logs. The initial configuration is platform-managed and applies across the installation; tenant-specific overrides are a separate scope decision. Tenant administrators cannot change global retention.
+- Keep retention settings in private platform configuration, never in the public site-settings response. Configuration changes are audited with safe before/after values. Define and validate defaults and supported bounds during implementation; do not interpret a missing, zero or invalid value as immediate deletion.
+- Use a system-owned recurring cleanup job with bounded batches and concurrency protection, independent of editable user task definitions. Determine expiration from event timestamps and the current policy. Record cleanup summaries and failures without creating an event per deleted row; apply the login retention policy to login events and the operation policy to operation events. Existing specialized histories retain their own lifecycle unless explicitly included in the policy.
+- Show the effective policy and the deletion consequence before saving a shorter retention period. A longer period cannot restore already deleted records. Database retention does not imply deletion from independent backups or external archives.
+
+### Audit verification
+
+Verify coverage classification, actual success/failure emission, transaction rollback and retry behavior, guard rejection capture, login/logout semantics, list/detail tenant isolation, sensitive-field exclusion, actor snapshots, worker idempotency where applicable, and retention authorization/boundaries/cleanup. Run the existing permission checks when adding audit page/action permissions. Before delivering the implementation, reconcile all current business entry points against the coverage inventory.
+
 # CLAUDE.md
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.

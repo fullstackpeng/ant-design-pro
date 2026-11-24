@@ -19,6 +19,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuditEndpoint } from '../audit/audit-action.js';
 import { RequireScope } from '../auth/access-scope.decorator.js';
 import { CurrentSession } from '../auth/current-session.decorator.js';
 import { RequireFeature } from '../auth/require-feature.decorator.js';
@@ -49,6 +50,7 @@ export class MembersController {
     @Inject(MembersService) private readonly members: MembersService,
   ) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('members')
   @RequirePermission('members:read')
   @RequireFeature('members')
@@ -62,6 +64,7 @@ export class MembersController {
     return this.members.list(session, query);
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('members/organization-options')
   @RequirePermission('members:read')
   @RequireFeature('members')
@@ -77,6 +80,7 @@ export class MembersController {
     return this.members.organizationOptions(session);
   }
 
+  @AuditEndpoint({ event: 'members.create', name: '新增成员' })
   @Post('members')
   @RequirePermission('members:create')
   @RequireFeature('members')
@@ -93,6 +97,7 @@ export class MembersController {
     return this.members.add(session, body);
   }
 
+  @AuditEndpoint({ event: 'members.update', name: '修改成员' })
   @Patch('members/:id')
   @RequirePermission('members:update')
   @RequireFeature('members')
@@ -107,6 +112,7 @@ export class MembersController {
     return this.members.update(session, params.id, body);
   }
 
+  @AuditEndpoint({ event: 'members.delete', name: '移除成员' })
   @Delete('members/:id')
   @RequirePermission('members:delete')
   @RequireFeature('members')
@@ -122,6 +128,7 @@ export class MembersController {
     return this.members.remove(session, params.id);
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('subscription')
   @RequireScope('tenant')
   @Header('Cache-Control', 'no-store')

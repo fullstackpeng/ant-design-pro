@@ -1,4 +1,5 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { AuditAction } from '../audit/audit-action.js';
 import { hashPassword } from '../auth/password.js';
 import { id, json, pagination, success } from '../common/validation.js';
 import { PrismaService } from '../database/prisma.service.js';
@@ -59,6 +60,7 @@ export class UsersService {
       ),
     };
   }
+  @AuditAction({ event: 'users.create', name: '创建账号', entity: 'user' })
   async create(body: CreateUserDto) {
     const passwordHash = await hashPassword(body.password);
     await transaction(this.prisma, async (tx) => {
@@ -73,6 +75,12 @@ export class UsersService {
     });
     return success(null);
   }
+  @AuditAction({
+    event: 'users.update',
+    name: '修改账号',
+    targetArg: 0,
+    entity: 'user',
+  })
   async update(userId: string, body: UpdateUserDto) {
     await transaction(this.prisma, async (tx) => {
       const user = await tx.user.findUniqueOrThrow({
@@ -115,6 +123,12 @@ export class UsersService {
     });
     return success(null);
   }
+  @AuditAction({
+    event: 'users.password.reset',
+    name: '重置账号密码',
+    targetArg: 0,
+    entity: 'user',
+  })
   async reset(userId: string, password: string) {
     const passwordHash = await hashPassword(password);
     await transaction(this.prisma, async (tx) => {

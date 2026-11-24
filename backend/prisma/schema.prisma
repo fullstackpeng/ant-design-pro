@@ -9,6 +9,75 @@ datasource db {
   provider = "postgresql"
 }
 
+model OperationLog {
+  id BigInt @id @default(autoincrement())
+  eventId String @unique @map("event_id") @db.Uuid
+  eventCode String @map("event_code") @db.VarChar(120)
+  module String @db.VarChar(64)
+  action String @db.VarChar(150)
+  scope String @db.VarChar(20)
+  tenantId BigInt? @map("tenant_id")
+  tenantCode String @default("") @map("tenant_code") @db.VarChar(64)
+  tenantName String @default("") @map("tenant_name") @db.VarChar(100)
+  actorId BigInt? @map("actor_id")
+  actorName String @default("") @map("actor_name") @db.VarChar(100)
+  targetTenantId BigInt? @map("target_tenant_id")
+  targetType String @default("") @map("target_type") @db.VarChar(100)
+  targetId String @default("") @map("target_id") @db.VarChar(100)
+  targetName String @default("") @map("target_name") @db.VarChar(200)
+  result String @db.VarChar(20)
+  message String @default("") @db.VarChar(500)
+  requestId String @map("request_id") @db.VarChar(100)
+  ip String @default("") @db.VarChar(64)
+  userAgent String @default("") @map("user_agent") @db.VarChar(500)
+  changes Json
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@index([scope, tenantId, createdAt, id], map: "app_operation_logs_scope_time_idx")
+  @@index([createdAt, id], map: "app_operation_logs_time_idx")
+  @@index([requestId], map: "app_operation_logs_request_idx")
+  @@map("app_operation_logs")
+}
+
+model LoginLog {
+  id BigInt @id @default(autoincrement())
+  eventId String @unique @map("event_id") @db.Uuid
+  eventCode String @map("event_code") @db.VarChar(120)
+  module String @db.VarChar(64)
+  action String @db.VarChar(150)
+  scope String @db.VarChar(20)
+  tenantId BigInt? @map("tenant_id")
+  tenantCode String @default("") @map("tenant_code") @db.VarChar(64)
+  tenantName String @default("") @map("tenant_name") @db.VarChar(100)
+  actorId BigInt? @map("actor_id")
+  actorName String @default("") @map("actor_name") @db.VarChar(100)
+  targetTenantId BigInt? @map("target_tenant_id")
+  targetType String @default("") @map("target_type") @db.VarChar(100)
+  targetId String @default("") @map("target_id") @db.VarChar(100)
+  targetName String @default("") @map("target_name") @db.VarChar(200)
+  result String @db.VarChar(20)
+  message String @default("") @db.VarChar(500)
+  requestId String @map("request_id") @db.VarChar(100)
+  ip String @default("") @db.VarChar(64)
+  userAgent String @default("") @map("user_agent") @db.VarChar(500)
+  changes Json
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  attemptedAccount String @default("") @map("attempted_account") @db.VarChar(64)
+  attemptedTenant String @default("") @map("attempted_tenant") @db.VarChar(64)
+  @@index([scope, tenantId, createdAt, id], map: "app_login_logs_scope_time_idx")
+  @@index([createdAt, id], map: "app_login_logs_time_idx")
+  @@index([requestId], map: "app_login_logs_request_idx")
+  @@map("app_login_logs")
+}
+
+model AuditPolicy {
+  id Int @id @default(1)
+  operationDays Int @default(180) @map("operation_days")
+  loginDays Int @default(180) @map("login_days")
+  revision Int @default(0)
+  @@map("app_audit_policy")
+}
+
+
 model User {
   id              BigInt             @id @default(autoincrement())
   username        String             @unique @db.VarChar(64)

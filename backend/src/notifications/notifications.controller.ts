@@ -19,6 +19,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuditEndpoint } from '../audit/audit-action.js';
 import { RequireScope } from '../auth/access-scope.decorator.js';
 import { CurrentSession } from '../auth/current-session.decorator.js';
 import { RequireFeature } from '../auth/require-feature.decorator.js';
@@ -54,6 +55,7 @@ export class PlatformNotificationsController {
     private readonly notifications: NotificationsService,
   ) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get()
   @ApiOperation({
     operationId: 'listPlatformNotifications',
@@ -67,6 +69,7 @@ export class PlatformNotificationsController {
     return this.notifications.platformList(query, session);
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get(':id')
   @ApiOperation({
     operationId: 'getPlatformNotification',
@@ -80,6 +83,10 @@ export class PlatformNotificationsController {
     return this.notifications.platformDetail(params.id, session);
   }
 
+  @AuditEndpoint({
+    event: 'platform-notifications.create',
+    name: '创建平台通知',
+  })
   @Post()
   @ApiOperation({
     operationId: 'createPlatformNotification',
@@ -93,6 +100,10 @@ export class PlatformNotificationsController {
     return this.notifications.createPlatform(session, body);
   }
 
+  @AuditEndpoint({
+    event: 'platform-notifications.update',
+    name: '修改平台通知',
+  })
   @Patch(':id')
   @ApiOperation({
     operationId: 'updatePlatformNotification',
@@ -107,6 +118,7 @@ export class PlatformNotificationsController {
     return this.notifications.updatePlatform(session, params.id, body);
   }
 
+  @AuditEndpoint({ event: 'notifications.delete', name: '删除通知' })
   @Delete(':id')
   @ApiOperation({
     operationId: 'deletePlatformNotification',
@@ -131,6 +143,7 @@ export class TenantNotificationsController {
     private readonly notifications: NotificationsService,
   ) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get()
   @RequirePermission('notifications:read')
   @ApiOperation({
@@ -145,6 +158,7 @@ export class TenantNotificationsController {
     return this.notifications.tenantList(session, query);
   }
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get(':id')
   @RequirePermission('notifications:read')
   @ApiOperation({
@@ -159,6 +173,7 @@ export class TenantNotificationsController {
     return this.notifications.tenantDetail(session, params.id);
   }
 
+  @AuditEndpoint({ event: 'notifications.create', name: '创建租户通知' })
   @Post()
   @RequirePermission('notifications:create')
   @ApiOperation({
@@ -173,6 +188,7 @@ export class TenantNotificationsController {
     return this.notifications.createTenant(session, body);
   }
 
+  @AuditEndpoint({ event: 'notifications.update', name: '修改租户通知' })
   @Patch(':id')
   @RequirePermission('notifications:update')
   @ApiOperation({
@@ -188,6 +204,7 @@ export class TenantNotificationsController {
     return this.notifications.updateTenant(session, params.id, body);
   }
 
+  @AuditEndpoint({ event: 'notifications.delete', name: '删除通知' })
   @Delete(':id')
   @RequirePermission('notifications:delete')
   @ApiOperation({
@@ -216,6 +233,7 @@ export class NotificationInboxController {
     private readonly notifications: NotificationsService,
   ) {}
 
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get()
   @RequirePermission('notifications:inbox:read')
   @Header('Cache-Control', 'no-store')
@@ -231,6 +249,7 @@ export class NotificationInboxController {
     return this.notifications.inbox(session, query);
   }
 
+  @AuditEndpoint({ event: 'inbox.read-all', name: '标记全部消息已读' })
   @Post('read-all')
   @HttpCode(200)
   @RequirePermission('notifications:inbox:read')
@@ -243,6 +262,7 @@ export class NotificationInboxController {
     return this.notifications.markAllRead(session);
   }
 
+  @AuditEndpoint({ event: 'inbox.read', name: '标记消息已读' })
   @Post(':id/read')
   @HttpCode(200)
   @RequirePermission('notifications:inbox:read')

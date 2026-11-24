@@ -9,6 +9,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { AuditAction } from '../audit/audit-action.js';
+import { recordAuditTarget } from '../audit/audit-context.js';
 import type { SessionContext } from '../auth/session-context.js';
 import { id, pagination, success, tenantId } from '../common/validation.js';
 import { PrismaService } from '../database/prisma.service.js';
@@ -160,16 +162,34 @@ export class FilesService {
     });
   }
 
+  @AuditAction({
+    event: 'files.upload',
+    name: '上传租户文件',
+    mode: 'external',
+    entity: 'fileObject',
+  })
   async uploadTenant(session: SessionContext, file?: UploadedFile) {
     await this.save(session, file, tenantId(session), 'private');
     return success(null);
   }
 
+  @AuditAction({
+    event: 'platform-files.upload',
+    name: '上传平台文件',
+    mode: 'external',
+    entity: 'fileObject',
+  })
   async uploadPlatform(session: SessionContext, file?: UploadedFile) {
     await this.save(session, file, null, 'private');
     return success(null);
   }
 
+  @AuditAction({
+    event: 'site-assets.upload',
+    name: '上传站点资源',
+    mode: 'external',
+    entity: 'fileObject',
+  })
   async uploadSiteAsset(session: SessionContext, file?: UploadedFile) {
     this.assertBitmap(file, '站点图片');
     const created = await this.save(session, file, null, 'public');
@@ -180,6 +200,12 @@ export class FilesService {
   }
 
   /** 编辑器图片：平台资产 tenantId=null，租户资产归属当前租户。 */
+  @AuditAction({
+    event: 'notification-assets.upload',
+    name: '上传通知图片',
+    mode: 'external',
+    entity: 'fileObject',
+  })
   async uploadNotificationAsset(
     session: SessionContext,
     file: UploadedFile | undefined,
@@ -256,27 +282,62 @@ export class FilesService {
       .signDownload(row.objectKey, DOWNLOAD_URL_TTL_SECONDS);
   }
 
+  @AuditAction({
+    event: 'files.download',
+    name: '获取租户文件下载地址',
+    targetArg: 1,
+    mode: 'external',
+    entity: 'fileObject',
+  })
   async tenantDownload(session: SessionContext, file: string) {
     const row = await this.prisma.fileObject.findFirst({
       where: { id: id(file), tenantId: tenantId(session) },
-      select: { objectKey: true, providerId: true },
+      select: {
+        id: true,
+        tenantId: true,
+        originalName: true,
+        objectKey: true,
+        providerId: true,
+      },
     });
     if (!row)
       throw new NotFoundException({
         success: false,
         errorMessage: '文件不存在',
       });
+    recordAuditTarget('fileObject', row);
     return this.download(row.providerId, row.objectKey);
   }
 
+  @AuditAction({
+    event: 'platform-files.download',
+    name: '获取平台文件下载地址',
+    targetArg: 0,
+    mode: 'external',
+    entity: 'fileObject',
+  })
   async platformDownload(file: string) {
     const row = await this.prisma.fileObject.findUniqueOrThrow({
       where: { id: id(file) },
-      select: { objectKey: true, providerId: true },
+      select: {
+        id: true,
+        tenantId: true,
+        originalName: true,
+        objectKey: true,
+        providerId: true,
+      },
     });
+    recordAuditTarget('fileObject', row);
     return this.download(row.providerId, row.objectKey);
   }
 
+  @AuditAction({
+    event: 'files.delete',
+    name: '删除租户文件',
+    targetArg: 1,
+    mode: 'external',
+    entity: 'fileObject',
+  })
   async tenantDelete(session: SessionContext, file: string) {
     const row = await this.prisma.fileObject.findFirst({
       where: { id: id(file), tenantId: tenantId(session) },
@@ -291,6 +352,13 @@ export class FilesService {
     return success(null);
   }
 
+  @AuditAction({
+    event: 'platform-files.delete',
+    name: '删除平台文件',
+    targetArg: 0,
+    mode: 'external',
+    entity: 'fileObject',
+  })
   async platformDelete(file: string) {
     const row = await this.prisma.fileObject.findUniqueOrThrow({
       where: { id: id(file) },

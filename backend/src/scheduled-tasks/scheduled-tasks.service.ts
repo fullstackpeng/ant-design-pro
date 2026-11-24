@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { CronExpressionParser } from 'cron-parser';
+import { AuditAction } from '../audit/audit-action.js';
 import type { SessionContext } from '../auth/session-context.js';
 import { invalid, json, pagination, success } from '../common/validation.js';
 import { PrismaService } from '../database/prisma.service.js';
@@ -81,6 +82,11 @@ export class ScheduledTasksService {
       invalid('包含不存在的租户');
   }
 
+  @AuditAction({
+    event: 'tasks.create',
+    name: '创建定时任务',
+    entity: 'scheduledTask',
+  })
   async create(actor: SessionContext, body: CreateTaskDto) {
     await this.validate(body);
     return transaction(this.prisma, async (tx) => {
@@ -103,6 +109,12 @@ export class ScheduledTasksService {
     });
   }
 
+  @AuditAction({
+    event: 'tasks.update',
+    name: '修改定时任务',
+    targetArg: 1,
+    entity: 'scheduledTask',
+  })
   async update(actor: SessionContext, id: bigint, body: UpdateTaskDto) {
     await this.validate(body);
     const { revision, ...config } = body;
@@ -140,9 +152,21 @@ export class ScheduledTasksService {
     });
   }
 
+  @AuditAction({
+    event: 'tasks.enable',
+    name: '修改任务启用状态',
+    targetArg: 1,
+    entity: 'scheduledTask',
+  })
   enable(actor: SessionContext, id: bigint, body: TaskEnabledDto) {
     return this.changeState(actor, id, body, false);
   }
+  @AuditAction({
+    event: 'tasks.delete',
+    name: '删除定时任务',
+    targetArg: 1,
+    entity: 'scheduledTask',
+  })
   remove(actor: SessionContext, id: bigint, body: RevisionDto) {
     return this.changeState(actor, id, body, true);
   }
@@ -205,6 +229,14 @@ export class ScheduledTasksService {
     });
   }
 
+  @AuditAction({
+    event: 'tasks.trigger',
+    name: '手动触发任务',
+    targetArg: 1,
+    mode: 'external',
+    entity: 'scheduledTask',
+    successResult: 'accepted',
+  })
   async trigger(actor: SessionContext, id: bigint, body: RevisionDto) {
     return success(
       await this.dispatches.dispatch(
@@ -217,6 +249,14 @@ export class ScheduledTasksService {
     );
   }
 
+  @AuditAction({
+    event: 'tasks.rerun',
+    name: '重跑任务',
+    targetArg: 1,
+    mode: 'external',
+    entity: 'scheduledTask',
+    successResult: 'accepted',
+  })
   async rerun(actor: SessionContext, id: string) {
     const previous = await this.prisma.taskRun.findUniqueOrThrow({
       where: { id },

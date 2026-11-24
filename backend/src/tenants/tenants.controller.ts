@@ -5,6 +5,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuditEndpoint } from '../audit/audit-action.js';
 import { CurrentSession } from '../auth/current-session.decorator.js';
 import type { SessionContext } from '../auth/session-context.js';
 import { ApiErrors } from '../common/dto/response.dto.js';
@@ -15,6 +16,7 @@ import { CurrentTenantResponseDto } from './dto/member-response.dto.js';
 @ApiCookieAuth('session')
 @ApiErrors()
 export class TenantsController {
+  @AuditEndpoint({ exempt: '普通查询或状态轮询，无业务变更' })
   @Get('current')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({ operationId: 'currentTenant', summary: '获取当前租户身份' })

@@ -1,5 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { AuditAction } from '../audit/audit-action.js';
+import { auditContext } from '../audit/audit-context.js';
 import { PrismaService } from '../database/prisma.service.js';
 import type { LoginDto } from './dto/login.dto.js';
 import type { LoginTenantQueryDto } from './dto/login-tenant-request.dto.js';
@@ -14,12 +16,35 @@ function tokenHash(token: string): string {
 export class AuthService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
+  @AuditAction({
+    event: 'auth.login',
+    name: '账号登录',
+    mode: 'database',
+    kind: 'login',
+  })
   async login(body: LoginDto) {
     const { tenantCode, username, password, autoLogin } = body;
+    const attempt = auditContext.getStore();
+    if (attempt) {
+      attempt.session = undefined;
+      attempt.attemptedAccount = username.slice(0, 64);
+      attempt.attemptedTenant = tenantCode.slice(0, 64);
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { code: tenantCode },
+        select: { id: true, code: true, name: true },
+      });
+      if (tenant)
+        attempt.attemptedTenantContext = {
+          id: tenant.id.toString(),
+          code: tenant.code,
+          name: tenant.name,
+        };
+    }
     const user = await this.prisma.user.findUnique({
       where: { username },
       select: {
         id: true,
+        name: true,
         passwordHash: true,
         isPlatformAdmin: true,
         isActive: true,
@@ -38,7 +63,10 @@ export class AuthService {
               isActive: true,
               tenant: { code: tenantCode, isActive: true },
             },
-            select: { tenantId: true },
+            select: {
+              tenantId: true,
+              tenant: { select: { id: true, code: true, name: true } },
+            },
           })
         : null;
     const platformLogin =
@@ -60,6 +88,25 @@ export class AuthService {
         expiresAt: new Date(Date.now() + maxAge),
       },
     });
+    const audit = auditContext.getStore();
+    if (audit) {
+      audit.attemptedAccount = username.slice(0, 64);
+      audit.attemptedTenant = tenantCode.slice(0, 64);
+      audit.session = {
+        userid: user.id.toString(),
+        name: user.name,
+        access: 'user',
+        isPlatformAdmin: platformLogin,
+        tenant:
+          platformLogin || !membership
+            ? null
+            : {
+                id: membership.tenant.id.toString(),
+                code: membership.tenant.code,
+                name: membership.tenant.name,
+              },
+      };
+    }
     return { token, maxAge, remember: autoLogin === true };
   }
 
@@ -156,6 +203,19 @@ export class AuthService {
       errorCode: 401,
       errorMessage: '请先登录',
     });
+  }
+
+  @AuditAction({
+    event: 'auth.logout',
+    name: '主动退出',
+    mode: 'database',
+    kind: 'login',
+  })
+  async logoutCurrent(token: string | undefined) {
+    const audit = auditContext.getStore();
+    if (audit && token)
+      audit.session = await this.currentUser(token).catch(() => undefined);
+    await this.logout(token);
   }
 
   async logout(token: string | undefined) {

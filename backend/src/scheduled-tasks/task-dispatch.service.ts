@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { writeAudit } from '../audit/audit-action.js';
 import type { SessionContext } from '../auth/session-context.js';
 import { json } from '../common/validation.js';
 import { PrismaService } from '../database/prisma.service.js';
@@ -115,6 +116,34 @@ export class TaskDispatchService {
             },
           },
         });
+      if (source === 'scheduled')
+        await writeAudit(
+          tx,
+          { event: 'tasks.dispatch.scheduled', name: '系统调度定时任务' },
+          {
+            requestId: key,
+            ip: '',
+            userAgent: '',
+            action: {
+              changes: [
+                {
+                  entity: 'scheduledTask',
+                  operation: 'dispatch',
+                  before: {},
+                  after: {
+                    id: taskId.toString(),
+                    name: task.name,
+                    dispatchId: key,
+                    targets: targets.map(String),
+                  },
+                },
+              ],
+            },
+          },
+          'accepted',
+          '已生成执行记录',
+          taskId.toString(),
+        );
       return key;
     });
   }

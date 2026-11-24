@@ -9,6 +9,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { AuditAction } from '../audit/audit-action.js';
 import { hashPassword, verifyPassword } from '../auth/password.js';
 import type { SessionContext } from '../auth/session-context.js';
 import { id, success } from '../common/validation.js';
@@ -106,6 +107,11 @@ export class AccountService {
     });
   }
 
+  @AuditAction({
+    event: 'account.profile.update',
+    name: '修改个人资料',
+    entity: 'user',
+  })
   async updateProfile(session: SessionContext, body: UpdateAccountProfileDto) {
     await this.prisma.user.update({
       where: { id: id(session.userid) },
@@ -114,6 +120,11 @@ export class AccountService {
     return success(null);
   }
 
+  @AuditAction({
+    event: 'account.password.update',
+    name: '修改个人密码',
+    entity: 'user',
+  })
   async changePassword(
     session: SessionContext,
     token: string | undefined,
@@ -145,6 +156,11 @@ export class AccountService {
     return success(null);
   }
 
+  @AuditAction({
+    event: 'account.sessions.revoke',
+    name: '撤销其他会话',
+    entity: 'user',
+  })
   async revokeOtherSessions(
     session: SessionContext,
     token: string | undefined,
@@ -183,6 +199,12 @@ export class AccountService {
     return tokenHash;
   }
 
+  @AuditAction({
+    event: 'account.avatar.upload',
+    name: '上传头像',
+    mode: 'external',
+    entity: 'accountAvatar',
+  })
   async uploadAvatar(session: SessionContext, file?: AccountUpload) {
     if (!file)
       throw new BadRequestException({
@@ -251,6 +273,12 @@ export class AccountService {
     }
   }
 
+  @AuditAction({
+    event: 'account.avatar.delete',
+    name: '删除头像',
+    mode: 'external',
+    entity: 'accountAvatar',
+  })
   async removeAvatar(session: SessionContext) {
     const previous = await transaction(this.prisma, async (tx) => {
       const where = { userId: id(session.userid) };

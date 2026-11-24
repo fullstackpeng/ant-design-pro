@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
+import { AuditAction } from '../audit/audit-action.js';
 import { decryptSecrets, encryptSecrets } from '../common/secret-box.js';
 import { success } from '../common/validation.js';
 import { PrismaService } from '../database/prisma.service.js';
@@ -59,6 +60,11 @@ export class PlatformMqttBrokerService {
     return success(row ? brokerDto(row) : null);
   }
 
+  @AuditAction({
+    event: 'mqtt-platform.update',
+    name: '修改平台 MQTT 配置',
+    entity: 'mqttPlatformBroker',
+  })
   async update(body: UpdateMqttPlatformBrokerDto) {
     if (!(MQTT_PROTOCOLS as readonly string[]).includes(body.defaultProtocol))
       throw new ConflictException({
@@ -149,6 +155,12 @@ export class PlatformMqttBrokerService {
     };
   }
 
+  @AuditAction({
+    event: 'mqtt-platform.test',
+    name: '测试平台 MQTT 连接',
+    mode: 'external',
+    entity: 'mqttPlatformBroker',
+  })
   async test() {
     const row = await this.required();
     const admin = this.adminClient(row);
@@ -165,6 +177,12 @@ export class PlatformMqttBrokerService {
     return success(null);
   }
 
+  @AuditAction({
+    event: 'mqtt-platform.provision',
+    name: '配置 MQTT Bridge',
+    mode: 'external',
+    entity: 'mqttPlatformBroker',
+  })
   async provisionBridge() {
     const row = await this.required();
     const bridge = this.bridgeCredentials(row);

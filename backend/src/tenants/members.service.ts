@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
+import { AuditAction } from '../audit/audit-action.js';
 import type { SessionContext } from '../auth/session-context.js';
 import {
   id,
@@ -102,6 +103,11 @@ export class MembersService {
     };
   }
 
+  @AuditAction({
+    event: 'members.create',
+    name: '新增成员',
+    entity: 'tenantMembership',
+  })
   async add(session: SessionContext, body: CreateMemberDto) {
     const tenant = tenantId(session);
     const memberRole = body.role;
@@ -126,10 +132,22 @@ export class MembersService {
     return success(null);
   }
 
+  @AuditAction({
+    event: 'members.update',
+    name: '修改成员',
+    targetArg: 1,
+    entity: 'tenantMembership',
+  })
   update(session: SessionContext, user: string, body: UpdateMemberDto) {
     return this.change(session, user, body);
   }
 
+  @AuditAction({
+    event: 'members.delete',
+    name: '移除成员',
+    targetArg: 1,
+    entity: 'tenantMembership',
+  })
   remove(session: SessionContext, user: string) {
     return this.change(session, user, null);
   }
