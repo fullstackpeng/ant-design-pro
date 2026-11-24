@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AiRetentionModule } from '../ai/conversation/retention.module.js';
 import { AuditModule } from '../audit/audit.module.js';
 import { DatabaseModule } from '../database/database.module.js';
 import { ScheduledTasksModule } from '../scheduled-tasks/scheduled-tasks.module.js';
@@ -7,7 +8,13 @@ import { QueueModule } from './queue.module.js';
 import { QueueProbeWorker } from './queue-probe.worker.js';
 
 @Module({
-  imports: [QueueModule, DatabaseModule, ScheduledTasksModule, AuditModule],
+  imports: [
+    QueueModule,
+    DatabaseModule,
+    ScheduledTasksModule,
+    AuditModule,
+    AiRetentionModule,
+  ],
   providers: [QueueProbeWorker, TaskRuntimeService],
 })
 export class WorkerModule {}

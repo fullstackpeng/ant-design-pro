@@ -1,4 +1,8 @@
 export default {
+  'menu.platform.ai-knowledge-bases': 'Knowledge bases',
+  'menu.platform.ai-documents': 'Operation guides',
+  'menu.platform.ai-assistants': 'Assistants',
+  'menu.platform.ai-policy': 'Conversation retention',
   'menu.tenant-departments': 'Departments',
   'menu.tenant-positions': 'Positions',
   'menu.platform.dictionaries': 'Platform dictionaries',

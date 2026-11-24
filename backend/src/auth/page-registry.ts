@@ -45,6 +45,25 @@ function page(
 // Authorization is code-owned; editable menus only organize navigation.
 export const registeredPages: RegisteredPage[] = [
   page(
+    'platform-ai-knowledge-bases',
+    '/platform/ai/knowledge-bases',
+    'AI 知识库',
+    'platform',
+  ),
+  page(
+    'platform-ai-documents',
+    '/platform/ai/documents',
+    'AI 操作指南',
+    'platform',
+  ),
+  page(
+    'platform-ai-assistants',
+    '/platform/ai/assistants',
+    'AI 助手配置',
+    'platform',
+  ),
+  page('platform-ai-policy', '/platform/ai/policy', 'AI 会话保留', 'platform'),
+  page(
     'platform-audit-operation',
     '/platform/audit/operation-logs',
     '操作日志',

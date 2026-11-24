@@ -1,4 +1,8 @@
 export default {
+  'menu.platform.ai-knowledge-bases': 'پایگاه دانش',
+  'menu.platform.ai-documents': 'راهنمای عملیات',
+  'menu.platform.ai-assistants': 'دستیارها',
+  'menu.platform.ai-policy': 'نگهداری گفتگو',
   'menu.tenant-departments': 'Departments',
   'menu.tenant-positions': 'Positions',
   'menu.platform.dictionaries': 'فرهنگ داده پلتفرم',

@@ -31,6 +31,8 @@
     "test": "vitest run",
     "test:unit": "vitest run --config vitest.unit.config.ts",
     "test:permissions": "npm --prefix backend run test:permissions",
+    "test:ai": "npm --prefix backend run test:ai",
+    "test:ai:ui": "npm run build && playwright test --config=playwright.ai.config.ts",
     "test:audit": "npm --prefix backend run test:audit",
     "test:routes": "node --experimental-strip-types tests/routes.test.mjs",
     "test:coverage": "vitest run --coverage",

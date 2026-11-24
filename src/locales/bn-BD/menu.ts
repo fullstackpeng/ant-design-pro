@@ -1,4 +1,8 @@
 export default {
+  'menu.platform.ai-knowledge-bases': 'জ্ঞানভাণ্ডার',
+  'menu.platform.ai-documents': 'ব্যবহার নির্দেশিকা',
+  'menu.platform.ai-assistants': 'সহকারী',
+  'menu.platform.ai-policy': 'কথোপকথন সংরক্ষণ',
   'menu.tenant-departments': 'Departments',
   'menu.tenant-positions': 'Positions',
   'menu.platform.dictionaries': 'প্ল্যাটফর্ম অভিধান',

@@ -14033,6 +14033,1822 @@
           "scheduledTasks"
         ]
       }
+    },
+    "/api/platform/ai/options": {
+      "get": {
+        "operationId": "getAiOptions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiOptionsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "查询 AI 知识权限和导航选项",
+        "tags": [
+          "ai-admin"
+        ]
+      }
+    },
+    "/api/platform/ai/assistants": {
+      "get": {
+        "operationId": "listAiAssistants",
+        "parameters": [
+          {
+            "name": "current",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiAssistantListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "查询 AI 助手",
+        "tags": [
+          "ai-admin"
+        ]
+      },
+      "post": {
+        "operationId": "createAiAssistant",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAiAssistantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "创建 AI 助手",
+        "tags": [
+          "ai-admin"
+        ]
+      }
+    },
+    "/api/platform/ai/assistants/{id}": {
+      "patch": {
+        "operationId": "updateAiAssistant",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "64 位正整数 ID，以字符串传输",
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "example": "1",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAiAssistantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "修改 AI 助手",
+        "tags": [
+          "ai-admin"
+        ]
+      },
+      "delete": {
+        "operationId": "deleteAiAssistant",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "64 位正整数 ID，以字符串传输",
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "example": "1",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "删除 AI 助手",
+        "tags": [
+          "ai-admin"
+        ]
+      }
+    },
+    "/api/platform/ai/knowledge-bases": {
+      "get": {
+        "operationId": "listAiKnowledgeBases",
+        "parameters": [
+          {
+            "name": "current",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiKnowledgeBaseListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "查询 AI 知识库",
+        "tags": [
+          "ai-admin"
+        ]
+      },
+      "post": {
+        "operationId": "createAiKnowledgeBase",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAiKnowledgeBaseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "创建 AI 知识库",
+        "tags": [
+          "ai-admin"
+        ]
+      }
+    },
+    "/api/platform/ai/knowledge-bases/{id}": {
+      "patch": {
+        "operationId": "updateAiKnowledgeBase",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "64 位正整数 ID，以字符串传输",
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "example": "1",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAiKnowledgeBaseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "修改 AI 知识库",
+        "tags": [
+          "ai-admin"
+        ]
+      },
+      "delete": {
+        "operationId": "deleteAiKnowledgeBase",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "64 位正整数 ID，以字符串传输",
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "example": "1",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "删除 AI 知识库",
+        "tags": [
+          "ai-admin"
+        ]
+      }
+    },
+    "/api/platform/ai/documents": {
+      "get": {
+        "operationId": "listAiDocuments",
+        "parameters": [
+          {
+            "name": "current",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiDocumentListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "查询 AI 操作指南",
+        "tags": [
+          "ai-admin"
+        ]
+      },
+      "post": {
+        "operationId": "createAiDocument",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAiDocumentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "创建 AI 操作指南",
+        "tags": [
+          "ai-admin"
+        ]
+      }
+    },
+    "/api/platform/ai/documents/{id}": {
+      "patch": {
+        "operationId": "updateAiDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "64 位正整数 ID，以字符串传输",
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "example": "1",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAiDocumentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "修改 AI 操作指南",
+        "tags": [
+          "ai-admin"
+        ]
+      },
+      "delete": {
+        "operationId": "deleteAiDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "64 位正整数 ID，以字符串传输",
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "example": "1",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "删除 AI 操作指南",
+        "tags": [
+          "ai-admin"
+        ]
+      }
+    },
+    "/api/ai/assistants": {
+      "get": {
+        "operationId": "listAccessibleAiAssistants",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiAccessibleAssistantListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "查询可访问 AI 助手",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/ai/chat": {
+      "post": {
+        "operationId": "askAi",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiChatRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiChatResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "授权操作指南问答",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/ai/conversations": {
+      "get": {
+        "operationId": "listAiConversations",
+        "parameters": [
+          {
+            "name": "current",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiConversationListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "查询本人会话",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/ai/conversations/{id}/messages": {
+      "get": {
+        "operationId": "listAiMessages",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "64 位正整数 ID，以字符串传输",
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "example": "1",
+              "type": "string"
+            }
+          },
+          {
+            "name": "current",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiMessageListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "查询本人消息",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/ai/conversations/{id}": {
+      "delete": {
+        "operationId": "deleteAiConversation",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "64 位正整数 ID，以字符串传输",
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "example": "1",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "删除本人会话",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/platform/ai/policy": {
+      "get": {
+        "operationId": "getAiPolicy",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiPolicyDtoResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "查询会话保留策略",
+        "tags": [
+          "ai-admin"
+        ]
+      },
+      "patch": {
+        "operationId": "updateAiPolicy",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAiPolicyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiPolicyDtoResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数格式或取值错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "凭据无效或会话失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足、租户不匹配或套餐不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "记录冲突、额度不足或业务规则冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "修改会话保留策略",
+        "tags": [
+          "ai-admin"
+        ]
+      }
     }
   },
   "info": {
@@ -19723,6 +21539,1005 @@
           }
         },
         "required": [
+          "revision"
+        ]
+      },
+      "AiOptionDto": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "label"
+        ]
+      },
+      "AiOptionsDto": {
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiOptionDto"
+            }
+          },
+          "pages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiOptionDto"
+            }
+          }
+        },
+        "required": [
+          "permissions",
+          "pages"
+        ]
+      },
+      "AiOptionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/AiOptionsDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "AiAssistantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isPublic": {
+            "type": "boolean"
+          },
+          "permissionMode": {
+            "type": "string"
+          },
+          "publicationScope": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tenantIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "knowledgeBaseIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "retrievalConfig": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "revision": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "isActive",
+          "isPublic",
+          "permissionMode",
+          "publicationScope",
+          "permissions",
+          "tenantIds",
+          "knowledgeBaseIds",
+          "prompt",
+          "retrievalConfig",
+          "revision"
+        ]
+      },
+      "AiAssistantListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiAssistantDto"
+            }
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "total"
+        ]
+      },
+      "CreateAiAssistantDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "publicationScope": {
+            "type": "string",
+            "enum": [
+              "none",
+              "all",
+              "selected"
+            ]
+          },
+          "tenantIds": {
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "knowledgeBaseIds": {
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "retrievalConfig": {
+            "type": "object",
+            "additionalProperties": true,
+            "example": {
+              "exact": true,
+              "keyword": true,
+              "trigram": false,
+              "vector": false,
+              "topK": 4
+            }
+          },
+          "isPublic": {
+            "type": "boolean",
+            "default": false
+          },
+          "permissionMode": {
+            "type": "string",
+            "enum": [
+              "ALL",
+              "ANY"
+            ],
+            "default": "ALL"
+          },
+          "permissions": {
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "isActive",
+          "publicationScope",
+          "tenantIds",
+          "knowledgeBaseIds",
+          "prompt",
+          "retrievalConfig",
+          "isPublic",
+          "permissionMode",
+          "permissions"
+        ]
+      },
+      "UpdateAiAssistantDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "publicationScope": {
+            "type": "string",
+            "enum": [
+              "none",
+              "all",
+              "selected"
+            ]
+          },
+          "tenantIds": {
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "knowledgeBaseIds": {
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "retrievalConfig": {
+            "type": "object",
+            "additionalProperties": true,
+            "example": {
+              "exact": true,
+              "keyword": true,
+              "trigram": false,
+              "vector": false,
+              "topK": 4
+            }
+          },
+          "isPublic": {
+            "type": "boolean",
+            "default": false
+          },
+          "permissionMode": {
+            "type": "string",
+            "enum": [
+              "ALL",
+              "ANY"
+            ],
+            "default": "ALL"
+          },
+          "permissions": {
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "revision": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "isActive",
+          "publicationScope",
+          "tenantIds",
+          "knowledgeBaseIds",
+          "prompt",
+          "retrievalConfig",
+          "isPublic",
+          "permissionMode",
+          "permissions",
+          "revision"
+        ]
+      },
+      "AiKnowledgeBaseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "revision": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "description",
+          "isActive",
+          "revision"
+        ]
+      },
+      "AiKnowledgeBaseListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiKnowledgeBaseDto"
+            }
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "total"
+        ]
+      },
+      "CreateAiKnowledgeBaseDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "description",
+          "isActive"
+        ]
+      },
+      "UpdateAiKnowledgeBaseDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "revision": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "description",
+          "isActive",
+          "revision"
+        ]
+      },
+      "AiDocumentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "knowledgeBaseId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "standardQuestions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "synonyms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "content": {
+            "type": "string"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pageCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "isPublic": {
+            "type": "boolean"
+          },
+          "permissionMode": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "version": {
+            "type": "number"
+          },
+          "revision": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "knowledgeBaseId",
+          "title",
+          "standardQuestions",
+          "synonyms",
+          "keywords",
+          "content",
+          "steps",
+          "pageCode",
+          "status",
+          "isPublic",
+          "permissionMode",
+          "permissions",
+          "version",
+          "revision"
+        ]
+      },
+      "AiDocumentListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiDocumentDto"
+            }
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "total"
+        ]
+      },
+      "CreateAiDocumentDto": {
+        "type": "object",
+        "properties": {
+          "knowledgeBaseId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "standardQuestions": {
+            "maxItems": 30,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "synonyms": {
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "keywords": {
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "content": {
+            "type": "string"
+          },
+          "steps": {
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pageCode": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published",
+              "disabled"
+            ]
+          },
+          "isPublic": {
+            "type": "boolean",
+            "default": false
+          },
+          "permissionMode": {
+            "type": "string",
+            "enum": [
+              "ALL",
+              "ANY"
+            ],
+            "default": "ALL"
+          },
+          "permissions": {
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "knowledgeBaseId",
+          "title",
+          "standardQuestions",
+          "synonyms",
+          "keywords",
+          "content",
+          "steps",
+          "status",
+          "isPublic",
+          "permissionMode",
+          "permissions"
+        ]
+      },
+      "UpdateAiDocumentDto": {
+        "type": "object",
+        "properties": {
+          "knowledgeBaseId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "standardQuestions": {
+            "maxItems": 30,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "synonyms": {
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "keywords": {
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "content": {
+            "type": "string"
+          },
+          "steps": {
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pageCode": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published",
+              "disabled"
+            ]
+          },
+          "isPublic": {
+            "type": "boolean",
+            "default": false
+          },
+          "permissionMode": {
+            "type": "string",
+            "enum": [
+              "ALL",
+              "ANY"
+            ],
+            "default": "ALL"
+          },
+          "permissions": {
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "revision": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "knowledgeBaseId",
+          "title",
+          "standardQuestions",
+          "synonyms",
+          "keywords",
+          "content",
+          "steps",
+          "status",
+          "isPublic",
+          "permissionMode",
+          "permissions",
+          "revision"
+        ]
+      },
+      "AiAccessibleAssistantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "AiAccessibleAssistantListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiAccessibleAssistantDto"
+            }
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "AiChatRequestDto": {
+        "type": "object",
+        "properties": {
+          "assistantId": {
+            "type": "string"
+          },
+          "conversationId": {
+            "type": "string"
+          },
+          "documentId": {
+            "type": "string",
+            "description": "用户明确选择的指南 ID；服务端重新校验访问权限"
+          },
+          "question": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "assistantId",
+          "question"
+        ]
+      },
+      "AiSourceDto": {
+        "type": "object",
+        "properties": {
+          "documentId": {
+            "type": "string"
+          },
+          "chunkId": {
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          },
+          "route": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "documentId",
+          "chunkId",
+          "version",
+          "title",
+          "route"
+        ]
+      },
+      "AiChatDto": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiSourceDto"
+            }
+          },
+          "strategy": {
+            "type": "string"
+          },
+          "conversationId": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "content",
+          "sources",
+          "strategy",
+          "conversationId",
+          "requestId"
+        ]
+      },
+      "AiChatResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/AiChatDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "AiConversationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "assistantId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "assistantId",
+          "title",
+          "updatedAt"
+        ]
+      },
+      "AiConversationListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiConversationDto"
+            }
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "total"
+        ]
+      },
+      "AiMessageDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiSourceDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "content",
+          "status",
+          "sources"
+        ]
+      },
+      "AiMessageListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiMessageDto"
+            }
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "total"
+        ]
+      },
+      "AiPolicyDto": {
+        "type": "object",
+        "properties": {
+          "conversationRetentionDays": {
+            "type": "number"
+          },
+          "revision": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "conversationRetentionDays",
+          "revision"
+        ]
+      },
+      "AiPolicyDtoResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/AiPolicyDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "UpdateAiPolicyDto": {
+        "type": "object",
+        "properties": {
+          "conversationRetentionDays": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 3650
+          },
+          "revision": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "conversationRetentionDays",
           "revision"
         ]
       }

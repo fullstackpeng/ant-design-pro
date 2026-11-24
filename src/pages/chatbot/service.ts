@@ -1,18 +1,13 @@
-// src/pages/chatbot/service.ts
-import { OpenAIChatProvider, XRequest } from '@ant-design/x-sdk';
-
-export const CHAT_API_URL =
-  process.env.CHAT_API_URL ??
-  'https://api.x.ant.design/api/big_model_glm-4.5-flash';
-
-/**
- * Factory — call once per component mount (wrap in useMemo).
- * OpenAIChatProvider handles SSE parsing and history accumulation internally.
- */
-export const createChatProvider = () =>
-  new OpenAIChatProvider({
-    request: XRequest(CHAT_API_URL, {
-      manual: true,
-      params: { model: 'glm-4.5-flash', stream: true },
-    }),
-  });
+﻿import * as ai from '@/services/backend/ai';
+export const listAssistants = () => ai.listAccessibleAiAssistants();
+export const listConversations = (current = 1) =>
+  ai.listAiConversations({ current, pageSize: 20 });
+export const ask = (body: BackendAPI.AiChatRequestDto) => ai.askAi(body);
+export const deleteConversation = (id: string) =>
+  ai.deleteAiConversation({ id });
+export async function listMessages(id: string) {
+  const first = await ai.listAiMessages({ id, current: 1, pageSize: 100 });
+  if (first.total <= 100) return first.data;
+  const second = await ai.listAiMessages({ id, current: 2, pageSize: 100 });
+  return [...first.data, ...second.data];
+}

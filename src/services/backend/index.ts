@@ -21,6 +21,8 @@ import * as navigation from "./navigation";
 import * as files from "./files";
 import * as notifications from "./notifications";
 import * as scheduledTasks from "./scheduledTasks";
+import * as aiAdmin from "./aiAdmin";
+import * as ai from "./ai";
 export default {
   health,
   audit,
@@ -41,4 +43,6 @@ export default {
   files,
   notifications,
   scheduledTasks,
+  aiAdmin,
+  ai,
 };

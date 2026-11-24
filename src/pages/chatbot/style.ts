@@ -6,15 +6,26 @@ export const useStyles = createStyles(({ css, token }) => ({
     display: flex;
     flex: 1;
     overflow: hidden;
+    @media (max-width: 768px) {
+      flex-direction: column;
+    }
   `,
 
   sidebar: css`
     width: 260px;
+    flex-shrink: 0;
     background: ${token.colorBgContainer};
     border-right: 1px solid ${token.colorBorderSecondary};
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    @media (max-width: 768px) {
+      width: 100%;
+      max-height: 180px;
+      overflow-y: auto;
+      border-right: 0;
+      border-bottom: 1px solid ${token.colorBorderSecondary};
+    }
   `,
 
   main: css`
@@ -29,6 +40,8 @@ export const useStyles = createStyles(({ css, token }) => ({
   messages: css`
     flex: 1;
     overflow-y: auto;
+    max-height: 60vh;
+    min-height: 240px;
     padding: ${token.paddingMD}px;
     display: flex;
     flex-direction: column;
@@ -44,32 +57,5 @@ export const useStyles = createStyles(({ css, token }) => ({
     border-top: 1px solid ${token.colorBorderSecondary};
     display: flex;
     justify-content: center;
-  `,
-
-  footerCenter: css`
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: ${token.paddingLG}px;
-    gap: 32px;
-    margin-top: -10%;
-  `,
-
-  welcomeTitle: css`
-    font-size: 32px;
-    font-weight: 600;
-    color: ${token.colorText};
-    text-align: center;
-  `,
-
-  cursor: css`
-    animation: chatbot-blink 0.8s step-end infinite;
-
-    @keyframes chatbot-blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
-    }
   `,
 }));

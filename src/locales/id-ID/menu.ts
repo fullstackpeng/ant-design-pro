@@ -1,4 +1,8 @@
 export default {
+  'menu.platform.ai-knowledge-bases': 'Basis pengetahuan',
+  'menu.platform.ai-documents': 'Panduan operasi',
+  'menu.platform.ai-assistants': 'Asisten',
+  'menu.platform.ai-policy': 'Retensi percakapan',
   'menu.tenant-departments': 'Departments',
   'menu.tenant-positions': 'Positions',
   'menu.platform.dictionaries': 'Kamus platform',

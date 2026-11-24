@@ -8,6 +8,7 @@ import {
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AccountModule } from './account/account.module.js';
+import { AiModule } from './ai/ai.module.js';
 import { AuditMiddleware } from './audit/audit.middleware.js';
 import { AuditModule } from './audit/audit.module.js';
 import { AuditEndpoint } from './audit/audit-action.js';
@@ -59,6 +60,7 @@ class AppController {
     QueueModule,
     RealtimeModule,
     ScheduledTasksModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [

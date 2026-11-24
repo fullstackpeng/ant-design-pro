@@ -1,4 +1,8 @@
 export default {
+  'menu.platform.ai-knowledge-bases': 'ナレッジベース',
+  'menu.platform.ai-documents': '操作ガイド',
+  'menu.platform.ai-assistants': 'アシスタント',
+  'menu.platform.ai-policy': '会話の保持',
   'menu.tenant-departments': 'Departments',
   'menu.tenant-positions': 'Positions',
   'menu.platform.dictionaries': '共通辞書',

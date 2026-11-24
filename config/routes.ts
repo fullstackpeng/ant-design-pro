@@ -104,6 +104,30 @@ export default [
     access: 'canPlatform',
     routes: [
       {
+        path: '/platform/ai/knowledge-bases',
+        name: 'ai-knowledge-bases',
+        access: 'canPlatform',
+        component: './management/ai/knowledge-bases',
+      },
+      {
+        path: '/platform/ai/documents',
+        name: 'ai-documents',
+        access: 'canPlatform',
+        component: './management/ai/documents',
+      },
+      {
+        path: '/platform/ai/assistants',
+        name: 'ai-assistants',
+        access: 'canPlatform',
+        component: './management/ai/assistants',
+      },
+      {
+        path: '/platform/ai/policy',
+        name: 'ai-policy',
+        access: 'canPlatform',
+        component: './management/ai/policy',
+      },
+      {
         path: '/platform/users',
         name: 'users',
         access: 'canPlatform',

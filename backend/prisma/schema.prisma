@@ -127,6 +127,7 @@ model Tenant {
   memberships  TenantMembership[]
   subscription Subscription?
   features     TenantFeature[]
+  aiAssistants AiAssistantTenant[]
   departments  TenantDepartment[]
   positions    TenantPosition[]
   roles        TenantRole[]
@@ -200,11 +201,160 @@ model TenantMembership {
   departmentId BigInt? @map("department_id")
   department TenantDepartment? @relation(fields: [tenantId, departmentId], references: [tenantId, id], onDelete: Restrict, onUpdate: NoAction)
   positions MemberPosition[]
+  aiConversations AiConversation[]
 
   @@id([tenantId, userId])
   @@index([userId])
   @@index([tenantId, departmentId])
   @@map("app_tenant_memberships")
+}
+
+model AiKnowledgeBase {
+  id BigInt @id @default(autoincrement())
+  code String @unique @db.VarChar(64)
+  name String @db.VarChar(100)
+  description String @default("") @db.VarChar(500)
+  isActive Boolean @default(true) @map("is_active")
+  revision Int @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  documents AiKnowledgeDocument[]
+  assistants AiAssistantKnowledgeBase[]
+  @@map("app_ai_knowledge_bases")
+}
+
+model AiKnowledgeDocument {
+  id BigInt @id @default(autoincrement())
+  knowledgeBaseId BigInt @map("knowledge_base_id")
+  title String @db.VarChar(200)
+  standardQuestions String[] @map("standard_questions")
+  normalizedQuestions String[] @map("normalized_questions")
+  synonyms String[]
+  keywords String[]
+  content String
+  steps String[]
+  pageCode String? @map("page_code") @db.VarChar(64)
+  status String @default("draft") @db.VarChar(20)
+  isPublic Boolean @default(false) @map("is_public")
+  permissionMode String @default("ALL") @map("permission_mode") @db.VarChar(3)
+  version Int @default(1)
+  revision Int @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  knowledgeBase AiKnowledgeBase @relation(fields: [knowledgeBaseId], references: [id], onDelete: Restrict)
+  permissions AiKnowledgePermission[]
+  chunks AiKnowledgeChunk[]
+  @@index([knowledgeBaseId, status])
+  @@index([normalizedQuestions], type: Gin)
+  @@map("app_ai_knowledge_documents")
+}
+
+model AiKnowledgePermission {
+  documentId BigInt @map("document_id")
+  permissionCode String @map("permission_code") @db.VarChar(120)
+  document AiKnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  @@id([documentId, permissionCode])
+  @@map("app_ai_knowledge_permissions")
+}
+
+model AiKnowledgeChunk {
+  id BigInt @id @default(autoincrement())
+  documentId BigInt @map("document_id")
+  content String
+  keywords String[]
+  sequence Int
+  contentVersion Int @map("content_version")
+  document AiKnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  @@unique([documentId, contentVersion, sequence])
+  @@map("app_ai_knowledge_chunks")
+}
+
+model AiAssistant {
+  id BigInt @id @default(autoincrement())
+  code String @unique @db.VarChar(64)
+  name String @db.VarChar(100)
+  isActive Boolean @default(false) @map("is_active")
+  isPublic Boolean @default(false) @map("is_public")
+  permissionMode String @default("ALL") @map("permission_mode") @db.VarChar(3)
+  publicationScope String @default("none") @map("publication_scope") @db.VarChar(20)
+  prompt String @default("")
+  retrievalConfig Json @map("retrieval_config")
+  revision Int @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  permissions AiAssistantPermission[]
+  tenants AiAssistantTenant[]
+  knowledgeBases AiAssistantKnowledgeBase[]
+  conversations AiConversation[]
+  @@map("app_ai_assistants")
+}
+
+model AiAssistantPermission {
+  assistantId BigInt @map("assistant_id")
+  permissionCode String @map("permission_code") @db.VarChar(120)
+  assistant AiAssistant @relation(fields: [assistantId], references: [id], onDelete: Cascade)
+  @@id([assistantId, permissionCode])
+  @@map("app_ai_assistant_permissions")
+}
+
+model AiAssistantTenant {
+  assistantId BigInt @map("assistant_id")
+  tenantId BigInt @map("tenant_id")
+  assistant AiAssistant @relation(fields: [assistantId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@id([assistantId, tenantId])
+  @@map("app_ai_assistant_tenants")
+}
+
+model AiAssistantKnowledgeBase {
+  assistantId BigInt @map("assistant_id")
+  knowledgeBaseId BigInt @map("knowledge_base_id")
+  assistant AiAssistant @relation(fields: [assistantId], references: [id], onDelete: Cascade)
+  knowledgeBase AiKnowledgeBase @relation(fields: [knowledgeBaseId], references: [id], onDelete: Restrict)
+  @@id([assistantId, knowledgeBaseId])
+  @@map("app_ai_assistant_knowledge_bases")
+}
+
+model AiConversation {
+  id BigInt @id @default(autoincrement())
+  tenantId BigInt @map("tenant_id")
+  userId BigInt @map("user_id")
+  assistantId BigInt @map("assistant_id")
+  title String @default("新对话") @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  member TenantMembership @relation(fields: [tenantId, userId], references: [tenantId, userId], onDelete: Cascade)
+  assistant AiAssistant @relation(fields: [assistantId], references: [id], onDelete: Restrict)
+  messages AiMessage[]
+  @@unique([tenantId, id])
+  @@index([tenantId, userId, updatedAt, id])
+  @@index([updatedAt, id])
+  @@map("app_ai_conversations")
+}
+
+model AiMessage {
+  id BigInt @id @default(autoincrement())
+  tenantId BigInt @map("tenant_id")
+  conversationId BigInt @map("conversation_id")
+  sequence Int
+  requestId String @map("request_id") @db.Uuid
+  role String @db.VarChar(20)
+  content String
+  sourceRefs Json @map("source_refs")
+  status String @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  conversation AiConversation @relation(fields: [tenantId, conversationId], references: [tenantId, id], onDelete: Cascade)
+  @@unique([conversationId, sequence])
+  @@unique([requestId, role])
+  @@map("app_ai_messages")
+}
+
+model AiPolicy {
+  id Int @id @default(1)
+  conversationRetentionDays Int @default(90) @map("conversation_retention_days")
+  revision Int @default(0)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  @@map("app_ai_policy")
 }
 
 model TenantRole {

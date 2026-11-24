@@ -64,6 +64,159 @@ declare namespace BackendAPI {
     name: string;
   };
 
+  type AiAccessibleAssistantDto = {
+    id: string;
+    name: string;
+  };
+
+  type AiAccessibleAssistantListResponse = {
+    success: true;
+    data: AiAccessibleAssistantDto[];
+  };
+
+  type AiAssistantDto = {
+    id: string;
+    code: string;
+    name: string;
+    isActive: boolean;
+    isPublic: boolean;
+    permissionMode: string;
+    publicationScope: string;
+    permissions: string[];
+    tenantIds: string[];
+    knowledgeBaseIds: string[];
+    prompt: string;
+    retrievalConfig: Record<string, any>;
+    revision: number;
+  };
+
+  type AiAssistantListResponse = {
+    success: true;
+    data: AiAssistantDto[];
+    total: number;
+  };
+
+  type AiChatDto = {
+    kind: string;
+    content: string;
+    sources: AiSourceDto[];
+    strategy: string;
+    conversationId: string;
+    requestId: string;
+  };
+
+  type AiChatRequestDto = {
+    assistantId: string;
+    conversationId?: string;
+    /** 用户明确选择的指南 ID；服务端重新校验访问权限 */
+    documentId?: string;
+    question: string;
+  };
+
+  type AiChatResponse = {
+    success: true;
+    data: AiChatDto;
+  };
+
+  type AiConversationDto = {
+    id: string;
+    assistantId: string;
+    title: string;
+    updatedAt: string;
+  };
+
+  type AiConversationListResponse = {
+    success: true;
+    data: AiConversationDto[];
+    total: number;
+  };
+
+  type AiDocumentDto = {
+    id: string;
+    knowledgeBaseId: string;
+    title: string;
+    standardQuestions: string[];
+    synonyms: string[];
+    keywords: string[];
+    content: string;
+    steps: string[];
+    pageCode: string | null;
+    status: string;
+    isPublic: boolean;
+    permissionMode: string;
+    permissions: string[];
+    version: number;
+    revision: number;
+  };
+
+  type AiDocumentListResponse = {
+    success: true;
+    data: AiDocumentDto[];
+    total: number;
+  };
+
+  type AiKnowledgeBaseDto = {
+    id: string;
+    code: string;
+    name: string;
+    description: string;
+    isActive: boolean;
+    revision: number;
+  };
+
+  type AiKnowledgeBaseListResponse = {
+    success: true;
+    data: AiKnowledgeBaseDto[];
+    total: number;
+  };
+
+  type AiMessageDto = {
+    id: string;
+    role: string;
+    content: string;
+    status: string;
+    sources: AiSourceDto[];
+  };
+
+  type AiMessageListResponse = {
+    success: true;
+    data: AiMessageDto[];
+    total: number;
+  };
+
+  type AiOptionDto = {
+    value: string;
+    label: string;
+  };
+
+  type AiOptionsDto = {
+    permissions: AiOptionDto[];
+    pages: AiOptionDto[];
+  };
+
+  type AiOptionsResponse = {
+    success: true;
+    data: AiOptionsDto;
+  };
+
+  type AiPolicyDto = {
+    conversationRetentionDays: number;
+    revision: number;
+  };
+
+  type AiPolicyDtoResponse = {
+    success: true;
+    data: AiPolicyDto;
+  };
+
+  type AiSourceDto = {
+    documentId: string;
+    chunkId: string;
+    version: number;
+    title: string;
+    route: string | null;
+  };
+
   type AssignFeaturesDto = {
     featureCodes: string[];
   };
@@ -160,6 +313,42 @@ declare namespace BackendAPI {
   type cleanupMqttMessagesParams = {
     /** 仅清理该租户，省略表示全部 */
     tenantId?: string;
+  };
+
+  type CreateAiAssistantDto = {
+    code: string;
+    name: string;
+    isActive: boolean;
+    publicationScope: "none" | "all" | "selected";
+    tenantIds: string[];
+    knowledgeBaseIds: string[];
+    prompt: string;
+    retrievalConfig: Record<string, any>;
+    isPublic: boolean;
+    permissionMode: "ALL" | "ANY";
+    permissions: string[];
+  };
+
+  type CreateAiDocumentDto = {
+    knowledgeBaseId: string;
+    title: string;
+    standardQuestions: string[];
+    synonyms: string[];
+    keywords: string[];
+    content: string;
+    steps: string[];
+    pageCode?: string;
+    status: "draft" | "published" | "disabled";
+    isPublic: boolean;
+    permissionMode: "ALL" | "ANY";
+    permissions: string[];
+  };
+
+  type CreateAiKnowledgeBaseDto = {
+    code: string;
+    name: string;
+    description: string;
+    isActive: boolean;
   };
 
   type CreateDepartmentDto = {
@@ -347,6 +536,26 @@ declare namespace BackendAPI {
   type CurrentUserResponseDto = {
     success: true;
     data: CurrentUserDto;
+  };
+
+  type deleteAiAssistantParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type deleteAiConversationParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type deleteAiDocumentParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type deleteAiKnowledgeBaseParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
   };
 
   type deleteDepartmentParams = {
@@ -658,6 +867,33 @@ declare namespace BackendAPI {
     pageSize?: number;
     type?: "notice" | "announcement";
     status?: "all" | "unread" | "read";
+  };
+
+  type listAiAssistantsParams = {
+    current?: number;
+    pageSize?: number;
+  };
+
+  type listAiConversationsParams = {
+    current?: number;
+    pageSize?: number;
+  };
+
+  type listAiDocumentsParams = {
+    current?: number;
+    pageSize?: number;
+  };
+
+  type listAiKnowledgeBasesParams = {
+    current?: number;
+    pageSize?: number;
+  };
+
+  type listAiMessagesParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+    current?: number;
+    pageSize?: number;
   };
 
   type listDictionariesParams = {
@@ -1705,6 +1941,65 @@ declare namespace BackendAPI {
 
   type UpdateAccountProfileDto = {
     name: string;
+  };
+
+  type UpdateAiAssistantDto = {
+    code: string;
+    name: string;
+    isActive: boolean;
+    publicationScope: "none" | "all" | "selected";
+    tenantIds: string[];
+    knowledgeBaseIds: string[];
+    prompt: string;
+    retrievalConfig: Record<string, any>;
+    isPublic: boolean;
+    permissionMode: "ALL" | "ANY";
+    permissions: string[];
+    revision: number;
+  };
+
+  type updateAiAssistantParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type UpdateAiDocumentDto = {
+    knowledgeBaseId: string;
+    title: string;
+    standardQuestions: string[];
+    synonyms: string[];
+    keywords: string[];
+    content: string;
+    steps: string[];
+    pageCode?: string;
+    status: "draft" | "published" | "disabled";
+    isPublic: boolean;
+    permissionMode: "ALL" | "ANY";
+    permissions: string[];
+    revision: number;
+  };
+
+  type updateAiDocumentParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type UpdateAiKnowledgeBaseDto = {
+    code: string;
+    name: string;
+    description: string;
+    isActive: boolean;
+    revision: number;
+  };
+
+  type updateAiKnowledgeBaseParams = {
+    /** 64 位正整数 ID，以字符串传输 */
+    id: string;
+  };
+
+  type UpdateAiPolicyDto = {
+    conversationRetentionDays: number;
+    revision: number;
   };
 
   type UpdateAuditPolicyDto = {

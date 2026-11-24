@@ -1,4 +1,8 @@
 export default {
+  'menu.platform.ai-knowledge-bases': '知识库',
+  'menu.platform.ai-documents': '操作指南',
+  'menu.platform.ai-assistants': '助手配置',
+  'menu.platform.ai-policy': '会话保留',
   'menu.tenant-departments': '部门管理',
   'menu.tenant-positions': '岗位管理',
   'menu.platform.dictionaries': '平台字典',
