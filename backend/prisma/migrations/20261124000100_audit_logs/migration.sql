@@ -66,4 +66,3 @@ INSERT INTO "app_menus" ("code","parent_code","kind","path","name","icon","sort_
 INSERT INTO "app_menus" ("code","parent_code","kind","path","name","icon","sort_order","scope","min_role","feature_code") VALUES ('tenant-audit-operation','tenant-audit','page','/tenant/audit/operation-logs','操作日志','profile',10,'tenant','user','audit');
 INSERT INTO "app_menus" ("code","parent_code","kind","path","name","icon","sort_order","scope","min_role","feature_code") VALUES ('tenant-audit-login','tenant-audit','page','/tenant/audit/login-logs','登录日志','profile',20,'tenant','user','audit');
 COMMIT;
-
